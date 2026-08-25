@@ -47,7 +47,7 @@ export default function WorkspaceHomePage() {
         <button
           onClick={handleCreatePage}
           disabled={!activeWorkspace}
-          className="flex items-center gap-2 px-4 py-2 rounded-codex-md text-sm font-medium bg-codex-accent text-white hover:opacity-90 transition-opacity shrink-0"
+          className="flex items-center gap-2 px-4 py-2 rounded-codex-md text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 transition-opacity shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>New Page</span>
@@ -101,7 +101,7 @@ export default function WorkspaceHomePage() {
             </p>
             <button
               onClick={handleCreatePage}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-codex-md text-xs font-medium bg-codex-accent text-white hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-codex-md text-xs font-medium bg-codex-accent text-codex-background hover:opacity-90 transition-opacity"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create page</span>

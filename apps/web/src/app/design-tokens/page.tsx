@@ -22,8 +22,8 @@ export default function DesignTokensPage() {
             <ColorSwatch name="Sidebar" variable="bg-codex-sidebar" border />
             <ColorSwatch name="Surface" variable="bg-codex-surface" border />
             <ColorSwatch name="Border" variable="bg-codex-border" />
-            <ColorSwatch name="Accent" variable="bg-codex-accent" text="text-white" />
-            <ColorSwatch name="Muted" variable="bg-codex-muted" text="text-white" />
+            <ColorSwatch name="Accent" variable="bg-codex-accent" text="text-codex-background" />
+            <ColorSwatch name="Muted" variable="bg-codex-muted" text="text-codex-background" />
           </div>
         </section>
 
@@ -101,7 +101,7 @@ export default function DesignTokensPage() {
                   <button className="px-3 py-1.5 bg-codex-surface border border-codex-border rounded-codex-md text-sm font-medium hover:bg-codex-border/30 transition-colors">
                     Discard
                   </button>
-                  <button className="px-3 py-1.5 bg-codex-accent text-white rounded-codex-md text-sm font-medium hover:opacity-90 transition-opacity">
+                  <button className="px-3 py-1.5 bg-codex-accent text-codex-background rounded-codex-md text-sm font-medium hover:opacity-90 transition-opacity">
                     Save Changes
                   </button>
                 </div>

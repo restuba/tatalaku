@@ -33,10 +33,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+    <div className="bg-codex-background rounded-codex-2xl border border-codex-border p-8">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Create your account</h1>
-        <p className="mt-1 text-sm text-gray-500">Start building your workspace today</p>
+        <h1 className="text-2xl font-semibold text-codex-foreground">Create your account</h1>
+        <p className="mt-1 text-sm text-codex-muted">Start building your workspace today</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4" id="register-form">
@@ -52,7 +52,7 @@ export default function RegisterPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+            className="w-full rounded-codex-lg border border-codex-border px-3 py-2 text-sm outline-none focus:border-codex-border focus:ring-2 focus:ring-codex-border/20 transition"
           />
         </div>
 
@@ -68,7 +68,7 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+            className="w-full rounded-codex-lg border border-codex-border px-3 py-2 text-sm outline-none focus:border-codex-border focus:ring-2 focus:ring-codex-border/20 transition"
           />
         </div>
 
@@ -88,12 +88,15 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="At least 8 characters"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+            className="w-full rounded-codex-lg border border-codex-border px-3 py-2 text-sm outline-none focus:border-codex-border focus:ring-2 focus:ring-codex-border/20 transition"
           />
         </div>
 
         {error && (
-          <p role="alert" className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+          <p
+            role="alert"
+            className="text-sm text-codex-danger bg-codex-danger-bg rounded-codex-lg px-3 py-2"
+          >
             {error}
           </p>
         )}
@@ -102,15 +105,15 @@ export default function RegisterPage() {
           id="register-submit"
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium text-sm py-2.5 transition"
+          className="w-full rounded-codex-lg bg-codex-accent hover:bg-codex-accent disabled:opacity-60 text-codex-background font-medium text-sm py-2.5 transition"
         >
           {isLoading ? "Creating account…" : "Create account"}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-500">
+      <p className="mt-6 text-center text-sm text-codex-muted">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-blue-600 hover:underline">
+        <Link href="/login" className="font-medium text-codex-info hover:underline">
           Sign in
         </Link>
       </p>

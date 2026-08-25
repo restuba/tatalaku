@@ -25,7 +25,7 @@ export const Toggle = Node.create({
       [
         "div",
         {
-          class: "pl-4 pt-1 border-l border-neutral-200 dark:border-neutral-800 ml-1.5 mt-1",
+          class: "pl-4 pt-1 border-l border-codex-border dark:border-codex-border ml-1.5 mt-1",
         },
         0,
       ],

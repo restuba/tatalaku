@@ -149,7 +149,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
         </button>
 
         {isOpen && (
-          <div className="absolute left-0 mt-1 w-32 bg-codex-surface border border-codex-border rounded-codex-md shadow-lg py-1 text-sm">
+          <div className="absolute left-0 mt-1 w-32 bg-codex-surface border border-codex-border rounded-codex-md py-1 text-sm">
             <button
               onClick={duplicateNode}
               className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
@@ -159,7 +159,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
             </button>
             <button
               onClick={deleteNode}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-red-500/10 text-red-500"
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-danger-bg/10 text-codex-danger"
             >
               <Trash2 className="w-4 h-4" />
               Delete

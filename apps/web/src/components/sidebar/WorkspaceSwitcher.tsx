@@ -89,7 +89,7 @@ export function WorkspaceSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-codex-surface border border-codex-border rounded-codex-xl shadow-xl p-1.5 min-w-[240px] animate-in fade-in-0 zoom-in-95 duration-100">
+        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-codex-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[240px] animate-in fade-in-0 zoom-in-95 duration-100">
           <div className="px-2 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
             Workspaces
           </div>
@@ -123,7 +123,7 @@ export function WorkspaceSwitcher() {
                             setIsOpen(false);
                             setIsMembersModalOpen(true);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-blue-500 rounded transition-all"
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-codex-info rounded transition-all"
                           title="View members"
                         >
                           <Users className="w-3.5 h-3.5" />
@@ -136,7 +136,7 @@ export function WorkspaceSwitcher() {
                         setIsInviting(isInviting === ws.id ? null : ws.id);
                         setInviteEmail("");
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-blue-500 rounded transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-codex-info rounded transition-all"
                       title="Invite member"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
@@ -144,7 +144,7 @@ export function WorkspaceSwitcher() {
                     {workspaces.length > 1 && (
                       <button
                         onClick={(e) => handleDeleteWorkspace(ws.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 rounded transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-codex-danger rounded transition-all"
                         title="Delete workspace"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -173,7 +173,7 @@ export function WorkspaceSwitcher() {
                       <button
                         type="submit"
                         disabled={!inviteEmail.trim()}
-                        className="px-2 py-1 text-xs font-medium bg-codex-accent hover:opacity-90 text-white rounded-codex-sm disabled:opacity-50 transition-colors"
+                        className="px-2 py-1 text-xs font-medium bg-codex-accent hover:opacity-90 text-codex-background rounded-codex-sm disabled:opacity-50 transition-colors"
                       >
                         Send
                       </button>
@@ -206,7 +206,7 @@ export function WorkspaceSwitcher() {
                   <button
                     type="submit"
                     disabled={!newWorkspaceName.trim()}
-                    className="px-2.5 py-1 text-xs font-medium bg-codex-accent text-white rounded-codex-md disabled:opacity-50"
+                    className="px-2.5 py-1 text-xs font-medium bg-codex-accent text-codex-background rounded-codex-md disabled:opacity-50"
                   >
                     Create
                   </button>

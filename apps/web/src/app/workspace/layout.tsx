@@ -75,7 +75,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   if (isWsInit && workspaces.length === 0) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-codex-surface border border-codex-border rounded-codex-2xl shadow-xl p-8 text-center animate-in fade-in zoom-in-95 duration-200">
+        <div className="max-w-md w-full bg-codex-surface border border-codex-border rounded-codex-2xl p-8 text-center animate-in fade-in zoom-in-95 duration-200">
           <div className="w-12 h-12 bg-codex-background border border-codex-border rounded-codex-xl flex items-center justify-center mx-auto mb-4 text-codex-foreground">
             <Sparkles className="w-6 h-6" />
           </div>
@@ -96,7 +96,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             <button
               type="submit"
               disabled={!initialWorkspaceName.trim() || isCreatingFirstWs}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-codex-xl text-sm font-medium bg-codex-accent text-white hover:opacity-90 disabled:opacity-50 transition-all"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 disabled:opacity-50 transition-all"
             >
               {isCreatingFirstWs ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

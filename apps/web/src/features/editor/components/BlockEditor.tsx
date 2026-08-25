@@ -185,7 +185,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
             </span>
           )}
           {saveStatus === "error" && (
-            <span className="flex items-center gap-1 text-red-500">
+            <span className="flex items-center gap-1 text-codex-danger">
               <Cloud className="w-3.5 h-3.5" />
               <span>Failed to save</span>
             </span>

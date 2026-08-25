@@ -94,7 +94,7 @@ function PageDetail({ page }: { page: Page }) {
         <div className="flex items-center gap-1 shrink-0 ml-4">
           <button
             onClick={handleArchive}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs text-codex-muted hover:text-red-500 hover:bg-red-500/10 rounded-codex-sm transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-codex-muted hover:text-codex-danger hover:bg-codex-danger-bg/10 rounded-codex-sm transition-colors"
             title="Archive page"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -126,7 +126,7 @@ function PageDetail({ page }: { page: Page }) {
           )}
 
           {isEmojiPickerOpen && (
-            <div className="absolute left-0 top-full mt-2 z-50 bg-codex-surface border border-codex-border rounded-codex-xl shadow-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute left-0 top-full mt-2 z-50 bg-codex-surface border border-codex-border rounded-codex-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
               <div className="text-[11px] font-semibold text-codex-muted uppercase tracking-wider mb-2">
                 Select Icon
               </div>
@@ -144,7 +144,7 @@ function PageDetail({ page }: { page: Page }) {
               {icon && (
                 <button
                   onClick={() => handleSelectIcon(null)}
-                  className="w-full text-center text-xs text-red-500 hover:underline mt-2 pt-2 border-t border-codex-border"
+                  className="w-full text-center text-xs text-codex-danger hover:underline mt-2 pt-2 border-t border-codex-border"
                 >
                   Remove icon
                 </button>

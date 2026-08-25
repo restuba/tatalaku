@@ -20,6 +20,12 @@
   --codex-border: #E5E5E5;
   --codex-accent: #CC7D5E;
   --codex-muted: #888888;
+  --codex-danger: #EF4444;
+  --codex-danger-bg: #FEE2E2;
+  --codex-success: #22C55E;
+  --codex-success-bg: #DCFCE7;
+  --codex-info: #3B82F6;
+  --codex-info-bg: #DBEAFE;
 }
 
 @theme inline {
@@ -34,6 +40,12 @@
   --color-codex-border: var(--codex-border);
   --color-codex-accent: var(--codex-accent);
   --color-codex-muted: var(--codex-muted);
+  --color-codex-danger: var(--codex-danger);
+  --color-codex-danger-bg: var(--codex-danger-bg);
+  --color-codex-success: var(--codex-success);
+  --color-codex-success-bg: var(--codex-success-bg);
+  --color-codex-info: var(--codex-info);
+  --color-codex-info-bg: var(--codex-info-bg);
   
   /* Border Radius */
   --radius-codex-sm: 0.375rem;
@@ -59,6 +71,12 @@
     --codex-border: #333333;
     --codex-accent: #CC7D5E;
     --codex-muted: #888888;
+    --codex-danger: #F87171;
+    --codex-danger-bg: #7F1D1D;
+    --codex-success: #4ADE80;
+    --codex-success-bg: #14532D;
+    --codex-info: #60A5FA;
+    --codex-info-bg: #1E3A8A;
   }
 }
 
@@ -85,7 +103,7 @@ body {
 }
 
 .tiptap p.is-editor-empty:first-child::before {
-  color: #9ca3af;
+  color: var(--codex-muted);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -155,7 +173,7 @@ body {
   width: 1rem;
   height: 1rem;
   border-radius: 0.25rem;
-  accent-color: #2563eb;
+  accent-color: var(--codex-accent);
 }
 
 .tiptap ul[data-type="taskList"] li > div {
@@ -164,35 +182,35 @@ body {
 
 .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
   text-decoration: line-through;
-  color: #9ca3af;
+  color: var(--codex-muted);
 }
 
 .tiptap blockquote {
-  border-left: 3px solid #d1d5db;
+  border-left: 3px solid var(--codex-border);
   padding-left: 1rem;
   margin: 0.75rem 0;
-  color: #4b5563;
+  color: var(--codex-muted);
   font-style: italic;
 }
 
 .dark .tiptap blockquote {
-  border-left-color: #4b5563;
-  color: #9ca3af;
+  border-left-color: var(--codex-border);
+  color: var(--codex-muted);
 }
 
 .tiptap hr {
   border: none;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--codex-border);
   margin: 1.5rem 0;
 }
 
 .dark .tiptap hr {
-  border-top-color: #262626;
+  border-top-color: var(--codex-border);
 }
 
 .tiptap pre {
-  background: #1e1e1e;
-  color: #f3f4f6;
+  background: var(--codex-surface);
+  color: var(--codex-foreground);
   font-family: var(--font-mono), monospace;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;

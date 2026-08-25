@@ -190,7 +190,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
               </button>
 
               {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 bg-codex-surface border border-codex-border rounded-codex-md shadow-xl p-1 min-w-[140px] text-xs animate-in fade-in-0 zoom-in-95 duration-100">
+                <div className="absolute right-0 top-full mt-1 z-50 bg-codex-surface border border-codex-border rounded-codex-md p-1 min-w-[140px] text-xs animate-in fade-in-0 zoom-in-95 duration-100">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -208,7 +208,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                   <button
                     type="button"
                     onClick={handleArchive}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-red-500/10 text-red-500 transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-danger-bg/10 text-codex-danger transition-colors text-left"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Delete / Archive</span>

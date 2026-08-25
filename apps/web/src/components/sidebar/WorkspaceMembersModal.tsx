@@ -42,8 +42,8 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
-      <div className="bg-codex-surface border border-codex-border w-full max-w-md rounded-codex-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-codex-foreground/50 p-4 animate-in fade-in duration-200">
+      <div className="bg-codex-surface border border-codex-border w-full max-w-md rounded-codex-2xl overflow-hidden flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between p-6 border-b border-codex-border shrink-0">
           <div>
             <h2 className="text-lg font-semibold text-codex-foreground">Workspace Members</h2>
@@ -70,7 +70,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                   className="flex items-center justify-between p-3 rounded-codex-md hover:bg-codex-background transition-colors border border-transparent hover:border-codex-border"
                 >
                   <div className="flex items-center gap-4 overflow-hidden">
-                    <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-semibold shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-codex-info-bg dark:bg-codex-info-bg/30 text-codex-info dark:text-blue-400 flex items-center justify-center text-xs font-semibold shrink-0">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -96,7 +96,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                       <button
                         onClick={() => handleRemoveMember(member.id)}
                         disabled={isRemoving === member.id}
-                        className="p-1.5 text-codex-muted hover:text-red-500 hover:bg-red-500/10 rounded-codex-sm transition-colors disabled:opacity-50"
+                        className="p-1.5 text-codex-muted hover:text-codex-danger hover:bg-codex-danger-bg/10 rounded-codex-sm transition-colors disabled:opacity-50"
                         title="Remove member"
                       >
                         <UserMinus className="w-4 h-4" />
@@ -110,7 +110,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
         </div>
 
         {!isOwner && (
-          <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border-t border-orange-100 dark:border-orange-900/30 flex gap-3 text-xs text-orange-800 dark:text-orange-300">
+          <div className="p-4 bg-codex-background dark:bg-orange-900/20 border-t border-orange-100 dark:border-orange-900/30 flex gap-3 text-xs text-orange-800 dark:text-orange-300">
             <ShieldAlert className="w-4 h-4 shrink-0" />
             <p>Only the workspace owner can remove members.</p>
           </div>

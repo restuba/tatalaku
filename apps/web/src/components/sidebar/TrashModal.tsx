@@ -22,8 +22,8 @@ export function TrashModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md bg-codex-surface border border-codex-border rounded-codex-2xl shadow-xl flex flex-col max-h-[80vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-codex-foreground/50 p-4">
+      <div className="w-full max-w-md bg-codex-surface border border-codex-border rounded-codex-2xl flex flex-col max-h-[80vh]">
         <div className="flex items-center justify-between p-6 border-b border-codex-border">
           <h2 className="text-lg font-semibold flex items-center gap-2 text-codex-foreground">
             <Trash2 className="w-5 h-5 text-codex-muted" />
@@ -59,7 +59,7 @@ export function TrashModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                   </div>
                   <button
                     onClick={() => restorePage(page.id)}
-                    className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-codex-muted hover:text-green-500 rounded-codex-sm hover:bg-green-500/10"
+                    className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-codex-muted hover:text-codex-success rounded-codex-sm hover:bg-green-500/10"
                     title="Restore"
                   >
                     <RefreshCcw className="w-4 h-4" />
