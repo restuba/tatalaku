@@ -6,7 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { ApiRequestError } from "@/lib/api";
 
-export default function LoginPage() {
+import { Suspense } from "react";
+
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const login = useAuthStore((s: ReturnType<typeof useAuthStore.getState>) => s.login);
@@ -97,5 +99,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="text-center p-8">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
