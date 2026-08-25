@@ -22,7 +22,7 @@ const BaseBlock = z.object({
   parentBlockId: z.string().nullable().optional(),
 });
 
-const TiptapNodeSchema = z.array(z.record(z.string(), z.unknown())).optional();
+const TiptapNodeSchema = z.array(z.record(z.string(), z.unknown())).nullable().optional();
 
 export const BlockSchema = z.discriminatedUnion("type", [
   BaseBlock.extend({ type: z.literal("paragraph"), content: TiptapNodeSchema }),

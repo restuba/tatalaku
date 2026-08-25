@@ -9,7 +9,7 @@ const BaseCreateBlock = z.object({
   parentBlockId: z.string().nullable().optional(),
 });
 
-const TiptapNodeSchema = z.array(z.record(z.string(), z.unknown())).optional();
+const TiptapNodeSchema = z.array(z.record(z.string(), z.unknown())).nullable().optional();
 
 export const createBlockSchema = z.discriminatedUnion("type", [
   BaseCreateBlock.extend({ type: z.literal("paragraph"), content: TiptapNodeSchema }),
