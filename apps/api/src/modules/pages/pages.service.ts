@@ -1,4 +1,4 @@
-import type { Page } from "@tatalaku/shared";
+import type { Page, PaginatedResponse } from "@tatalaku/shared";
 import { PageModel, type PageDocument } from "./pages.model.js";
 import { WorkspaceModel } from "../workspaces/workspaces.model.js";
 import { ForbiddenError, NotFoundError, ValidationError } from "../../utils/errors.js";
@@ -39,7 +39,7 @@ export class PagesService {
   /**
    * List pages in a workspace (with optional parentPageId filter and archived toggle)
    */
-  async list(userId: string, query: ListPagesQuery): Promise<Page[]> {
+  async list(userId: string, query: ListPagesQuery): Promise<PaginatedResponse<Page>> {
     await this.assertWorkspaceAccess(query.workspaceId, userId);
 
     const filter: Record<string, unknown> = {
@@ -51,8 +51,22 @@ export class PagesService {
       filter["parentPageId"] = query.parentPageId;
     }
 
-    const docs = await PageModel.find(filter).sort({ createdAt: 1 });
-    return docs.map(toPageResponse);
+    const skip = (query.page - 1) * query.limit;
+
+    const [docs, total] = await Promise.all([
+      PageModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(query.limit),
+      PageModel.countDocuments(filter),
+    ]);
+
+    return {
+      data: docs.map(toPageResponse),
+      meta: {
+        total,
+        page: query.page,
+        limit: query.limit,
+        totalPages: Math.ceil(total / query.limit),
+      },
+    };
   }
 
   /**

@@ -1,4 +1,4 @@
-import type { Workspace } from "@tatalaku/shared";
+import type { Workspace, PaginatedResponse, PaginationQuery } from "@tatalaku/shared";
 import { WorkspaceModel, type WorkspaceDocument } from "./workspaces.model.js";
 import { PageModel } from "../pages/pages.model.js";
 import { ForbiddenError, NotFoundError } from "../../utils/errors.js";
@@ -16,14 +16,26 @@ function toWorkspaceResponse(doc: WorkspaceDocument): Workspace {
 
 export class WorkspacesService {
   /**
-   * List all workspaces where user is owner or member
+   * List workspaces where user is owner or member, with pagination
    */
-  async listForUser(userId: string): Promise<Workspace[]> {
-    const docs = await WorkspaceModel.find({
-      $or: [{ ownerId: userId }, { memberIds: userId }],
-    }).sort({ createdAt: -1 });
+  async listForUser(userId: string, query: PaginationQuery): Promise<PaginatedResponse<Workspace>> {
+    const skip = (query.page - 1) * query.limit;
+    const filter = { $or: [{ ownerId: userId }, { memberIds: userId }] };
 
-    return docs.map(toWorkspaceResponse);
+    const [docs, total] = await Promise.all([
+      WorkspaceModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(query.limit),
+      WorkspaceModel.countDocuments(filter),
+    ]);
+
+    return {
+      data: docs.map(toWorkspaceResponse),
+      meta: {
+        total,
+        page: query.page,
+        limit: query.limit,
+        totalPages: Math.ceil(total / query.limit),
+      },
+    };
   }
 
   /**

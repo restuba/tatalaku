@@ -7,7 +7,7 @@ export class PagesController {
     try {
       const query = req.query as unknown as ListPagesQuery;
       const pages = await pagesService.list(req.user!.id, query);
-      res.status(200).json({ success: true, data: pages });
+      res.status(200).json({ success: true, data: pages.data, meta: pages.meta });
     } catch (err) {
       next(err);
     }

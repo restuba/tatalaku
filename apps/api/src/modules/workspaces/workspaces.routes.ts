@@ -6,6 +6,7 @@ import {
   createWorkspaceSchema,
   updateWorkspaceSchema,
   workspaceParamsSchema,
+  listWorkspacesQuerySchema,
 } from "./workspaces.validation.js";
 
 export const workspacesRouter = Router();
@@ -14,7 +15,9 @@ export const workspacesRouter = Router();
 workspacesRouter.use(authGuard);
 
 // GET /api/workspaces - List all workspaces for logged-in user
-workspacesRouter.get("/", (req, res, next) => workspacesController.list(req, res, next));
+workspacesRouter.get("/", validate(listWorkspacesQuerySchema, "query"), (req, res, next) =>
+  workspacesController.list(req, res, next),
+);
 
 // POST /api/workspaces - Create a new workspace
 workspacesRouter.post("/", validate(createWorkspaceSchema, "body"), (req, res, next) =>

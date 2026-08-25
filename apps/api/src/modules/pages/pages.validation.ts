@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PaginationQuerySchema } from "@tatalaku/shared";
 
 export const createPageSchema = z.object({
   workspaceId: z.string().min(1),
@@ -18,15 +19,16 @@ export const updatePageSchema = z.object({
 export const pageParamsSchema = z.object({
   pageId: z.string().min(1),
 });
-
-export const listPagesQuerySchema = z.object({
-  workspaceId: z.string().min(1),
-  parentPageId: z.string().nullable().optional(),
-  includeArchived: z
-    .enum(["true", "false"])
-    .transform((val) => val === "true")
-    .optional(),
-});
+export const listPagesQuerySchema = z
+  .object({
+    workspaceId: z.string().min(1),
+    parentPageId: z.string().nullable().optional(),
+    includeArchived: z
+      .enum(["true", "false"])
+      .transform((val) => val === "true")
+      .optional(),
+  })
+  .merge(PaginationQuerySchema);
 
 export type CreatePageInput = z.infer<typeof createPageSchema>;
 export type UpdatePageInput = z.infer<typeof updatePageSchema>;

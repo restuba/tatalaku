@@ -1,4 +1,4 @@
-import type { User, Workspace, Page, Block, BlockType } from "@tatalaku/shared";
+import type { User, Workspace, Page, Block, BlockType, PaginatedResponse } from "@tatalaku/shared";
 import type { AuthResponse, RefreshResponse } from "@/features/auth/auth.types";
 
 const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:5000/api";
@@ -155,7 +155,16 @@ export const api = {
   },
 
   workspaces: {
-    list: () => request<{ success: boolean; data: Workspace[] }>("/workspaces"),
+    list: (params?: { page?: number; limit?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.page) sp.set("page", params.page.toString());
+      if (params?.limit) sp.set("limit", params.limit.toString());
+      return request<{
+        success: boolean;
+        data: Workspace[];
+        meta: PaginatedResponse<Workspace>["meta"];
+      }>(`/workspaces?${sp.toString()}`);
+    },
     create: (body: { name: string }) =>
       request<{ success: boolean; data: Workspace }>("/workspaces", { method: "POST", body }),
     get: (id: string) => request<{ success: boolean; data: Workspace }>(`/workspaces/${id}`),
@@ -173,6 +182,8 @@ export const api = {
       workspaceId: string;
       parentPageId?: string | null;
       includeArchived?: boolean;
+      page?: number;
+      limit?: number;
     }) => {
       const sp = new URLSearchParams();
       sp.set("workspaceId", params.workspaceId);
@@ -182,7 +193,11 @@ export const api = {
       if (params.includeArchived) {
         sp.set("includeArchived", "true");
       }
-      return request<{ success: boolean; data: Page[] }>(`/pages?${sp.toString()}`);
+      if (params.page) sp.set("page", params.page.toString());
+      if (params.limit) sp.set("limit", params.limit.toString());
+      return request<{ success: boolean; data: Page[]; meta: PaginatedResponse<Page>["meta"] }>(
+        `/pages?${sp.toString()}`,
+      );
     },
     getChildren: (pageId: string) =>
       request<{ success: boolean; data: Page[] }>(`/pages/${pageId}/children`),

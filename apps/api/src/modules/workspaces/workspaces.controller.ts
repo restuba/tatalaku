@@ -1,11 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
+import type { PaginationQuery } from "@tatalaku/shared";
 import { workspacesService } from "./workspaces.service.js";
 
 export class WorkspacesController {
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const workspaces = await workspacesService.listForUser(req.user!.id);
-      res.status(200).json({ success: true, data: workspaces });
+      const query = req.query as unknown as PaginationQuery;
+      const workspaces = await workspacesService.listForUser(req.user!.id, query);
+      res.status(200).json({ success: true, data: workspaces.data, meta: workspaces.meta });
     } catch (err) {
       next(err);
     }
