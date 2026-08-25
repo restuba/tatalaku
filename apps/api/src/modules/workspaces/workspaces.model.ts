@@ -1,7 +1,15 @@
-import { Schema, model, type Document } from "mongoose";
+import { Schema, model, type Document, type Types } from "mongoose";
 import type { Workspace } from "@tatalaku/shared";
 
-export interface WorkspaceDocument extends Omit<Workspace, "id">, Document {}
+export interface PendingInviteSubDoc {
+  email: string;
+  token: string;
+  invitedAt: Date;
+}
+
+export interface WorkspaceDocument extends Omit<Workspace, "id" | "pendingInvites">, Document {
+  pendingInvites: Types.DocumentArray<PendingInviteSubDoc & Document>;
+}
 
 const workspaceSchema = new Schema<WorkspaceDocument>(
   {
@@ -21,6 +29,16 @@ const workspaceSchema = new Schema<WorkspaceDocument>(
       default: [],
       // Index: queries like "get workspaces where user is a member" are frequent
       index: true,
+    },
+    pendingInvites: {
+      type: [
+        {
+          email: { type: String, required: true },
+          token: { type: String, required: true },
+          invitedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
     },
   },
   {

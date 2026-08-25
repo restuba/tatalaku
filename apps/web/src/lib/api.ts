@@ -175,6 +175,29 @@ export const api = {
       }),
     delete: (id: string) =>
       request<{ success: boolean; data: null }>(`/workspaces/${id}`, { method: "DELETE" }),
+    inviteMember: (workspaceId: string, email: string) =>
+      request<{ success: boolean; data: null; message: string }>(
+        `/workspaces/${workspaceId}/invites`,
+        {
+          method: "POST",
+          body: { email },
+        },
+      ),
+    acceptInvite: (workspaceId: string, token: string) =>
+      request<{ success: boolean; data: null; message: string }>(
+        `/workspaces/${workspaceId}/invites/accept`,
+        {
+          method: "POST",
+          body: { token },
+        },
+      ),
+    removeMember: (workspaceId: string, userId: string) =>
+      request<{ success: boolean; data: null; message: string }>(
+        `/workspaces/${workspaceId}/members/${userId}`,
+        {
+          method: "DELETE",
+        },
+      ),
   },
 
   pages: {

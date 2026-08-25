@@ -111,6 +111,92 @@ export class WorkspacesService {
 
     await WorkspaceModel.findByIdAndDelete(workspaceId);
   }
+
+  /**
+   * Invite a member to the workspace
+   */
+  async inviteMember(workspaceId: string, inviterId: string, email: string): Promise<void> {
+    const doc = await WorkspaceModel.findById(workspaceId);
+    if (!doc) {
+      throw new NotFoundError("Workspace");
+    }
+
+    if (doc.ownerId !== inviterId) {
+      throw new ForbiddenError("Only the workspace owner can invite members");
+    }
+
+    // Check if already invited
+    const isInvited = doc.pendingInvites?.some((invite) => invite.email === email);
+    if (isInvited) {
+      throw new Error("User is already invited");
+    }
+
+    const crypto = await import("crypto");
+    const token = crypto.randomBytes(32).toString("hex");
+
+    doc.pendingInvites = doc.pendingInvites || [];
+    doc.pendingInvites.push({
+      email,
+      token,
+      invitedAt: new Date(),
+    });
+
+    await doc.save();
+    // Here we would typically send an email with the token link
+  }
+
+  /**
+   * Accept an invitation using the token
+   */
+  async acceptInvite(
+    workspaceId: string,
+    userId: string,
+    userEmail: string,
+    token: string,
+  ): Promise<void> {
+    const doc = await WorkspaceModel.findById(workspaceId);
+    if (!doc) {
+      throw new NotFoundError("Workspace");
+    }
+
+    const inviteIndex = (doc.pendingInvites || []).findIndex(
+      (invite) => invite.email === userEmail && invite.token === token,
+    );
+
+    if (inviteIndex === -1) {
+      throw new ForbiddenError("Invalid or expired invitation");
+    }
+
+    if (!doc.memberIds.includes(userId)) {
+      doc.memberIds.push(userId);
+    }
+
+    // Remove the pending invite
+    doc.pendingInvites.splice(inviteIndex, 1);
+
+    await doc.save();
+  }
+
+  /**
+   * Remove a member from the workspace
+   */
+  async removeMember(workspaceId: string, ownerId: string, userIdToRemove: string): Promise<void> {
+    const doc = await WorkspaceModel.findById(workspaceId);
+    if (!doc) {
+      throw new NotFoundError("Workspace");
+    }
+
+    if (doc.ownerId !== ownerId) {
+      throw new ForbiddenError("Only the workspace owner can remove members");
+    }
+
+    if (doc.ownerId === userIdToRemove) {
+      throw new ForbiddenError("Cannot remove the owner from the workspace");
+    }
+
+    doc.memberIds = doc.memberIds.filter((id) => id !== userIdToRemove);
+    await doc.save();
+  }
 }
 
 export const workspacesService = new WorkspacesService();

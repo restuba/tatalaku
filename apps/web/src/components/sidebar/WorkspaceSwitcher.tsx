@@ -2,14 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useWorkspaceStore } from "@/stores/workspace.store";
-import { ChevronDown, Plus, Check, Briefcase, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus } from "lucide-react";
 
 export function WorkspaceSwitcher() {
   const { workspaces, activeWorkspace, setActiveWorkspace, createWorkspace, deleteWorkspace } =
     useWorkspaceStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isInviting, setIsInviting] = useState<string | null>(null); // store workspace id being invited to
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -48,6 +50,19 @@ export function WorkspaceSwitcher() {
     }
   }
 
+  async function handleInvite(id: string, e: React.FormEvent) {
+    e.preventDefault();
+    if (!inviteEmail.trim()) return;
+    try {
+      await useWorkspaceStore.getState().inviteMember(id, inviteEmail.trim());
+      setInviteEmail("");
+      setIsInviting(null);
+      alert("Invitation sent successfully!");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to send invitation");
+    }
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -73,36 +88,76 @@ export function WorkspaceSwitcher() {
 
           <div className="space-y-0.5 max-h-56 overflow-y-auto">
             {workspaces.map((ws) => (
-              <div
-                key={ws.id}
-                onClick={() => {
-                  setActiveWorkspace(ws);
-                  setIsOpen(false);
-                }}
-                className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-sm cursor-pointer group transition-colors ${
-                  activeWorkspace?.id === ws.id
-                    ? "bg-neutral-100 dark:bg-neutral-800 font-medium text-neutral-900 dark:text-white"
-                    : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Briefcase className="w-4 h-4 text-neutral-400 shrink-0" />
-                  <span className="truncate">{ws.name}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {activeWorkspace?.id === ws.id && (
-                    <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                  )}
-                  {workspaces.length > 1 && (
+              <div key={ws.id} className="flex flex-col">
+                <div
+                  onClick={() => {
+                    setActiveWorkspace(ws);
+                    setIsOpen(false);
+                  }}
+                  className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-sm cursor-pointer group transition-colors ${
+                    activeWorkspace?.id === ws.id
+                      ? "bg-neutral-100 dark:bg-neutral-800 font-medium text-neutral-900 dark:text-white"
+                      : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Briefcase className="w-4 h-4 text-neutral-400 shrink-0" />
+                    <span className="truncate">{ws.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {activeWorkspace?.id === ws.id && (
+                      <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                    )}
                     <button
-                      onClick={(e) => handleDeleteWorkspace(ws.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-600 rounded transition-all"
-                      title="Delete workspace"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsInviting(isInviting === ws.id ? null : ws.id);
+                        setInviteEmail("");
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-blue-600 rounded transition-all"
+                      title="Invite member"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <UserPlus className="w-3.5 h-3.5" />
                     </button>
-                  )}
+                    {workspaces.length > 1 && (
+                      <button
+                        onClick={(e) => handleDeleteWorkspace(ws.id, e)}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-600 rounded transition-all"
+                        title="Delete workspace"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {isInviting === ws.id && (
+                  <form
+                    onSubmit={(e) => handleInvite(ws.id, e)}
+                    className="px-2 py-1.5 mb-1 bg-neutral-50 dark:bg-neutral-800/50 rounded-md border border-neutral-100 dark:border-neutral-800"
+                  >
+                    <p className="text-[10px] uppercase font-semibold text-neutral-500 mb-1.5">
+                      Invite to {ws.name}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="email"
+                        autoFocus
+                        placeholder="Email address..."
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        className="flex-1 min-w-0 px-2 py-1 text-xs rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!inviteEmail.trim()}
+                        className="px-2 py-1 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50 transition-colors"
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             ))}
           </div>

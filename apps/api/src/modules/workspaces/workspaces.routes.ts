@@ -7,6 +7,9 @@ import {
   updateWorkspaceSchema,
   workspaceParamsSchema,
   listWorkspacesQuerySchema,
+  inviteMemberSchema,
+  acceptInviteSchema,
+  removeMemberParamsSchema,
 } from "./workspaces.validation.js";
 
 export const workspacesRouter = Router();
@@ -42,4 +45,27 @@ workspacesRouter.delete(
   "/:workspaceId",
   validate(workspaceParamsSchema, "params"),
   (req, res, next) => workspacesController.delete(req, res, next),
+);
+
+// POST /api/workspaces/:workspaceId/invites - Invite a member
+workspacesRouter.post(
+  "/:workspaceId/invites",
+  validate(workspaceParamsSchema, "params"),
+  validate(inviteMemberSchema, "body"),
+  (req, res, next) => workspacesController.inviteMember(req, res, next),
+);
+
+// POST /api/workspaces/:workspaceId/invites/accept - Accept an invitation
+workspacesRouter.post(
+  "/:workspaceId/invites/accept",
+  validate(workspaceParamsSchema, "params"),
+  validate(acceptInviteSchema, "body"),
+  (req, res, next) => workspacesController.acceptInvite(req, res, next),
+);
+
+// DELETE /api/workspaces/:workspaceId/members/:userId - Remove a member
+workspacesRouter.delete(
+  "/:workspaceId/members/:userId",
+  validate(removeMemberParamsSchema, "params"),
+  (req, res, next) => workspacesController.removeMember(req, res, next),
 );

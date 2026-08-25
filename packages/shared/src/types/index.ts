@@ -9,6 +9,7 @@ import {
 
 export type User = z.infer<typeof UserSchema>;
 export type Workspace = z.infer<typeof WorkspaceSchema>;
+export type PendingInvite = NonNullable<Workspace["pendingInvites"]>[number];
 export type Page = z.infer<typeof PageSchema>;
 export type Block = z.infer<typeof BlockSchema>;
 export type BlockType = z.infer<typeof BlockTypeSchema>;

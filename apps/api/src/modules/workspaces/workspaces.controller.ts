@@ -51,6 +51,41 @@ export class WorkspacesController {
       next(err);
     }
   }
+
+  async inviteMember(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaceId = req.params["workspaceId"] as string;
+      const { email } = req.body;
+      await workspacesService.inviteMember(workspaceId, req.user!.id, email);
+      res.status(200).json({ success: true, data: null, message: "Invitation sent" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async acceptInvite(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaceId = req.params["workspaceId"] as string;
+      const { token } = req.body;
+      // We assume user is logged in and req.user has email from auth middleware
+      const userEmail = req.user!.email;
+      await workspacesService.acceptInvite(workspaceId, req.user!.id, userEmail, token);
+      res.status(200).json({ success: true, data: null, message: "Invitation accepted" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async removeMember(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaceId = req.params["workspaceId"] as string;
+      const userIdToRemove = req.params["userId"] as string;
+      await workspacesService.removeMember(workspaceId, req.user!.id, userIdToRemove);
+      res.status(200).json({ success: true, data: null, message: "Member removed" });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const workspacesController = new WorkspacesController();
