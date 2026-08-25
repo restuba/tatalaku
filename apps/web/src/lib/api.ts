@@ -1,4 +1,4 @@
-import type { User, Workspace, Page } from "@tatalaku/shared";
+import type { User, Workspace, Page, Block, BlockType } from "@tatalaku/shared";
 import type { AuthResponse, RefreshResponse } from "@/features/auth/auth.types";
 
 const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:5000/api";
@@ -207,5 +207,61 @@ export const api = {
       request<{ success: boolean; data: Page }>(`/pages/${id}`, { method: "DELETE" }),
     restore: (id: string) =>
       request<{ success: boolean; data: Page }>(`/pages/${id}/restore`, { method: "POST" }),
+    syncBlocks: (
+      pageId: string,
+      blocks: Array<{
+        id?: string;
+        type: BlockType;
+        content?: unknown;
+        order: number;
+        parentBlockId?: string | null;
+      }>,
+    ) =>
+      request<{ success: boolean; data: Block[] }>(`/pages/${pageId}/blocks`, {
+        method: "PATCH",
+        body: { blocks },
+      }),
+  },
+
+  blocks: {
+    listByPage: (pageId: string) =>
+      request<{ success: boolean; data: Block[] }>(`/blocks/page/${pageId}`),
+    create: (body: {
+      pageId: string;
+      type: BlockType;
+      content?: unknown;
+      order: number;
+      parentBlockId?: string | null;
+    }) => request<{ success: boolean; data: Block }>("/blocks", { method: "POST", body }),
+    update: (
+      id: string,
+      body: {
+        type?: BlockType;
+        content?: unknown;
+        order?: number;
+        parentBlockId?: string | null;
+      },
+    ) => request<{ success: boolean; data: Block }>(`/blocks/${id}`, { method: "PATCH", body }),
+    delete: (id: string) =>
+      request<{ success: boolean; data: null }>(`/blocks/${id}`, { method: "DELETE" }),
+    reorder: (pageId: string, blocks: Array<{ id: string; order: number }>) =>
+      request<{ success: boolean; data: Block[] }>("/blocks/reorder", {
+        method: "PATCH",
+        body: { pageId, blocks },
+      }),
+    sync: (
+      pageId: string,
+      blocks: Array<{
+        id?: string;
+        type: BlockType;
+        content?: unknown;
+        order: number;
+        parentBlockId?: string | null;
+      }>,
+    ) =>
+      request<{ success: boolean; data: Block[] }>(`/pages/${pageId}/blocks`, {
+        method: "PATCH",
+        body: { blocks },
+      }),
   },
 };

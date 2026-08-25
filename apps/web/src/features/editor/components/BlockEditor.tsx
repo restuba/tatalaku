@@ -1,0 +1,167 @@
+"use client";
+
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import Image from "@tiptap/extension-image";
+import Placeholder from "@tiptap/extension-placeholder";
+
+import { Toggle } from "../extensions/toggle";
+import { SlashCommands } from "../extensions/slash-command";
+import { blocksToTiptapDoc, tiptapDocToBlocks } from "../utils/serializer";
+import { api } from "@/lib/api";
+import { Check, Cloud, Loader2 } from "lucide-react";
+
+interface BlockEditorProps {
+  pageId: string;
+}
+
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+export function BlockEditor({ pageId }: BlockEditorProps) {
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [isLoading, setIsLoading] = useState(true);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
+
+  // Debounced auto-save function
+  const debouncedSave = useCallback(
+    (editorInstance: ReturnType<typeof useEditor>) => {
+      if (!editorInstance || isInitialLoadRef.current) return;
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      setSaveStatus("saving");
+
+      debounceTimerRef.current = setTimeout(async () => {
+        try {
+          const json = editorInstance.getJSON();
+          const blocks = tiptapDocToBlocks(json, pageId);
+          await api.pages.syncBlocks(pageId, blocks);
+          setSaveStatus("saved");
+        } catch {
+          setSaveStatus("error");
+        }
+      }, 700);
+    },
+    [pageId],
+  );
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+      }),
+      Placeholder.configure({
+        placeholder: "Type '/' for commands, or just start writing...",
+      }),
+      Toggle,
+      SlashCommands,
+    ],
+    editorProps: {
+      attributes: {
+        class:
+          "prose dark:prose-invert max-w-none focus:outline-none min-h-[400px] text-neutral-900 dark:text-neutral-100 leading-relaxed text-sm sm:text-base",
+      },
+    },
+    onUpdate: ({ editor: currentEditor }) => {
+      debouncedSave(currentEditor);
+    },
+  });
+
+  // Load existing blocks from backend
+  useEffect(() => {
+    let isMounted = true;
+    async function loadBlocks() {
+      setIsLoading(true);
+      try {
+        const res = await api.blocks.listByPage(pageId);
+        if (!isMounted) return;
+
+        const doc = blocksToTiptapDoc(res.data);
+        if (editor && !editor.isDestroyed) {
+          editor.commands.setContent(doc);
+        }
+      } catch {
+        // Handled
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+          // Allow saves after initial load
+          setTimeout(() => {
+            isInitialLoadRef.current = false;
+          }, 300);
+        }
+      }
+    }
+
+    if (editor && !editor.isDestroyed) {
+      loadBlocks();
+    }
+
+    return () => {
+      isMounted = false;
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [pageId, editor]);
+
+  return (
+    <div className="relative flex-1 flex flex-col mt-4">
+      {/* Top Floating Status Indicator */}
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-neutral-100 dark:border-neutral-800 text-xs select-none">
+        <div className="flex items-center gap-2 text-neutral-400">
+          <span className="font-mono text-[11px]">Type &apos;/&apos; to insert blocks</span>
+        </div>
+
+        <div className="flex items-center gap-1.5 font-medium">
+          {saveStatus === "saving" && (
+            <span className="flex items-center gap-1.5 text-neutral-500 animate-pulse">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Saving...</span>
+            </span>
+          )}
+          {saveStatus === "saved" && (
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <Check className="w-3.5 h-3.5" />
+              <span>Saved</span>
+            </span>
+          )}
+          {saveStatus === "error" && (
+            <span className="flex items-center gap-1 text-red-500">
+              <Cloud className="w-3.5 h-3.5" />
+              <span>Failed to save</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Editor Content Area */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-24 text-neutral-400">
+          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+          <span className="text-xs">Loading editor content...</span>
+        </div>
+      ) : (
+        <div className="min-h-[500px] cursor-text" onClick={() => editor?.commands.focus()}>
+          <EditorContent editor={editor} />
+        </div>
+      )}
+    </div>
+  );
+}

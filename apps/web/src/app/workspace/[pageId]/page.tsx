@@ -6,16 +6,8 @@ import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
-import {
-  ChevronRight,
-  FileText,
-  Plus,
-  Trash2,
-  Smile,
-  Sparkles,
-  ArrowLeft,
-  Calendar,
-} from "lucide-react";
+import { BlockEditor } from "@/features/editor/components/BlockEditor";
+import { ChevronRight, FileText, Plus, Trash2, Smile, ArrowLeft, Calendar } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
 
@@ -224,26 +216,8 @@ function PageDetail({ page }: { page: Page }) {
         </div>
       )}
 
-      {/* Editor Placeholder Container */}
-      <div className="flex-1 min-h-[300px] border border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-neutral-50/30 dark:bg-neutral-950/30 mt-4">
-        <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 mb-3">
-          <Sparkles className="w-5 h-5" />
-        </div>
-        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-          Empty page ready for blocks
-        </p>
-        <p className="text-xs text-neutral-400 max-w-sm mt-1">
-          Block-based editor (paragraphs, headings, lists, toggles, code) will be connected here in
-          the next step.
-        </p>
-        <button
-          onClick={handleAddSubpage}
-          className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add subpage</span>
-        </button>
-      </div>
+      {/* Block Editor Area */}
+      <BlockEditor pageId={page.id} />
     </div>
   );
 }

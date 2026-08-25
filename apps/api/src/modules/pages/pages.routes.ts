@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { pagesController } from "./pages.controller.js";
+import { blocksController } from "../blocks/blocks.controller.js";
 import { authGuard } from "../../middleware/auth-guard.js";
 import { validate } from "../../middleware/validate.js";
 import {
@@ -8,6 +9,7 @@ import {
   pageParamsSchema,
   listPagesQuerySchema,
 } from "./pages.validation.js";
+import { batchSyncBlocksSchema } from "../blocks/blocks.validation.js";
 
 export const pagesRouter = Router();
 
@@ -27,6 +29,19 @@ pagesRouter.post("/", validate(createPageSchema, "body"), (req, res, next) =>
 // GET /api/pages/:pageId/children - Get subpages of a page
 pagesRouter.get("/:pageId/children", validate(pageParamsSchema, "params"), (req, res, next) =>
   pagesController.getChildren(req, res, next),
+);
+
+// GET /api/pages/:pageId/blocks - Get blocks for a page
+pagesRouter.get("/:pageId/blocks", validate(pageParamsSchema, "params"), (req, res, next) =>
+  blocksController.listByPage(req, res, next),
+);
+
+// PATCH /api/pages/:pageId/blocks - Batch sync / update blocks for a page
+pagesRouter.patch(
+  "/:pageId/blocks",
+  validate(pageParamsSchema, "params"),
+  validate(batchSyncBlocksSchema, "body"),
+  (req, res, next) => blocksController.batchSync(req, res, next),
 );
 
 // GET /api/pages/:pageId - Get page details
