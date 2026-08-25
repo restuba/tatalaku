@@ -10,6 +10,7 @@ interface PageState {
   expandedPageIds: string[];
   isLoading: boolean;
   isInitialized: boolean;
+  archivedPages: Page[];
 }
 
 interface PageActions {
@@ -32,8 +33,10 @@ interface PageActions {
     },
   ) => Promise<Page>;
   archivePage: (id: string) => Promise<void>;
+  restorePage: (id: string) => Promise<void>;
   toggleExpand: (pageId: string) => void;
   setExpanded: (pageId: string, expanded: boolean) => void;
+  fetchArchivedPages: (workspaceId: string) => Promise<Page[]>;
 }
 
 export const usePageStore = create<PageState & PageActions>((set, get) => ({
@@ -42,6 +45,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   expandedPageIds: [],
   isLoading: false,
   isInitialized: false,
+  archivedPages: [],
 
   fetchPages: async (workspaceId: string) => {
     set({ isLoading: true });
@@ -160,6 +164,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   archivePage: async (id: string) => {
     const previousPages = get().pages;
     const previousActive = get().activePage;
+    const previousArchived = get().archivedPages;
 
     // Optimistically remove page and its children
     const getDescendantIds = (parentId: string, allPages: Page[]): string[] => {
@@ -168,18 +173,53 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     };
 
     const idsToRemove = new Set(getDescendantIds(id, previousPages));
+    const archivedOnes = previousPages
+      .filter((p) => idsToRemove.has(p.id))
+      .map((p) => ({ ...p, isArchived: true }));
 
     set((state) => ({
       pages: state.pages.filter((p) => !idsToRemove.has(p.id)),
       activePage: idsToRemove.has(state.activePage?.id ?? "") ? null : state.activePage,
+      archivedPages: [...state.archivedPages, ...archivedOnes],
     }));
 
     try {
       await api.pages.archive(id);
     } catch (err) {
       // Rollback
-      set({ pages: previousPages, activePage: previousActive });
+      set({ pages: previousPages, activePage: previousActive, archivedPages: previousArchived });
       throw err;
     }
+  },
+
+  restorePage: async (id: string) => {
+    const previousPages = get().pages;
+    const previousArchived = get().archivedPages;
+
+    const pageToRestore = previousArchived.find((p) => p.id === id);
+    if (!pageToRestore) return;
+
+    // Optimistically update
+    const updatedPage = { ...pageToRestore, isArchived: false };
+
+    set((state) => ({
+      archivedPages: state.archivedPages.filter((p) => p.id !== id),
+      pages: [...state.pages, updatedPage],
+    }));
+
+    try {
+      await api.pages.restore(id);
+    } catch (err) {
+      // Rollback
+      set({ pages: previousPages, archivedPages: previousArchived });
+      throw err;
+    }
+  },
+
+  fetchArchivedPages: async (workspaceId: string) => {
+    const res = await api.pages.list({ workspaceId, includeArchived: true });
+    const archivedPages = res.data.filter((p) => p.isArchived);
+    set({ archivedPages });
+    return archivedPages;
   },
 }));

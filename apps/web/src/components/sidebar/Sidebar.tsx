@@ -1,18 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { usePageStore } from "@/stores/page.store";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { PageTreeItem } from "./PageTreeItem";
-import { Plus, LogOut, FileText, Compass } from "lucide-react";
+import { Plus, LogOut, FileText, Compass, Trash2 } from "lucide-react";
+import { TrashModal } from "./TrashModal";
 
 export function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, createPage } = usePageStore();
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
 
   const rootPages = pages.filter(
     (p) => (p.parentPageId === null || p.parentPageId === undefined) && !p.isArchived,
@@ -95,6 +98,18 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* Trash Menu */}
+      <div className="px-2 py-2">
+        <button
+          onClick={() => setIsTrashOpen(true)}
+          disabled={!activeWorkspace}
+          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm text-neutral-500 dark:text-neutral-500 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-50"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>Trash</span>
+        </button>
+      </div>
+
       {/* User profile & Logout */}
       <div className="p-3 border-t border-neutral-200/60 dark:border-neutral-800/60 flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -116,6 +131,7 @@ export function Sidebar() {
           <LogOut className="w-4 h-4" />
         </button>
       </div>
+      <TrashModal isOpen={isTrashOpen} onClose={() => setIsTrashOpen(false)} />
     </aside>
   );
 }
