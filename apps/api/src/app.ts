@@ -4,6 +4,7 @@ import { env } from "./config/env.js";
 
 import express, { type Express } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import { requestLogger } from "./middleware/request-logger.js";
 import { rateLimiter } from "./middleware/rate-limiter.js";
@@ -26,6 +27,7 @@ export function createApp(): Express {
   );
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
 
   // ── Global middleware ─────────────────────────────────────────────────────────
   app.use(requestLogger);

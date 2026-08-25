@@ -1,7 +1,11 @@
 import { Schema, model, type Document } from "mongoose";
 import type { User } from "@tatalaku/shared";
 
-export interface UserDocument extends Omit<User, "id">, Document {}
+// UserDocument includes passwordHash which is intentionally NOT part of the shared User type
+// to prevent it from leaking into API responses
+export interface UserDocument extends Omit<User, "id">, Document {
+  passwordHash: string;
+}
 
 const userSchema = new Schema<UserDocument>(
   {
@@ -22,7 +26,12 @@ const userSchema = new Schema<UserDocument>(
       type: String,
       default: null,
     },
-    // passwordHash stored separately — not part of the shared User type (not exposed to clients)
+    passwordHash: {
+      type: String,
+      required: true,
+      // Never selected by default to prevent accidental exposure
+      select: false,
+    },
   },
   {
     timestamps: { createdAt: "createdAt", updatedAt: false },
