@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
-import { BlockEditor } from "@/features/editor/components/BlockEditor";
+import { BlockEditor } from "@/features/editor/components/block-editor";
 import { ChevronRight, FileText, Plus, Trash2, Smile, ArrowLeft, Calendar } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];

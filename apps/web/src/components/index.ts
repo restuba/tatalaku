@@ -1,3 +1,3 @@
-export * from "./sidebar/Sidebar";
-export * from "./sidebar/WorkspaceSwitcher";
-export * from "./sidebar/PageTreeItem";
+export * from "./sidebar";
+export * from "./sidebar/workspace-switcher";
+export * from "./sidebar/page-tree-item";

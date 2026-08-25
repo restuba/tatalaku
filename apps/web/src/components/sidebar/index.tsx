@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { usePageStore } from "@/stores/page.store";
-import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
-import { PageTreeItem } from "./PageTreeItem";
+import { WorkspaceSwitcher } from "./workspace-switcher";
+import { PageTreeItem } from "./page-tree-item";
 import { Plus, LogOut, FileText, Compass, Trash2 } from "lucide-react";
-import { TrashModal } from "./TrashModal";
-import { AppearanceModal } from "./AppearanceModal";
+import { TrashModal } from "./trash-modal";
+import { AppearanceModal } from "./appearance-modal";
 
 export function Sidebar() {
   const router = useRouter();

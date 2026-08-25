@@ -14,7 +14,7 @@ import { GlobalId } from "../extensions/global-id";
 import { blocksToTiptapDoc, tiptapDocToBlocks } from "../utils/serializer";
 import { api } from "@/lib/api";
 import type { Block } from "@tatalaku/shared";
-import { BlockMenu } from "./BlockMenu";
+import { BlockMenu } from "./block-menu";
 import { Check, Cloud, Loader2 } from "lucide-react";
 
 interface BlockEditorProps {

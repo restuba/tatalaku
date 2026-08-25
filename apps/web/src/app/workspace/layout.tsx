@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { usePageStore } from "@/stores/page.store";
-import { Sidebar } from "@/components/sidebar/Sidebar";
+import { Sidebar } from "@/components/sidebar";
 import { Loader2, Plus, Sparkles } from "lucide-react";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {

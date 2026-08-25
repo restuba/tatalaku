@@ -15,6 +15,8 @@
 
 ## Penamaan & Konvensi Umum
 
-- Penamaan file: kebab-case untuk file, PascalCase untuk komponen React, camelCase untuk fungsi/variabel.
+- Penamaan file: **kebab-case secara ketat untuk SEMUA file** (termasuk komponen React seperti `block-editor.tsx`).
+- Nama variabel komponen React di dalam file tetap menggunakan **PascalCase** (contoh: `export function BlockEditor()`).
+- Gunakan file `index.ts` atau `index.tsx` untuk mengekspor komponen utama dari sebuah folder agar impor dari luar folder lebih bersih.
 - Commit message dalam Bahasa Inggris, format singkat: `feat: ...`, `fix: ...`, `refactor: ...`.
 - Komentar kode dalam Bahasa Inggris.

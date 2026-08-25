@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus, Users } from "lucide-react";
-import { WorkspaceMembersModal } from "./WorkspaceMembersModal";
+import { WorkspaceMembersModal } from "./workspace-members-modal";
 
 export function WorkspaceSwitcher() {
   const { workspaces, activeWorkspace, setActiveWorkspace, createWorkspace, deleteWorkspace } =
