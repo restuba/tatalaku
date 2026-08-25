@@ -67,6 +67,7 @@ export function tiptapDocToBlocks(
     }
 
     return {
+      id: (node.attrs?.["id"] as string) ?? undefined,
       type,
       content,
       order: index,
@@ -86,71 +87,87 @@ export function blocksToTiptapDoc(blocks: Block[]): JSONContent {
   const content: JSONContent[] = blocks
     .sort((a, b) => a.order - b.order)
     .map((block) => {
+      let node: JSONContent;
       switch (block.type) {
         case "heading1":
-          return {
+          node = {
             type: "heading",
             attrs: { level: 1 },
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "heading2":
-          return {
+          node = {
             type: "heading",
             attrs: { level: 2 },
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "heading3":
-          return {
+          node = {
             type: "heading",
             attrs: { level: 3 },
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "bulletList":
-          return {
+          node = {
             type: "bulletList",
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "numberedList":
-          return {
+          node = {
             type: "orderedList",
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "todo":
-          return {
+          node = {
             type: "taskList",
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "toggle":
-          return {
+          node = {
             type: "toggle",
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "code":
-          return {
+          node = {
             type: "codeBlock",
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "quote":
-          return {
+          node = {
             type: "blockquote",
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
         case "divider":
-          return {
+          node = {
             type: "horizontalRule",
           };
+          break;
         case "image":
-          return {
+          node = {
             type: "image",
             attrs: (block.content as Record<string, unknown>) ?? {},
           };
+          break;
         case "paragraph":
         default:
-          return {
+          node = {
             type: "paragraph",
             content: (block.content as JSONContent[]) ?? [],
           };
+          break;
       }
+
+      node.attrs = { ...node.attrs, id: block.id };
+      return node;
     });
 
   return {

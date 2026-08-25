@@ -10,8 +10,11 @@ import Placeholder from "@tiptap/extension-placeholder";
 
 import { Toggle } from "../extensions/toggle";
 import { SlashCommands } from "../extensions/slash-command";
+import { GlobalId } from "../extensions/global-id";
 import { blocksToTiptapDoc, tiptapDocToBlocks } from "../utils/serializer";
 import { api } from "@/lib/api";
+import type { Block } from "@tatalaku/shared";
+import { BlockMenu } from "./BlockMenu";
 import { Check, Cloud, Loader2 } from "lucide-react";
 
 interface BlockEditorProps {
@@ -25,6 +28,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef(true);
+  const previousBlocksRef = useRef<Block[]>([]);
 
   // Debounced auto-save function
   const debouncedSave = useCallback(
@@ -40,8 +44,43 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
       debounceTimerRef.current = setTimeout(async () => {
         try {
           const json = editorInstance.getJSON();
-          const blocks = tiptapDocToBlocks(json, pageId);
-          await api.pages.syncBlocks(pageId, blocks);
+          const currentBlocks = tiptapDocToBlocks(json, pageId);
+          const prevBlocks = previousBlocksRef.current;
+
+          // Check if ONLY orders changed
+          let onlyOrderChanged = true;
+          const reorderedBlocks: { id: string; order: number }[] = [];
+
+          if (prevBlocks.length === currentBlocks.length) {
+            for (let i = 0; i < currentBlocks.length; i++) {
+              const curr = currentBlocks[i]!;
+              const prev = prevBlocks.find((b) => b.id === curr.id);
+
+              if (
+                !prev ||
+                JSON.stringify(prev.content) !== JSON.stringify(curr.content) ||
+                prev.type !== curr.type
+              ) {
+                onlyOrderChanged = false;
+                break;
+              }
+
+              if (prev.order !== curr.order) {
+                reorderedBlocks.push({ id: curr.id!, order: curr.order });
+              }
+            }
+          } else {
+            onlyOrderChanged = false;
+          }
+
+          if (onlyOrderChanged && reorderedBlocks.length > 0) {
+            await api.blocks.reorder(pageId, reorderedBlocks);
+          } else {
+            // Full sync for content/type changes or new/deleted blocks
+            await api.pages.syncBlocks(pageId, currentBlocks);
+          }
+
+          previousBlocksRef.current = currentBlocks as Block[];
           setSaveStatus("saved");
         } catch {
           setSaveStatus("error");
@@ -53,6 +92,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
 
   const editor = useEditor({
     extensions: [
+      GlobalId,
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
@@ -92,6 +132,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
         const res = await api.blocks.listByPage(pageId);
         if (!isMounted) return;
 
+        previousBlocksRef.current = res.data;
         const doc = blocksToTiptapDoc(res.data);
         if (editor && !editor.isDestroyed) {
           editor.commands.setContent(doc);
@@ -123,6 +164,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
 
   return (
     <div className="relative flex-1 flex flex-col mt-4">
+      <BlockMenu editor={editor} />
       {/* Top Floating Status Indicator */}
       <div className="flex items-center justify-between pb-3 mb-4 border-b border-neutral-100 dark:border-neutral-800 text-xs select-none">
         <div className="flex items-center gap-2 text-neutral-400">
