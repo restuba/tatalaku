@@ -38,22 +38,20 @@ export default function InvitePage({ params }: InvitePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-8 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md bg-codex-surface rounded-codex-2xl shadow-xl border border-codex-border p-8 text-center">
         {status === "idle" && (
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
               <AlertCircle className="w-8 h-8 text-blue-600 dark:text-blue-500" />
             </div>
-            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+            <h2 className="text-xl font-semibold text-codex-foreground mb-2">
               Workspace Invitation
             </h2>
-            <p className="text-neutral-500 dark:text-neutral-400 mb-6">
-              You have been invited to join a workspace.
-            </p>
+            <p className="text-codex-muted mb-6">You have been invited to join a workspace.</p>
             <button
               onClick={handleAccept}
-              className="px-6 py-2 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              className="px-6 py-2 w-full bg-codex-accent hover:opacity-90 text-white rounded-codex-xl font-medium transition-opacity"
             >
               Accept Invitation
             </button>
@@ -62,13 +60,11 @@ export default function InvitePage({ params }: InvitePageProps) {
 
         {status === "loading" && (
           <div className="flex flex-col items-center">
-            <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-500 animate-spin mb-4" />
-            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+            <Loader2 className="w-12 h-12 text-codex-accent animate-spin mb-4" />
+            <h2 className="text-xl font-semibold text-codex-foreground mb-2">
               Accepting Invitation
             </h2>
-            <p className="text-neutral-500 dark:text-neutral-400">
-              Please wait while we add you to the workspace...
-            </p>
+            <p className="text-codex-muted">Please wait while we add you to the workspace...</p>
           </div>
         )}
 
@@ -77,12 +73,10 @@ export default function InvitePage({ params }: InvitePageProps) {
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-500" />
             </div>
-            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+            <h2 className="text-xl font-semibold text-codex-foreground mb-2">
               Invitation Accepted!
             </h2>
-            <p className="text-neutral-500 dark:text-neutral-400">
-              Redirecting you to your workspace...
-            </p>
+            <p className="text-codex-muted">Redirecting you to your workspace...</p>
           </div>
         )}
 
@@ -91,13 +85,11 @@ export default function InvitePage({ params }: InvitePageProps) {
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
               <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-500" />
             </div>
-            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              Invitation Failed
-            </h2>
+            <h2 className="text-xl font-semibold text-codex-foreground mb-2">Invitation Failed</h2>
             <p className="text-red-600 dark:text-red-400 mb-6">{errorMessage}</p>
             <button
               onClick={() => router.push("/workspace")}
-              className="px-6 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+              className="px-6 py-2 bg-codex-accent hover:opacity-90 text-white rounded-codex-xl font-medium transition-opacity"
             >
               Go to Dashboard
             </button>

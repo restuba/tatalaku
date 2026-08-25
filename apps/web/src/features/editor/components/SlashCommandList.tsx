@@ -171,15 +171,15 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
 
     if (props.items.length === 0) {
       return (
-        <div className="z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-2xl p-2 min-w-[240px] text-xs text-neutral-400">
+        <div className="z-50 bg-codex-surface border border-codex-border rounded-codex-xl shadow-2xl p-2 min-w-[240px] text-xs text-codex-muted">
           No matching blocks
         </div>
       );
     }
 
     return (
-      <div className="z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-2xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-        <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
+      <div className="z-50 bg-codex-surface border border-codex-border rounded-codex-xl shadow-2xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+        <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-codex-muted">
           Basic blocks
         </div>
         <div className="space-y-0.5">
@@ -191,24 +191,26 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
                 key={item.title}
                 type="button"
                 onClick={() => props.command(item)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-left transition-colors ${
                   isSelected
-                    ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white"
-                    : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                    ? "bg-codex-background border border-codex-border text-codex-foreground"
+                    : "text-codex-muted hover:bg-codex-background hover:text-codex-foreground border border-transparent"
                 }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border ${
+                  className={`w-7 h-7 rounded-codex-sm flex items-center justify-center shrink-0 border ${
                     isSelected
-                      ? "bg-white dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600 text-neutral-900 dark:text-white"
-                      : "bg-neutral-50 dark:bg-neutral-800/60 border-neutral-200 dark:border-neutral-700 text-neutral-500"
+                      ? "bg-codex-surface border-codex-border text-codex-foreground"
+                      : "bg-codex-background border-transparent text-codex-muted"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium truncate">{item.title}</p>
-                  <p className="text-[11px] text-neutral-400 truncate">{item.description}</p>
+                  <p className="text-[11px] text-codex-muted truncate opacity-80">
+                    {item.description}
+                  </p>
                 </div>
               </button>
             );

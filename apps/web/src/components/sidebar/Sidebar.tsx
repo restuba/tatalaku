@@ -40,9 +40,9 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-64 h-screen bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200/80 dark:border-neutral-800/80 flex flex-col select-none shrink-0 transition-all">
+    <aside className="w-64 h-screen bg-codex-sidebar border-r border-codex-border flex flex-col select-none shrink-0 transition-all">
       {/* Top: Workspace Selector */}
-      <div className="p-3 border-b border-neutral-200/60 dark:border-neutral-800/60">
+      <div className="p-3 border-b border-codex-border/50">
         <WorkspaceSwitcher />
       </div>
 
@@ -50,29 +50,29 @@ export function Sidebar() {
       <div className="p-2 space-y-1">
         <button
           onClick={() => router.push("/workspace")}
-          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/50 hover:text-codex-foreground transition-colors"
         >
-          <Compass className="w-4 h-4 text-neutral-500" />
+          <Compass className="w-4 h-4" />
           <span>Workspace Home</span>
         </button>
         <button
           onClick={handleCreateTopLevelPage}
           disabled={!activeWorkspace}
-          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-50"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/50 hover:text-codex-foreground transition-colors disabled:opacity-50"
         >
-          <Plus className="w-4 h-4 text-neutral-500" />
+          <Plus className="w-4 h-4" />
           <span>Add a page</span>
         </button>
       </div>
 
       {/* Pages Section */}
       <div className="flex-1 overflow-y-auto px-2 py-2">
-        <div className="flex items-center justify-between px-2.5 py-1 text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
+        <div className="flex items-center justify-between px-3 py-2 text-xs font-semibold text-codex-muted uppercase tracking-wider mb-1">
           <span>Pages</span>
           <button
             onClick={handleCreateTopLevelPage}
             disabled={!activeWorkspace}
-            className="p-0.5 hover:text-neutral-800 dark:hover:text-neutral-200 rounded transition-colors"
+            className="p-0.5 hover:text-codex-foreground rounded-codex-sm transition-colors"
             title="Create page"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -84,12 +84,12 @@ export function Sidebar() {
             rootPages.map((page) => <PageTreeItem key={page.id} page={page} level={0} />)
           ) : (
             <div className="px-3 py-4 text-center">
-              <FileText className="w-6 h-6 text-neutral-300 dark:text-neutral-700 mx-auto mb-1.5" />
-              <p className="text-xs text-neutral-400">No pages yet</p>
+              <FileText className="w-6 h-6 text-codex-muted/50 mx-auto mb-1.5" />
+              <p className="text-xs text-codex-muted">No pages yet</p>
               <button
                 onClick={handleCreateTopLevelPage}
                 disabled={!activeWorkspace}
-                className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                className="mt-2 text-xs text-codex-accent hover:underline font-medium"
               >
                 + Create first page
               </button>
@@ -99,11 +99,11 @@ export function Sidebar() {
       </div>
 
       {/* Trash Menu */}
-      <div className="px-2 py-2">
+      <div className="px-2 py-2 border-t border-codex-border/30">
         <button
           onClick={() => setIsTrashOpen(true)}
           disabled={!activeWorkspace}
-          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm text-neutral-500 dark:text-neutral-500 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-50"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/50 hover:text-codex-foreground transition-colors disabled:opacity-50"
         >
           <Trash2 className="w-4 h-4" />
           <span>Trash</span>
@@ -111,21 +111,21 @@ export function Sidebar() {
       </div>
 
       {/* User profile & Logout */}
-      <div className="p-3 border-t border-neutral-200/60 dark:border-neutral-800/60 flex items-center justify-between">
+      <div className="p-3 border-t border-codex-border/50 flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 flex items-center justify-center text-xs font-semibold shrink-0">
+          <div className="w-7 h-7 rounded-full bg-codex-surface border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-semibold shrink-0">
             {user?.name?.charAt(0).toUpperCase() || "U"}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-neutral-800 dark:text-neutral-200 truncate">
+            <p className="text-xs font-medium text-codex-foreground truncate">
               {user?.name || "User"}
             </p>
-            <p className="text-[10px] text-neutral-400 truncate">{user?.email}</p>
+            <p className="text-[10px] text-codex-muted truncate">{user?.email}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="p-1.5 text-neutral-400 hover:text-red-600 rounded-lg hover:bg-neutral-200/60 dark:hover:bg-neutral-800 transition-colors shrink-0"
+          className="p-1.5 text-codex-muted hover:text-red-500 rounded-codex-md hover:bg-codex-surface/50 transition-colors shrink-0"
           title="Sign out"
         >
           <LogOut className="w-4 h-4" />

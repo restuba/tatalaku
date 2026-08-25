@@ -23,43 +23,43 @@ export function TrashModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-xl shadow-xl flex flex-col max-h-[80vh]">
-        <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800">
-          <h2 className="text-lg font-semibold flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
-            <Trash2 className="w-5 h-5 text-neutral-500" />
+      <div className="w-full max-w-md bg-codex-surface border border-codex-border rounded-codex-2xl shadow-xl flex flex-col max-h-[80vh]">
+        <div className="flex items-center justify-between p-6 border-b border-codex-border">
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-codex-foreground">
+            <Trash2 className="w-5 h-5 text-codex-muted" />
             Trash
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500"
+            className="p-1.5 rounded-codex-sm hover:bg-codex-background text-codex-muted hover:text-codex-foreground transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
-            <p className="text-sm text-neutral-500 text-center py-8">Loading...</p>
+            <p className="text-sm text-codex-muted text-center py-8">Loading...</p>
           ) : archivedPages.length === 0 ? (
-            <div className="text-center py-10 px-4 text-neutral-400">
+            <div className="text-center py-10 px-4 text-codex-muted">
               <Trash2 className="w-8 h-8 mx-auto mb-3 opacity-20" />
               <p className="text-sm">Tidak ada page di trash</p>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-2">
               {archivedPages.map((page) => (
                 <div
                   key={page.id}
-                  className="flex items-center justify-between p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg group"
+                  className="flex items-center justify-between p-3 hover:bg-codex-background rounded-codex-md group transition-colors"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="w-4 h-4 text-neutral-400 shrink-0" />
-                    <span className="text-sm truncate text-neutral-700 dark:text-neutral-300">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FileText className="w-4 h-4 text-codex-muted shrink-0" />
+                    <span className="text-sm truncate text-codex-foreground">
                       {page.title || "Untitled"}
                     </span>
                   </div>
                   <button
                     onClick={() => restorePage(page.id)}
-                    className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-neutral-500 hover:text-green-600 dark:hover:text-green-400 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                    className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-codex-muted hover:text-green-500 rounded-codex-sm hover:bg-green-500/10"
                     title="Restore"
                   >
                     <RefreshCcw className="w-4 h-4" />

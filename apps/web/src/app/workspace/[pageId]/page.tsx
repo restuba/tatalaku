@@ -69,27 +69,24 @@ function PageDetail({ page }: { page: Page }) {
   return (
     <div className="flex-1 flex flex-col max-w-4xl w-full mx-auto p-6 sm:p-12">
       {/* Top Bar / Breadcrumb & Actions */}
-      <div className="flex items-center justify-between text-xs text-neutral-500 mb-8 select-none">
+      <div className="flex items-center justify-between text-xs text-codex-muted mb-8 select-none">
         <div className="flex items-center gap-1.5 flex-wrap truncate">
-          <Link
-            href="/workspace"
-            className="hover:text-neutral-900 dark:hover:text-white transition-colors"
-          >
+          <Link href="/workspace" className="hover:text-codex-foreground transition-colors">
             {activeWorkspace?.name || "Workspace"}
           </Link>
           {breadcrumbs.map((b) => (
             <div key={b.id} className="flex items-center gap-1.5">
-              <ChevronRight className="w-3 h-3 text-neutral-400 shrink-0" />
+              <ChevronRight className="w-3 h-3 text-codex-muted shrink-0" />
               <Link
                 href={`/workspace/${b.id}`}
-                className="hover:text-neutral-900 dark:hover:text-white truncate max-w-[120px] transition-colors"
+                className="hover:text-codex-foreground truncate max-w-[120px] transition-colors"
               >
                 {b.title || "Untitled"}
               </Link>
             </div>
           ))}
-          <ChevronRight className="w-3 h-3 text-neutral-400 shrink-0" />
-          <span className="text-neutral-800 dark:text-neutral-200 font-medium truncate max-w-[160px]">
+          <ChevronRight className="w-3 h-3 text-codex-muted shrink-0" />
+          <span className="text-codex-foreground font-medium truncate max-w-[160px]">
             {page.title || "Untitled"}
           </span>
         </div>
@@ -97,7 +94,7 @@ function PageDetail({ page }: { page: Page }) {
         <div className="flex items-center gap-1 shrink-0 ml-4">
           <button
             onClick={handleArchive}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-codex-muted hover:text-red-500 hover:bg-red-500/10 rounded-codex-sm transition-colors"
             title="Archive page"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -113,7 +110,7 @@ function PageDetail({ page }: { page: Page }) {
           {icon ? (
             <button
               onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-              className="text-4xl hover:opacity-80 transition-opacity p-1 -ml-1 rounded-lg"
+              className="text-4xl hover:opacity-80 transition-opacity p-1 -ml-1 rounded-codex-sm"
               title="Change icon"
             >
               {icon}
@@ -121,7 +118,7 @@ function PageDetail({ page }: { page: Page }) {
           ) : (
             <button
               onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-              className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 py-1 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-codex-muted hover:text-codex-foreground py-1 rounded-codex-sm transition-colors"
             >
               <Smile className="w-4 h-4" />
               <span>Add icon</span>
@@ -129,8 +126,8 @@ function PageDetail({ page }: { page: Page }) {
           )}
 
           {isEmojiPickerOpen && (
-            <div className="absolute left-0 top-full mt-2 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
-              <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+            <div className="absolute left-0 top-full mt-2 z-50 bg-codex-surface border border-codex-border rounded-codex-xl shadow-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
+              <div className="text-[11px] font-semibold text-codex-muted uppercase tracking-wider mb-2">
                 Select Icon
               </div>
               <div className="grid grid-cols-6 gap-1.5">
@@ -138,7 +135,7 @@ function PageDetail({ page }: { page: Page }) {
                   <button
                     key={emoji}
                     onClick={() => handleSelectIcon(emoji)}
-                    className="w-8 h-8 flex items-center justify-center text-lg rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    className="w-8 h-8 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-background transition-colors"
                   >
                     {emoji}
                   </button>
@@ -147,7 +144,7 @@ function PageDetail({ page }: { page: Page }) {
               {icon && (
                 <button
                   onClick={() => handleSelectIcon(null)}
-                  className="w-full text-center text-xs text-red-500 hover:underline mt-2 pt-2 border-t border-neutral-100 dark:border-neutral-800"
+                  className="w-full text-center text-xs text-red-500 hover:underline mt-2 pt-2 border-t border-codex-border"
                 >
                   Remove icon
                 </button>
@@ -170,11 +167,11 @@ function PageDetail({ page }: { page: Page }) {
               titleInputRef.current?.blur();
             }
           }}
-          className="w-full text-4xl font-bold bg-transparent text-neutral-950 dark:text-white placeholder-neutral-300 dark:placeholder-neutral-700 outline-none resize-none border-none p-0 tracking-tight leading-tight"
+          className="w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none border-none p-0 tracking-tight leading-tight"
         />
 
         {/* Metadata info */}
-        <div className="flex items-center gap-4 text-xs text-neutral-400 pt-1">
+        <div className="flex items-center gap-4 text-xs text-codex-muted pt-1">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             Created {new Date(page.createdAt).toLocaleDateString()}
@@ -184,14 +181,14 @@ function PageDetail({ page }: { page: Page }) {
 
       {/* Subpages Section */}
       {childPages.length > 0 && (
-        <div className="mb-8 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+        <div className="mb-8 pt-4 border-t border-codex-border">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-codex-muted">
               Subpages ({childPages.length})
             </h3>
             <button
               onClick={handleAddSubpage}
-              className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              className="inline-flex items-center gap-1 text-xs text-codex-accent hover:opacity-80 transition-opacity"
             >
               <Plus className="w-3 h-3" />
               <span>Add subpage</span>
@@ -202,12 +199,12 @@ function PageDetail({ page }: { page: Page }) {
               <Link
                 key={child.id}
                 href={`/workspace/${child.id}`}
-                className="flex items-center gap-2 p-2.5 rounded-lg border border-neutral-200/70 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/40 hover:bg-white dark:hover:bg-neutral-900 text-sm transition-all"
+                className="flex items-center gap-2 p-3 rounded-codex-xl border border-codex-border bg-codex-surface hover:border-codex-accent/50 hover:bg-codex-surface/80 text-sm transition-all"
               >
-                <span className="text-neutral-400">
+                <span className="text-codex-muted">
                   {child.icon ? child.icon : <FileText className="w-4 h-4" />}
                 </span>
-                <span className="font-medium text-neutral-800 dark:text-neutral-200 truncate">
+                <span className="font-medium text-codex-foreground truncate">
                   {child.title || "Untitled"}
                 </span>
               </Link>
@@ -231,16 +228,14 @@ export default function PageView() {
   if (!currentPage) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <FileText className="w-10 h-10 text-neutral-300 dark:text-neutral-700 mb-3" />
-        <h2 className="text-base font-semibold text-neutral-800 dark:text-neutral-200">
-          Page not found
-        </h2>
-        <p className="text-xs text-neutral-500 mt-1 mb-4">
+        <FileText className="w-10 h-10 text-codex-muted opacity-40 mb-3" />
+        <h2 className="text-base font-semibold text-codex-foreground">Page not found</h2>
+        <p className="text-xs text-codex-muted mt-1 mb-4">
           This page may have been deleted or archived.
         </p>
         <Link
           href="/workspace"
-          className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+          className="inline-flex items-center gap-1.5 text-xs text-codex-accent hover:opacity-80 transition-opacity"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Workspace</span>

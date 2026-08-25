@@ -131,7 +131,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
       }}
     >
       <div
-        className="p-1 rounded cursor-grab hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+        className="p-1 rounded-codex-sm cursor-grab hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
         draggable
         onDragStart={handleDragStart}
         title="Drag to move"
@@ -142,24 +142,24 @@ export function BlockMenu({ editor }: BlockMenuProps) {
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          className="p-1 rounded-codex-sm hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
           title="Block options"
         >
           <MoreVertical className="w-4 h-4" />
         </button>
 
         {isOpen && (
-          <div className="absolute left-0 mt-1 w-32 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-md shadow-lg py-1 text-sm">
+          <div className="absolute left-0 mt-1 w-32 bg-codex-surface border border-codex-border rounded-codex-md shadow-lg py-1 text-sm">
             <button
               onClick={duplicateNode}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
             >
               <Copy className="w-4 h-4" />
               Duplicate
             </button>
             <button
               onClick={deleteNode}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-red-500/10 text-red-500"
             >
               <Trash2 className="w-4 h-4" />
               Delete

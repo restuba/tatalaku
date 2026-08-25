@@ -29,17 +29,17 @@ export default function WorkspaceHomePage() {
   return (
     <div className="flex-1 max-w-4xl w-full mx-auto p-8 sm:p-12">
       {/* Workspace Header */}
-      <div className="flex items-start justify-between border-b border-neutral-200 dark:border-neutral-800 pb-6 mb-8">
+      <div className="flex items-start justify-between border-b border-codex-border pb-6 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-codex-muted">
               Workspace Overview
             </span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-codex-foreground">
             {activeWorkspace?.name || "Workspace"}
           </h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <p className="text-sm text-codex-muted mt-1">
             {activePages.length} {activePages.length === 1 ? "page" : "pages"} in this workspace
           </p>
         </div>
@@ -47,7 +47,7 @@ export default function WorkspaceHomePage() {
         <button
           onClick={handleCreatePage}
           disabled={!activeWorkspace}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:opacity-90 transition-all shadow-sm shrink-0"
+          className="flex items-center gap-2 px-4 py-2 rounded-codex-md text-sm font-medium bg-codex-accent text-white hover:opacity-90 transition-opacity shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>New Page</span>
@@ -57,33 +57,31 @@ export default function WorkspaceHomePage() {
       {/* Pages Grid / List */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
-            All Pages
-          </h2>
+          <h2 className="text-sm font-semibold text-codex-foreground">All Pages</h2>
         </div>
 
         {activePages.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {activePages.map((page) => (
               <Link
                 key={page.id}
                 href={`/workspace/${page.id}`}
-                className="group flex flex-col justify-between p-4 rounded-xl border border-neutral-200/80 dark:border-neutral-800/80 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900/60 hover:shadow-md transition-all"
+                className="group flex flex-col justify-between p-4 rounded-codex-xl border border-codex-border bg-codex-surface hover:border-codex-accent/50 transition-colors"
               >
                 <div>
-                  <div className="flex items-center gap-2 mb-2 text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors">
+                  <div className="flex items-center gap-2 mb-2 text-codex-muted group-hover:text-codex-foreground transition-colors">
                     {page.icon ? (
                       <span className="text-lg leading-none">{page.icon}</span>
                     ) : (
-                      <FileText className="w-5 h-5 text-neutral-400 shrink-0" />
+                      <FileText className="w-5 h-5 shrink-0" />
                     )}
                   </div>
-                  <h3 className="font-medium text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                  <h3 className="font-medium text-codex-foreground group-hover:text-codex-accent transition-colors line-clamp-2">
                     {page.title || "Untitled"}
                   </h3>
                 </div>
 
-                <div className="flex items-center gap-1 text-[11px] text-neutral-400 mt-4">
+                <div className="flex items-center gap-1 text-[11px] text-codex-muted mt-4">
                   <Clock className="w-3 h-3" />
                   <span>
                     Updated {new Date(page.updatedAt || page.createdAt).toLocaleDateString()}
@@ -93,19 +91,17 @@ export default function WorkspaceHomePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 px-4 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-3 text-neutral-400">
+          <div className="text-center py-16 px-4 border border-dashed border-codex-border rounded-codex-2xl">
+            <div className="w-12 h-12 rounded-codex-xl bg-codex-surface border border-codex-border flex items-center justify-center mx-auto mb-3 text-codex-muted">
               <Sparkles className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-              No pages yet
-            </h3>
-            <p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1 mb-4">
+            <h3 className="text-sm font-semibold text-codex-foreground">No pages yet</h3>
+            <p className="text-xs text-codex-muted max-w-sm mx-auto mt-1 mb-4">
               Get started by creating your first document in this workspace.
             </p>
             <button
               onClick={handleCreatePage}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-codex-md text-xs font-medium bg-codex-accent text-white hover:opacity-90 transition-opacity"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create page</span>

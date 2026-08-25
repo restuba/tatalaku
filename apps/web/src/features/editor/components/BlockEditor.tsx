@@ -115,7 +115,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "prose dark:prose-invert max-w-none focus:outline-none min-h-[400px] text-neutral-900 dark:text-neutral-100 leading-relaxed text-sm sm:text-base",
+          "prose dark:prose-invert max-w-none focus:outline-none min-h-[400px] text-codex-foreground leading-relaxed text-sm sm:text-base",
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
@@ -166,14 +166,14 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
     <div className="relative flex-1 flex flex-col mt-4">
       <BlockMenu editor={editor} />
       {/* Top Floating Status Indicator */}
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-neutral-100 dark:border-neutral-800 text-xs select-none">
-        <div className="flex items-center gap-2 text-neutral-400">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-codex-border/50 text-xs select-none">
+        <div className="flex items-center gap-2 text-codex-muted">
           <span className="font-mono text-[11px]">Type &apos;/&apos; to insert blocks</span>
         </div>
 
         <div className="flex items-center gap-1.5 font-medium">
           {saveStatus === "saving" && (
-            <span className="flex items-center gap-1.5 text-neutral-500 animate-pulse">
+            <span className="flex items-center gap-1.5 text-codex-muted animate-pulse">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>Saving...</span>
             </span>
@@ -195,7 +195,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
 
       {/* Editor Content Area */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-24 text-neutral-400">
+        <div className="flex items-center justify-center py-24 text-codex-muted">
           <Loader2 className="w-5 h-5 animate-spin mr-2" />
           <span className="text-xs">Loading editor content...</span>
         </div>

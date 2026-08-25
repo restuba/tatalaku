@@ -94,10 +94,10 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
   return (
     <div className="select-none">
       <div
-        className={`group flex items-center justify-between py-1 px-2 rounded-lg text-sm transition-colors cursor-pointer ${
+        className={`group flex items-center justify-between py-1 px-2 rounded-codex-md text-sm transition-colors cursor-pointer ${
           isActive
-            ? "bg-neutral-200/80 dark:bg-neutral-800 text-neutral-950 dark:text-white font-medium"
-            : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-200"
+            ? "bg-codex-surface text-codex-foreground font-medium"
+            : "text-codex-muted hover:bg-codex-surface/50 hover:text-codex-foreground"
         }`}
         style={{ paddingLeft: `${Math.max(level * 14 + 8, 8)}px` }}
       >
@@ -110,7 +110,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
               e.stopPropagation();
               toggleExpand(page.id);
             }}
-            className={`w-4 h-4 flex items-center justify-center rounded hover:bg-neutral-300/60 dark:hover:bg-neutral-700 transition-transform duration-150 shrink-0 ${
+            className={`w-4 h-4 flex items-center justify-center rounded hover:bg-codex-background transition-transform duration-150 shrink-0 ${
               hasChildren
                 ? "opacity-70 group-hover:opacity-100"
                 : "opacity-0 group-hover:opacity-40"
@@ -124,7 +124,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
           </button>
 
           {/* Icon */}
-          <span className="shrink-0 text-neutral-400 dark:text-neutral-500">
+          <span className="shrink-0 text-codex-muted">
             {page.icon ? (
               <span className="text-sm leading-none">{page.icon}</span>
             ) : (
@@ -148,7 +148,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 }
               }}
               onClick={(e) => e.stopPropagation()}
-              className="px-1 py-0.5 text-xs bg-white dark:bg-neutral-900 border border-blue-500 rounded outline-none w-full"
+              className="px-1 py-0.5 text-xs bg-codex-background border border-codex-accent rounded-codex-sm outline-none w-full text-codex-foreground"
             />
           ) : (
             <Link
@@ -168,7 +168,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             <button
               type="button"
               onClick={handleAddSubpage}
-              className="p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded hover:bg-neutral-300/60 dark:hover:bg-neutral-700 transition-colors"
+              className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-background transition-colors"
               title="Add a page inside"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -183,14 +183,14 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                   e.stopPropagation();
                   setIsMenuOpen(!isMenuOpen);
                 }}
-                className="p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded hover:bg-neutral-300/60 dark:hover:bg-neutral-700 transition-colors"
+                className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-background transition-colors"
                 title="Page options"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </button>
 
               {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl p-1 min-w-[140px] text-xs animate-in fade-in-0 zoom-in-95 duration-100">
+                <div className="absolute right-0 top-full mt-1 z-50 bg-codex-surface border border-codex-border rounded-codex-md shadow-xl p-1 min-w-[140px] text-xs animate-in fade-in-0 zoom-in-95 duration-100">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -200,7 +200,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                       setEditTitle(page.title);
                       setIsEditing(true);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>Rename</span>
@@ -208,7 +208,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                   <button
                     type="button"
                     onClick={handleArchive}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-red-500/10 text-red-500 transition-colors text-left"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Delete / Archive</span>
