@@ -29,6 +29,11 @@
 }
 
 @theme inline {
+  /* Hapus semua namespace warna, radius, dan shadow bawaan Tailwind v4 */
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
