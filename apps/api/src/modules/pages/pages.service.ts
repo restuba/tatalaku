@@ -90,6 +90,7 @@ export class PagesService {
 
     await this.assertWorkspaceAccess(parent.workspaceId, userId);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: Record<string, any> = {
       workspaceId: parent.workspaceId,
       parentPageId: pageId,

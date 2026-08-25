@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus } from "lucide-react";
 
 export function WorkspaceSwitcher() {
   const { workspaces, activeWorkspace, setActiveWorkspace, createWorkspace, deleteWorkspace } =
     useWorkspaceStore();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isInviting, setIsInviting] = useState<string | null>(null); // store workspace id being invited to
@@ -34,6 +36,7 @@ export function WorkspaceSwitcher() {
       setNewWorkspaceName("");
       setIsCreating(false);
       setIsOpen(false);
+      router.push("/workspace");
     } catch {
       // Error handled by store
     }
@@ -44,6 +47,9 @@ export function WorkspaceSwitcher() {
     if (confirm("Are you sure you want to delete this workspace and all its pages?")) {
       try {
         await deleteWorkspace(id);
+        if (activeWorkspace?.id === id) {
+          router.push("/workspace");
+        }
       } catch {
         // Error handled by store
       }
@@ -93,6 +99,7 @@ export function WorkspaceSwitcher() {
                   onClick={() => {
                     setActiveWorkspace(ws);
                     setIsOpen(false);
+                    router.push("/workspace");
                   }}
                   className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-sm cursor-pointer group transition-colors ${
                     activeWorkspace?.id === ws.id

@@ -70,7 +70,7 @@ describe("BlocksService", () => {
         _id: mockBlockId,
         pageId: mockPageId,
         type: "paragraph",
-        content: "Hello",
+        content: [{ text: "Hello" }],
         order: 1,
       };
       vi.mocked(BlockModel.create).mockResolvedValueOnce(createdBlock as never);
@@ -79,7 +79,7 @@ describe("BlocksService", () => {
       const result = await blocksService.create(mockUserId, {
         pageId: mockPageId,
         type: "paragraph",
-        content: "Hello",
+        content: [{ text: "Hello" }],
         order: 1,
       });
 
@@ -88,7 +88,7 @@ describe("BlocksService", () => {
         expect.objectContaining({
           pageId: mockPageId,
           type: "paragraph",
-          content: "Hello",
+          content: [{ text: "Hello" }],
           order: 1,
         }),
       );
@@ -102,7 +102,7 @@ describe("BlocksService", () => {
         _id: mockBlockId,
         pageId: mockPageId,
         type: "paragraph",
-        content: "Old",
+        content: [{ text: "Old" }],
         save: vi.fn().mockResolvedValueOnce(true),
       };
       vi.mocked(BlockModel.findById).mockResolvedValueOnce(mockBlock as never);
@@ -116,9 +116,9 @@ describe("BlocksService", () => {
       } as never);
       vi.mocked(PageModel.findByIdAndUpdate).mockResolvedValueOnce({} as never);
 
-      await blocksService.update(mockBlockId, mockUserId, { content: "New" });
+      await blocksService.update(mockBlockId, mockUserId, { content: [{ text: "New" }] });
 
-      expect(mockBlock.content).toBe("New");
+      expect(mockBlock.content).toEqual([{ text: "New" }]);
       expect(mockBlock.save).toHaveBeenCalled();
     });
 
@@ -126,7 +126,7 @@ describe("BlocksService", () => {
       vi.mocked(BlockModel.findById).mockResolvedValueOnce(null);
 
       await expect(
-        blocksService.update(mockBlockId, mockUserId, { content: "New" }),
+        blocksService.update(mockBlockId, mockUserId, { content: [{ text: "New" }] }),
       ).rejects.toThrow(NotFoundError);
     });
   });

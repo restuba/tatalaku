@@ -54,6 +54,7 @@ export class BlocksService {
   ): Promise<CursorPaginatedResponse<Block>> {
     await this.assertPageAccess(pageId, userId);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: Record<string, any> = { pageId };
 
     if (query.cursor) {
@@ -130,6 +131,7 @@ export class BlocksService {
       doc.type = input.type;
     }
     if (input.content !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       doc.content = (input.content as any) ?? null;
     }
     if (input.order !== undefined) {
@@ -201,7 +203,9 @@ export class BlocksService {
         const blockId: string = item.id;
         const existing = await BlockModel.findOne({ _id: blockId, pageId });
         if (existing) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           existing.type = item.type as any;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           existing.content = (item.content as any) ?? null;
           existing.order = item.order;
           existing.parentBlockId = item.parentBlockId ?? null;
@@ -214,11 +218,11 @@ export class BlocksService {
       // Create new block if id is missing, temporary, or not found
       const newDoc = await BlockModel.create({
         pageId,
-        type: item.type as any,
-        content: (item.content as any) ?? null,
+        type: item.type,
+        content: item.content ?? null,
         order: item.order,
         parentBlockId: item.parentBlockId ?? null,
-      });
+      } as unknown as BlockDocument);
 
       keptBlockIds.push(newDoc._id.toString());
     }
