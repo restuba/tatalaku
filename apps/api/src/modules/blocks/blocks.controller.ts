@@ -1,12 +1,14 @@
 import type { Request, Response, NextFunction } from "express";
 import { blocksService } from "./blocks.service.js";
+import type { ListBlocksQuery } from "./blocks.validation.js";
 
 export class BlocksController {
   async listByPage(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const pageId = req.params["pageId"] as string;
-      const blocks = await blocksService.listByPage(pageId, req.user!.id);
-      res.status(200).json({ success: true, data: blocks });
+      const query = req.query as unknown as ListBlocksQuery;
+      const blocksResult = await blocksService.listByPage(pageId, req.user!.id, query);
+      res.status(200).json({ success: true, data: blocksResult.data, meta: blocksResult.meta });
     } catch (err) {
       next(err);
     }

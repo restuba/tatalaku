@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { BlockTypeSchema } from "@tatalaku/shared";
+import { BlockTypeSchema, CursorPaginationQuerySchema } from "@tatalaku/shared";
+
+export const listBlocksQuerySchema = CursorPaginationQuerySchema;
 
 const BaseCreateBlock = z.object({
   pageId: z.string().min(1),
@@ -100,3 +102,4 @@ export type CreateBlockInput = z.infer<typeof createBlockSchema>;
 export type UpdateBlockInput = z.infer<typeof updateBlockSchema>;
 export type ReorderBlocksInput = z.infer<typeof reorderBlocksSchema>;
 export type BatchSyncBlocksInput = z.infer<typeof batchSyncBlocksSchema>;
+export type ListBlocksQuery = z.infer<typeof listBlocksQuerySchema>;

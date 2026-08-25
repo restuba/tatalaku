@@ -1,8 +1,14 @@
-import type { Page, PaginatedResponse } from "@tatalaku/shared";
+import mongoose from "mongoose";
+import type { Page, PaginatedResponse, CursorPaginatedResponse } from "@tatalaku/shared";
 import { PageModel, type PageDocument } from "./pages.model.js";
 import { WorkspaceModel } from "../workspaces/workspaces.model.js";
 import { ForbiddenError, NotFoundError, ValidationError } from "../../utils/errors.js";
-import type { CreatePageInput, UpdatePageInput, ListPagesQuery } from "./pages.validation.js";
+import type {
+  CreatePageInput,
+  UpdatePageInput,
+  ListPagesQuery,
+  GetChildrenQuery,
+} from "./pages.validation.js";
 
 function toPageResponse(doc: PageDocument): Page {
   return {
@@ -70,9 +76,13 @@ export class PagesService {
   }
 
   /**
-   * Get direct children of a page
+   * Get direct children of a page (cursor paginated)
    */
-  async getChildren(pageId: string, userId: string): Promise<Page[]> {
+  async getChildren(
+    pageId: string,
+    userId: string,
+    query: GetChildrenQuery,
+  ): Promise<CursorPaginatedResponse<Page>> {
     const parent = await PageModel.findById(pageId);
     if (!parent) {
       throw new NotFoundError("Page");
@@ -80,13 +90,48 @@ export class PagesService {
 
     await this.assertWorkspaceAccess(parent.workspaceId, userId);
 
-    const children = await PageModel.find({
+    const filter: Record<string, any> = {
       workspaceId: parent.workspaceId,
       parentPageId: pageId,
       isArchived: false,
-    }).sort({ createdAt: 1 });
+    };
 
-    return children.map(toPageResponse);
+    if (query.cursor) {
+      const decoded = Buffer.from(query.cursor, "base64").toString("utf-8");
+      const [timeStr, idStr] = decoded.split("_");
+      if (timeStr && idStr && mongoose.isValidObjectId(idStr)) {
+        const date = new Date(parseInt(timeStr, 10));
+        filter.$or = [
+          { createdAt: { $gt: date } },
+          { createdAt: date, _id: { $gt: new mongoose.Types.ObjectId(idStr) } },
+        ];
+      }
+    }
+
+    const docs = await PageModel.find(filter)
+      .sort({ createdAt: 1, _id: 1 })
+      .limit(query.limit + 1);
+
+    const hasMore = docs.length > query.limit;
+    if (hasMore) {
+      docs.pop();
+    }
+
+    let nextCursor: string | null = null;
+    if (hasMore && docs.length > 0) {
+      const lastDoc = docs[docs.length - 1]!;
+      nextCursor = Buffer.from(
+        `${new Date(lastDoc.createdAt).getTime()}_${lastDoc._id.toString()}`,
+      ).toString("base64");
+    }
+
+    return {
+      data: docs.map(toPageResponse),
+      meta: {
+        nextCursor,
+        hasMore,
+      },
+    };
   }
 
   /**

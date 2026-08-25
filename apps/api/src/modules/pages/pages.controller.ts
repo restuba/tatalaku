@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { pagesService } from "./pages.service.js";
-import type { ListPagesQuery } from "./pages.validation.js";
+import type { ListPagesQuery, GetChildrenQuery } from "./pages.validation.js";
 
 export class PagesController {
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -16,8 +16,9 @@ export class PagesController {
   async getChildren(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const pageId = req.params["pageId"] as string;
-      const children = await pagesService.getChildren(pageId, req.user!.id);
-      res.status(200).json({ success: true, data: children });
+      const query = req.query as unknown as GetChildrenQuery;
+      const childrenResult = await pagesService.getChildren(pageId, req.user!.id, query);
+      res.status(200).json({ success: true, data: childrenResult.data, meta: childrenResult.meta });
     } catch (err) {
       next(err);
     }

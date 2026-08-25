@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { Block } from "@tatalaku/shared";
+import type { Block, CursorPaginatedResponse } from "@tatalaku/shared";
 import { BlockModel, type BlockDocument } from "./blocks.model.js";
 import { PageModel } from "../pages/pages.model.js";
 import { WorkspaceModel } from "../workspaces/workspaces.model.js";
@@ -9,17 +9,18 @@ import type {
   UpdateBlockInput,
   ReorderBlocksInput,
   BatchSyncBlocksInput,
+  ListBlocksQuery,
 } from "./blocks.validation.js";
 
 function toBlockResponse(doc: BlockDocument): Block {
   return {
     id: doc._id.toString(),
     pageId: doc.pageId,
-    type: doc.type,
+    type: doc.type as Block["type"],
     content: doc.content ?? null,
     order: doc.order,
     parentBlockId: doc.parentBlockId ?? null,
-  };
+  } as Block;
 }
 
 export class BlocksService {
@@ -44,13 +45,52 @@ export class BlocksService {
   }
 
   /**
-   * List all blocks in a page sorted by order
+   * List all blocks in a page sorted by order (cursor paginated)
    */
-  async listByPage(pageId: string, userId: string): Promise<Block[]> {
+  async listByPage(
+    pageId: string,
+    userId: string,
+    query: ListBlocksQuery,
+  ): Promise<CursorPaginatedResponse<Block>> {
     await this.assertPageAccess(pageId, userId);
 
-    const docs = await BlockModel.find({ pageId }).sort({ order: 1 });
-    return docs.map(toBlockResponse);
+    const filter: Record<string, any> = { pageId };
+
+    if (query.cursor) {
+      const decoded = Buffer.from(query.cursor, "base64").toString("utf-8");
+      const [orderStr, idStr] = decoded.split("_");
+      if (orderStr && idStr && mongoose.isValidObjectId(idStr)) {
+        const order = parseInt(orderStr, 10);
+        filter.$or = [
+          { order: { $gt: order } },
+          { order: order, _id: { $gt: new mongoose.Types.ObjectId(idStr) } },
+        ];
+      }
+    }
+
+    // Fetch limit + 1 to determine if there are more records
+    const docs = await BlockModel.find(filter)
+      .sort({ order: 1, _id: 1 })
+      .limit(query.limit + 1);
+
+    const hasMore = docs.length > query.limit;
+    if (hasMore) {
+      docs.pop(); // Remove the extra record
+    }
+
+    let nextCursor: string | null = null;
+    if (hasMore && docs.length > 0) {
+      const lastDoc = docs[docs.length - 1]!;
+      nextCursor = Buffer.from(`${lastDoc.order}_${lastDoc._id.toString()}`).toString("base64");
+    }
+
+    return {
+      data: docs.map(toBlockResponse),
+      meta: {
+        nextCursor,
+        hasMore,
+      },
+    };
   }
 
   /**
@@ -90,7 +130,7 @@ export class BlocksService {
       doc.type = input.type;
     }
     if (input.content !== undefined) {
-      doc.content = input.content;
+      doc.content = (input.content as any) ?? null;
     }
     if (input.order !== undefined) {
       doc.order = input.order;
@@ -161,8 +201,8 @@ export class BlocksService {
         const blockId: string = item.id;
         const existing = await BlockModel.findOne({ _id: blockId, pageId });
         if (existing) {
-          existing.type = item.type;
-          existing.content = item.content ?? null;
+          existing.type = item.type as any;
+          existing.content = (item.content as any) ?? null;
           existing.order = item.order;
           existing.parentBlockId = item.parentBlockId ?? null;
           await existing.save();
@@ -174,8 +214,8 @@ export class BlocksService {
       // Create new block if id is missing, temporary, or not found
       const newDoc = await BlockModel.create({
         pageId,
-        type: item.type,
-        content: item.content ?? null,
+        type: item.type as any,
+        content: (item.content as any) ?? null,
         order: item.order,
         parentBlockId: item.parentBlockId ?? null,
       });

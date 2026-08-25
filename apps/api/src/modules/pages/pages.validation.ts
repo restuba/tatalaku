@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { PaginationQuerySchema } from "@tatalaku/shared";
+import { PaginationQuerySchema, CursorPaginationQuerySchema } from "@tatalaku/shared";
+
+export const getChildrenQuerySchema = CursorPaginationQuerySchema;
 
 export const createPageSchema = z.object({
   workspaceId: z.string().min(1),
@@ -33,3 +35,4 @@ export const listPagesQuerySchema = z
 export type CreatePageInput = z.infer<typeof createPageSchema>;
 export type UpdatePageInput = z.infer<typeof updatePageSchema>;
 export type ListPagesQuery = z.infer<typeof listPagesQuerySchema>;
+export type GetChildrenQuery = z.infer<typeof getChildrenQuerySchema>;

@@ -10,6 +10,7 @@ function toWorkspaceResponse(doc: WorkspaceDocument): Workspace {
     name: doc.name,
     ownerId: doc.ownerId,
     memberIds: doc.memberIds,
+    pendingInvites: doc.pendingInvites || [],
     createdAt: doc.createdAt,
   };
 }

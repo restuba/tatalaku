@@ -23,3 +23,11 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+export interface CursorPaginatedResponse<T> {
+  data: T[];
+  meta: {
+    nextCursor: string | null;
+    hasMore: boolean;
+  };
+}
