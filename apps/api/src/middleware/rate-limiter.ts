@@ -8,8 +8,6 @@ interface RateLimitEntry {
   resetAt: number;
 }
 
-const store = new Map<string, RateLimitEntry>();
-
 interface RateLimiterOptions {
   /** Maximum requests per window */
   limit: number;
@@ -19,6 +17,8 @@ interface RateLimiterOptions {
 
 export function rateLimiter(options: RateLimiterOptions = { limit: 100, windowMs: 60_000 }) {
   const { limit, windowMs } = options;
+  const store = new Map<string, RateLimitEntry>();
+
   return (req: Request, res: Response, next: NextFunction): void => {
     const ip =
       (req.headers["x-forwarded-for"] as string | undefined) ??

@@ -3,16 +3,19 @@ import { authController } from "./auth.controller.js";
 import { validate } from "../../middleware/validate.js";
 import { authGuard } from "../../middleware/auth-guard.js";
 import { registerSchema, loginSchema } from "./auth.validation.js";
+import { rateLimiter } from "../../middleware/rate-limiter.js";
 
 export const authRouter = Router();
 
+const authLimiter = rateLimiter({ limit: 5, windowMs: 15 * 60 * 1000 }); // 5 requests per 15 minutes
+
 // POST /api/auth/register
-authRouter.post("/register", validate(registerSchema), (req, res, next) =>
+authRouter.post("/register", authLimiter, validate(registerSchema), (req, res, next) =>
   authController.register(req, res, next),
 );
 
 // POST /api/auth/login
-authRouter.post("/login", validate(loginSchema), (req, res, next) =>
+authRouter.post("/login", authLimiter, validate(loginSchema), (req, res, next) =>
   authController.login(req, res, next),
 );
 
