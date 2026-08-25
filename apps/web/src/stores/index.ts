@@ -1,2 +1,3 @@
-// Global Zustand stores (one per domain) will reside here
-export {};
+export * from "./auth.store";
+export * from "./workspace.store";
+export * from "./page.store";

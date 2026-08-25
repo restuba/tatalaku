@@ -1,3 +1,4 @@
+import type { User, Workspace, Page } from "@tatalaku/shared";
 import type { AuthResponse, RefreshResponse } from "@/features/auth/auth.types";
 
 const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:5000/api";
@@ -149,7 +150,62 @@ export const api = {
     me: () =>
       request<{
         success: boolean;
-        data: { user: import("@tatalaku/shared").User };
+        data: { user: User };
       }>("/auth/me"),
+  },
+
+  workspaces: {
+    list: () => request<{ success: boolean; data: Workspace[] }>("/workspaces"),
+    create: (body: { name: string }) =>
+      request<{ success: boolean; data: Workspace }>("/workspaces", { method: "POST", body }),
+    get: (id: string) => request<{ success: boolean; data: Workspace }>(`/workspaces/${id}`),
+    update: (id: string, body: { name: string }) =>
+      request<{ success: boolean; data: Workspace }>(`/workspaces/${id}`, {
+        method: "PATCH",
+        body,
+      }),
+    delete: (id: string) =>
+      request<{ success: boolean; data: null }>(`/workspaces/${id}`, { method: "DELETE" }),
+  },
+
+  pages: {
+    list: (params: {
+      workspaceId: string;
+      parentPageId?: string | null;
+      includeArchived?: boolean;
+    }) => {
+      const sp = new URLSearchParams();
+      sp.set("workspaceId", params.workspaceId);
+      if (params.parentPageId !== undefined && params.parentPageId !== null) {
+        sp.set("parentPageId", params.parentPageId);
+      }
+      if (params.includeArchived) {
+        sp.set("includeArchived", "true");
+      }
+      return request<{ success: boolean; data: Page[] }>(`/pages?${sp.toString()}`);
+    },
+    getChildren: (pageId: string) =>
+      request<{ success: boolean; data: Page[] }>(`/pages/${pageId}/children`),
+    get: (id: string) => request<{ success: boolean; data: Page }>(`/pages/${id}`),
+    create: (body: {
+      workspaceId: string;
+      parentPageId?: string | null;
+      title?: string;
+      icon?: string | null;
+    }) => request<{ success: boolean; data: Page }>("/pages", { method: "POST", body }),
+    update: (
+      id: string,
+      body: {
+        title?: string;
+        icon?: string | null;
+        coverImage?: string | null;
+        parentPageId?: string | null;
+        isArchived?: boolean;
+      },
+    ) => request<{ success: boolean; data: Page }>(`/pages/${id}`, { method: "PATCH", body }),
+    archive: (id: string) =>
+      request<{ success: boolean; data: Page }>(`/pages/${id}`, { method: "DELETE" }),
+    restore: (id: string) =>
+      request<{ success: boolean; data: Page }>(`/pages/${id}/restore`, { method: "POST" }),
   },
 };

@@ -1,7 +1,232 @@
-// Pages service: all business logic including workspace membership authorization.
+import type { Page } from "@tatalaku/shared";
+import { PageModel, type PageDocument } from "./pages.model.js";
+import { WorkspaceModel } from "../workspaces/workspaces.model.js";
+import { ForbiddenError, NotFoundError, ValidationError } from "../../utils/errors.js";
+import type { CreatePageInput, UpdatePageInput, ListPagesQuery } from "./pages.validation.js";
+
+function toPageResponse(doc: PageDocument): Page {
+  return {
+    id: doc._id.toString(),
+    workspaceId: doc.workspaceId,
+    parentPageId: doc.parentPageId ?? null,
+    title: doc.title,
+    icon: doc.icon ?? null,
+    coverImage: doc.coverImage ?? null,
+    blockIds: doc.blockIds ?? [],
+    createdBy: doc.createdBy,
+    isArchived: doc.isArchived,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+  };
+}
+
 export class PagesService {
-  // TODO: implement getPagesForWorkspace(), createPage(),
-  //       getPageById(), updatePage(), archivePage()
+  /**
+   * Helper: verify user is owner or member of the workspace
+   */
+  private async assertWorkspaceAccess(workspaceId: string, userId: string): Promise<void> {
+    const workspace = await WorkspaceModel.findById(workspaceId);
+    if (!workspace) {
+      throw new NotFoundError("Workspace");
+    }
+
+    const isMember = workspace.ownerId === userId || workspace.memberIds.includes(userId);
+    if (!isMember) {
+      throw new ForbiddenError("You do not have access to this workspace");
+    }
+  }
+
+  /**
+   * List pages in a workspace (with optional parentPageId filter and archived toggle)
+   */
+  async list(userId: string, query: ListPagesQuery): Promise<Page[]> {
+    await this.assertWorkspaceAccess(query.workspaceId, userId);
+
+    const filter: Record<string, unknown> = {
+      workspaceId: query.workspaceId,
+      isArchived: query.includeArchived ? { $in: [true, false] } : false,
+    };
+
+    if (query.parentPageId !== undefined) {
+      filter["parentPageId"] = query.parentPageId;
+    }
+
+    const docs = await PageModel.find(filter).sort({ createdAt: 1 });
+    return docs.map(toPageResponse);
+  }
+
+  /**
+   * Get direct children of a page
+   */
+  async getChildren(pageId: string, userId: string): Promise<Page[]> {
+    const parent = await PageModel.findById(pageId);
+    if (!parent) {
+      throw new NotFoundError("Page");
+    }
+
+    await this.assertWorkspaceAccess(parent.workspaceId, userId);
+
+    const children = await PageModel.find({
+      workspaceId: parent.workspaceId,
+      parentPageId: pageId,
+      isArchived: false,
+    }).sort({ createdAt: 1 });
+
+    return children.map(toPageResponse);
+  }
+
+  /**
+   * Create a new page
+   */
+  async create(userId: string, input: CreatePageInput): Promise<Page> {
+    await this.assertWorkspaceAccess(input.workspaceId, userId);
+
+    if (input.parentPageId) {
+      const parent = await PageModel.findById(input.parentPageId);
+      if (!parent || parent.isArchived) {
+        throw new NotFoundError("Parent page");
+      }
+      if (parent.workspaceId !== input.workspaceId) {
+        throw new ValidationError("Parent page must belong to the same workspace");
+      }
+    }
+
+    const doc = await PageModel.create({
+      workspaceId: input.workspaceId,
+      parentPageId: input.parentPageId ?? null,
+      title: input.title?.trim() || "Untitled",
+      icon: input.icon ?? null,
+      coverImage: null,
+      blockIds: [],
+      createdBy: userId,
+      isArchived: false,
+    });
+
+    return toPageResponse(doc);
+  }
+
+  /**
+   * Get page by ID
+   */
+  async getById(pageId: string, userId: string): Promise<Page> {
+    const doc = await PageModel.findById(pageId);
+    if (!doc) {
+      throw new NotFoundError("Page");
+    }
+
+    await this.assertWorkspaceAccess(doc.workspaceId, userId);
+
+    return toPageResponse(doc);
+  }
+
+  /**
+   * Update page metadata (title, icon, coverImage, parentPageId, isArchived)
+   */
+  async update(pageId: string, userId: string, input: UpdatePageInput): Promise<Page> {
+    const doc = await PageModel.findById(pageId);
+    if (!doc) {
+      throw new NotFoundError("Page");
+    }
+
+    await this.assertWorkspaceAccess(doc.workspaceId, userId);
+
+    if (input.parentPageId !== undefined) {
+      if (input.parentPageId === pageId) {
+        throw new ValidationError("A page cannot be its own parent");
+      }
+
+      if (input.parentPageId !== null) {
+        const parent = await PageModel.findById(input.parentPageId);
+        if (!parent || parent.isArchived) {
+          throw new NotFoundError("Parent page");
+        }
+        if (parent.workspaceId !== doc.workspaceId) {
+          throw new ValidationError("Parent page must belong to the same workspace");
+        }
+
+        // Prevent circular hierarchy
+        let currentParentId: string | null = parent.parentPageId ?? null;
+        while (currentParentId) {
+          if (currentParentId === pageId) {
+            throw new ValidationError("Cannot move a page into one of its subpages");
+          }
+          const nextParent = await PageModel.findById(currentParentId);
+          currentParentId = nextParent?.parentPageId ?? null;
+        }
+      }
+
+      doc.parentPageId = input.parentPageId;
+    }
+
+    if (input.title !== undefined) {
+      doc.title = input.title.trim() || "Untitled";
+    }
+
+    if (input.icon !== undefined) {
+      doc.icon = input.icon;
+    }
+
+    if (input.coverImage !== undefined) {
+      doc.coverImage = input.coverImage;
+    }
+
+    if (input.isArchived !== undefined) {
+      doc.isArchived = input.isArchived;
+    }
+
+    await doc.save();
+    return toPageResponse(doc);
+  }
+
+  /**
+   * Soft delete / archive a page and all its descendants
+   */
+  async archive(pageId: string, userId: string): Promise<Page> {
+    const doc = await PageModel.findById(pageId);
+    if (!doc) {
+      throw new NotFoundError("Page");
+    }
+
+    await this.assertWorkspaceAccess(doc.workspaceId, userId);
+
+    // Archive this page
+    doc.isArchived = true;
+    await doc.save();
+
+    // Recursively archive descendants
+    await this.archiveDescendants(pageId, doc.workspaceId);
+
+    return toPageResponse(doc);
+  }
+
+  /**
+   * Helper to recursively archive descendant pages
+   */
+  private async archiveDescendants(parentId: string, workspaceId: string): Promise<void> {
+    const children = await PageModel.find({ parentPageId: parentId, workspaceId });
+    for (const child of children) {
+      child.isArchived = true;
+      await child.save();
+      await this.archiveDescendants(child._id.toString(), workspaceId);
+    }
+  }
+
+  /**
+   * Restore an archived page
+   */
+  async restore(pageId: string, userId: string): Promise<Page> {
+    const doc = await PageModel.findById(pageId);
+    if (!doc) {
+      throw new NotFoundError("Page");
+    }
+
+    await this.assertWorkspaceAccess(doc.workspaceId, userId);
+
+    doc.isArchived = false;
+    await doc.save();
+
+    return toPageResponse(doc);
+  }
 }
 
 export const pagesService = new PagesService();

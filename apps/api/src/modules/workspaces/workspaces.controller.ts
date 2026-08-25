@@ -1,11 +1,53 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
+import { workspacesService } from "./workspaces.service.js";
 
-// Workspaces controller: parses request and delegates to workspacesService.
-// No business logic here.
 export class WorkspacesController {
-  // TODO: implement list(), create(), getById(), update(), delete() handlers
-  healthCheck(_req: Request, res: Response): void {
-    res.json({ module: "workspaces", status: "ok" });
+  async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaces = await workspacesService.listForUser(req.user!.id);
+      res.status(200).json({ success: true, data: workspaces });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspace = await workspacesService.create(req.user!.id, req.body);
+      res.status(201).json({ success: true, data: workspace });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaceId = req.params["workspaceId"] as string;
+      const workspace = await workspacesService.getById(workspaceId, req.user!.id);
+      res.status(200).json({ success: true, data: workspace });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaceId = req.params["workspaceId"] as string;
+      const workspace = await workspacesService.update(workspaceId, req.user!.id, req.body);
+      res.status(200).json({ success: true, data: workspace });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaceId = req.params["workspaceId"] as string;
+      await workspacesService.delete(workspaceId, req.user!.id);
+      res.status(200).json({ success: true, data: null });
+    } catch (err) {
+      next(err);
+    }
   }
 }
 

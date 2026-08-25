@@ -12,11 +12,22 @@ export const updatePageSchema = z.object({
   icon: z.string().nullable().optional(),
   coverImage: z.string().url().nullable().optional(),
   parentPageId: z.string().nullable().optional(),
+  isArchived: z.boolean().optional(),
 });
 
 export const pageParamsSchema = z.object({
   pageId: z.string().min(1),
 });
 
+export const listPagesQuerySchema = z.object({
+  workspaceId: z.string().min(1),
+  parentPageId: z.string().nullable().optional(),
+  includeArchived: z
+    .enum(["true", "false"])
+    .transform((val) => val === "true")
+    .optional(),
+});
+
 export type CreatePageInput = z.infer<typeof createPageSchema>;
 export type UpdatePageInput = z.infer<typeof updatePageSchema>;
+export type ListPagesQuery = z.infer<typeof listPagesQuerySchema>;
