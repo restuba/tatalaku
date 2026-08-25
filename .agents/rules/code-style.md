@@ -11,6 +11,7 @@
 - Ikuti ESLint & Prettier config yang sudah ada di root — jangan override rule tanpa alasan jelas yang disebutkan ke saya dulu.
 - Jalankan `pnpm lint` setelah perubahan kode, sebelum menganggap task selesai.
 - Husky + lint-staged sudah aktif — jangan bypass dengan `--no-verify` kecuali saya minta eksplisit.
+- **Semua warna, radius, dan shadow WAJIB pakai token Codex yang sudah didefinisikan — dilarang keras hardcode warna/radius dalam bentuk apa pun, termasuk arbitrary value Tailwind.**
 
 ## Penamaan & Konvensi Umum
 

@@ -19,3 +19,4 @@
 ## Styling
 
 - Tailwind CSS untuk styling utama, shadcn/ui untuk komponen dasar (button, dialog, dropdown, dll) — jangan bikin komponen dasar dari nol kalau shadcn/ui sudah punya.
+- **Semua warna, radius, dan shadow WAJIB pakai token Codex yang sudah didefinisikan — dilarang keras hardcode warna/radius dalam bentuk apa pun, termasuk arbitrary value Tailwind.**
