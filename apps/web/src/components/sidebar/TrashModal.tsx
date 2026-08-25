@@ -59,7 +59,7 @@ export function TrashModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                   </div>
                   <button
                     onClick={() => restorePage(page.id)}
-                    className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-codex-muted hover:text-codex-success rounded-codex-sm hover:bg-green-500/10"
+                    className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-codex-muted hover:text-codex-success rounded-codex-sm hover:bg-codex-success-bg"
                     title="Restore"
                   >
                     <RefreshCcw className="w-4 h-4" />

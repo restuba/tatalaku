@@ -45,7 +45,10 @@ function LoginContent() {
 
       <form onSubmit={handleSubmit} className="space-y-4" id="login-form">
         <div>
-          <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="login-email"
+            className="block text-sm font-medium text-codex-foreground mb-1"
+          >
             Email
           </label>
           <input
@@ -61,7 +64,10 @@ function LoginContent() {
         </div>
 
         <div>
-          <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="login-password"
+            className="block text-sm font-medium text-codex-foreground mb-1"
+          >
             Password
           </label>
           <input

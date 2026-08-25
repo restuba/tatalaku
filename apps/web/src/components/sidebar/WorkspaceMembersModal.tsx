@@ -70,7 +70,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                   className="flex items-center justify-between p-3 rounded-codex-md hover:bg-codex-background transition-colors border border-transparent hover:border-codex-border"
                 >
                   <div className="flex items-center gap-4 overflow-hidden">
-                    <div className="w-9 h-9 rounded-full bg-codex-info-bg dark:bg-codex-info-bg/30 text-codex-info dark:text-blue-400 flex items-center justify-center text-xs font-semibold shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-codex-info-bg dark:bg-codex-info-bg/30 text-codex-info dark:text-codex-info flex items-center justify-center text-xs font-semibold shrink-0">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">

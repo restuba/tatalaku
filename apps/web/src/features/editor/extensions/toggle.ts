@@ -18,7 +18,7 @@ export const Toggle = Node.create({
         "summary",
         {
           class:
-            "cursor-pointer text-sm font-medium py-0.5 text-neutral-800 dark:text-neutral-200 select-none",
+            "cursor-pointer text-sm font-medium py-0.5 text-codex-foreground dark:text-codex-foreground select-none",
         },
         "Toggle list",
       ],

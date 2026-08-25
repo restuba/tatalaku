@@ -41,7 +41,10 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4" id="register-form">
         <div>
-          <label htmlFor="register-name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="register-name"
+            className="block text-sm font-medium text-codex-foreground mb-1"
+          >
             Full name
           </label>
           <input
@@ -57,7 +60,10 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="register-email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="register-email"
+            className="block text-sm font-medium text-codex-foreground mb-1"
+          >
             Email
           </label>
           <input
@@ -75,7 +81,7 @@ export default function RegisterPage() {
         <div>
           <label
             htmlFor="register-password"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-codex-foreground mb-1"
           >
             Password
           </label>
