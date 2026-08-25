@@ -7,7 +7,7 @@ import {
   SlashCommandList,
   type CommandItem,
   type SlashCommandListProps,
-} from "../components/slash-command-list";
+} from "../slash-command-list";
 
 interface SlashCommandListRef {
   onKeyDown: (props: { event: KeyboardEvent }) => boolean;

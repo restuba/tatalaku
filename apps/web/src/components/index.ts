@@ -1,3 +1,3 @@
-export * from "./sidebar";
-export * from "./sidebar/workspace-switcher";
-export * from "./sidebar/page-tree-item";
+export * from "./editor/block-editor";
+export * from "./editor/block-menu";
+export * from "./editor/slash-command-list";

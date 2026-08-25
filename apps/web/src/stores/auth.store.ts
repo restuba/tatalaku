@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import type { User } from "@tatalaku/shared";
 import { api, setAccessToken } from "@/lib/api";
-import type { LoginFormValues, RegisterFormValues } from "@/features/auth/auth.types";
+import type { LoginFormValues, RegisterFormValues } from "@/types/auth.types";
 
 interface AuthState {
   user: User | null;

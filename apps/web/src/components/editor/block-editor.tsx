@@ -8,10 +8,10 @@ import TaskItem from "@tiptap/extension-task-item";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 
-import { Toggle } from "../extensions/toggle";
-import { SlashCommands } from "../extensions/slash-command";
-import { GlobalId } from "../extensions/global-id";
-import { blocksToTiptapDoc, tiptapDocToBlocks } from "../utils/serializer";
+import { Toggle } from "./extensions/toggle";
+import { SlashCommands } from "./extensions/slash-command";
+import { GlobalId } from "./extensions/global-id";
+import { blocksToTiptapDoc, tiptapDocToBlocks } from "./utils/serializer";
 import { api } from "@/lib/api";
 import type { Block } from "@tatalaku/shared";
 import { BlockMenu } from "./block-menu";

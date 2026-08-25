@@ -2,10 +2,11 @@
 
 ## Struktur Folder
 
-- Logic per domain/fitur (editor, workspace, auth) di `src/features/<domain>/`.
-- Komponen UI generic/reusable (bukan spesifik satu fitur) di `src/components/`.
-- **Komponen React WAJIB menggunakan penamaan file `kebab-case.tsx` (contoh: `block-editor.tsx`, bukan `BlockEditor.tsx`).**
-- **Kelompokkan komponen yang saling berhubungan dalam foldernya masing-masing dan gunakan `index.ts` atau `index.tsx` sebagai entry point agar impor lebih rapi (contoh: `import { Sidebar } from "@/components/sidebar"`).**
+- Komponen UI generic/reusable (yang dipakai di lebih dari satu fitur) diletakkan di `src/components/`.
+- Jika komponen hanya dipakai spesifik pada satu halaman (_page_), letakkan sejajar dengan halaman tersebut dalam folder `_components/` (contoh: `src/app/workspace/_components/sidebar/`).
+- Jika ada _hooks_ khusus yang hanya digunakan pada satu halaman, letakkan sejajar dengan halamannya dalam folder `_hooks/`.
+- **Komponen React WAJIB menggunakan penamaan file `kebab-case.tsx` (contoh: `block-editor.tsx`).**
+- **Kelompokkan komponen yang saling berhubungan dalam foldernya masing-masing dan gunakan `index.ts` atau `index.tsx` sebagai entry point agar impor lebih rapi.**
 - API client & utils di `src/lib/`.
 - State global pakai Zustand, satu store per domain di `src/stores/`.
 - Tipe & schema selalu import dari `packages/shared`, jangan definisikan ulang tipe entitas (User, Workspace, Page, Block) di frontend.

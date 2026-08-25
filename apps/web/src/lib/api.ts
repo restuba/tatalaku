@@ -1,5 +1,5 @@
 import type { User, Workspace, Page, Block, BlockType, PaginatedResponse } from "@tatalaku/shared";
-import type { AuthResponse, RefreshResponse } from "@/features/auth/auth.types";
+import type { AuthResponse, RefreshResponse } from "@/types/auth.types";
 
 const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:5000/api";
 
