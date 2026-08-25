@@ -43,7 +43,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-codex-foreground/50 p-4 animate-in fade-in duration-200">
-      <div className="bg-codex-surface border border-codex-border w-full max-w-md rounded-codex-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="glass-surface border border-codex-border w-full max-w-md rounded-codex-2xl overflow-hidden flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between p-6 border-b border-codex-border shrink-0">
           <div>
             <h2 className="text-lg font-semibold text-codex-foreground">Workspace Members</h2>

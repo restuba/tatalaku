@@ -171,14 +171,14 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
 
     if (props.items.length === 0) {
       return (
-        <div className="z-50 bg-codex-surface border border-codex-border rounded-codex-xl p-2 min-w-[240px] text-xs text-codex-muted">
+        <div className="z-50 glass-surface border border-codex-border rounded-codex-xl p-2 min-w-[240px] text-xs text-codex-muted">
           No matching blocks
         </div>
       );
     }
 
     return (
-      <div className="z-50 bg-codex-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+      <div className="z-50 glass-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
         <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-codex-muted">
           Basic blocks
         </div>

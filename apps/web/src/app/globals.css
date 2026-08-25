@@ -1,31 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  
-  /* --- Codex Design Tokens (Light) --- */
-  /* Dokumentasi:
-     - codex-background: Warna latar utama aplikasi.
-     - codex-sidebar: Warna latar untuk area navigasi kiri/sidebar.
-     - codex-surface: Warna latar untuk card atau elemen melayang (elevated).
-     - codex-border: Warna garis batas yang tipis dan low-contrast.
-     - codex-accent: Warna utama aksi/brand (berdasarkan screenshot: Terracotta/Orange).
-     - codex-muted: Warna teks sekunder yang lebih redup.
-  */
-  --codex-background: #F9F9F7;
-  --codex-foreground: #2D2D2B;
-  --codex-sidebar: #F1F1F0;
-  --codex-surface: #FFFFFF;
-  --codex-border: #E5E5E5;
-  --codex-accent: #CC7D5E;
-  --codex-muted: #888888;
-  --codex-danger: #EF4444;
-  --codex-danger-bg: #FEE2E2;
-  --codex-success: #22C55E;
-  --codex-success-bg: #DCFCE7;
-  --codex-info: #3B82F6;
-  --codex-info-bg: #DBEAFE;
+  /* Common definitions that apply to all themes */
+  --font-ui: Geist, Inter;
+  --font-code: "Geist Mono", ui-monospace, SFMono-Regular;
+
+  /* Derived colors via color-mix based on contrast */
+  --color-surface-secondary: color-mix(in srgb, var(--color-ink) calc(var(--theme-contrast) * 0.1%), var(--color-surface));
+  --color-border: color-mix(in srgb, var(--color-ink) calc(var(--theme-contrast) * 0.25%), var(--color-surface));
+  --color-muted: color-mix(in srgb, var(--color-ink) 50%, transparent);
+
+  /* Fallback status colors */
+  --color-danger: #EF4444;
+  --color-danger-bg: #FEE2E2;
+  --color-success: #22C55E;
+  --color-success-bg: #DCFCE7;
+  --color-info: #3B82F6;
+  --color-info-bg: #DBEAFE;
+}
+
+/* Default Theme (LIGHT - absolutely) */
+:root, html[data-code-theme="github-light"] {
+  --color-accent: #cc7d5e;
+  --theme-contrast: 20;
+  --color-ink: #2d2d2b;
+  --color-surface: #f9f9f7;
+  --color-diff-added: #00c853;
+  --color-diff-removed: #ff5f38;
+  --color-skill: #cc7d5e;
+}
+
+/* LIGHT - everforest */
+html[data-code-theme="everforest-light"] {
+  --color-accent: #93b259;
+  --theme-contrast: 40;
+  --color-ink: #5c6a72;
+  --color-surface: #fdf6e3;
+  --color-diff-added: #8da101;
+  --color-diff-removed: #f85552;
+  --color-skill: #df69ba;
 }
 
 @theme inline {
@@ -34,23 +47,36 @@
   --radius-*: initial;
   --shadow-*: initial;
 
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
   
-  /* Extend tailwind theme dengan token Codex */
-  --color-codex-background: var(--codex-background);
-  --color-codex-foreground: var(--codex-foreground);
-  --color-codex-sidebar: var(--codex-sidebar);
-  --color-codex-surface: var(--codex-surface);
-  --color-codex-border: var(--codex-border);
-  --color-codex-accent: var(--codex-accent);
-  --color-codex-muted: var(--codex-muted);
-  --color-codex-danger: var(--codex-danger);
-  --color-codex-danger-bg: var(--codex-danger-bg);
-  --color-codex-success: var(--codex-success);
-  --color-codex-success-bg: var(--codex-success-bg);
-  --color-codex-info: var(--codex-info);
-  --color-codex-info-bg: var(--codex-info-bg);
+  /* Mendaftarkan token baru dari ThemeConfig */
+  --color-accent: var(--color-accent);
+  --color-ink: var(--color-ink);
+  --color-surface: var(--color-surface);
+  --color-surface-secondary: var(--color-surface-secondary);
+  --color-border: var(--color-border);
+  --color-muted: var(--color-muted);
+  --color-diff-added: var(--color-diff-added);
+  --color-diff-removed: var(--color-diff-removed);
+  --color-skill: var(--color-skill);
+  
+  /* Backward compatibility for Codex tokens during migration */
+  --color-codex-background: var(--color-surface);
+  --color-codex-foreground: var(--color-ink);
+  --color-codex-sidebar: var(--color-surface-secondary);
+  --color-codex-surface: var(--color-surface);
+  --color-codex-border: var(--color-border);
+  --color-codex-accent: var(--color-accent);
+  --color-codex-muted: var(--color-muted);
+
+  /* Status Colors */
+  --color-codex-danger: var(--color-danger);
+  --color-codex-danger-bg: var(--color-danger-bg);
+  --color-codex-success: var(--color-success);
+  --color-codex-success-bg: var(--color-success-bg);
+  --color-codex-info: var(--color-info);
+  --color-codex-info-bg: var(--color-info-bg);
   
   /* Border Radius */
   --radius-codex-sm: 0.375rem;
@@ -59,35 +85,54 @@
   --radius-codex-xl: 1rem;
   --radius-codex-2xl: 1.5rem;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-ui), var(--font-geist-sans);
+  --font-mono: var(--font-code), var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    
-    /* --- Codex Design Tokens (Dark) --- */
-    --codex-background: #1C1C1C;
-    --codex-foreground: #EAEAEA;
-    --codex-sidebar: #141414;
-    --codex-surface: #262626;
-    --codex-border: #333333;
-    --codex-accent: #CC7D5E;
-    --codex-muted: #888888;
-    --codex-danger: #F87171;
-    --codex-danger-bg: #7F1D1D;
-    --codex-success: #4ADE80;
-    --codex-success-bg: #14532D;
-    --codex-info: #60A5FA;
-    --codex-info-bg: #1E3A8A;
-  }
+/* Modal and Popover Surface Styles */
+.glass-surface {
+  background-color: var(--color-surface);
+}
+
+html[data-opaque-windows="false"] .glass-surface {
+  background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Default Theme (DARK - absolutely) */
+html.dark, html.dark[data-code-theme="github-dark"] {
+  --color-accent: #cc7d5e;
+  --theme-contrast: 44;
+  --color-ink: #f9f9f7;
+  --color-surface: #2d2d2b;
+  --color-diff-added: #00c853;
+  --color-diff-removed: #ff5f38;
+  --color-skill: #cc7d5e;
+  
+  /* Fallback status colors */
+  --color-danger: #F87171;
+  --color-danger-bg: #7F1D1D;
+  --color-success: #4ADE80;
+  --color-success-bg: #14532D;
+  --color-info: #60A5FA;
+  --color-info-bg: #1E3A8A;
+}
+
+/* DARK - everforest */
+html.dark[data-code-theme="everforest-dark"] {
+  --color-accent: #a7c080;
+  --theme-contrast: 44;
+  --color-ink: #d3c6aa;
+  --color-surface: #2d353b;
+  --color-diff-added: #a7c080;
+  --color-diff-removed: #e67e80;
+  --color-skill: #d699b6;
 }
 
 body {
-  background: var(--codex-background);
-  color: var(--codex-foreground);
+  background: var(--color-surface);
+  color: var(--color-ink);
   font-family:
     var(--font-sans),
     -apple-system,
@@ -108,7 +153,7 @@ body {
 }
 
 .tiptap p.is-editor-empty:first-child::before {
-  color: var(--codex-muted);
+  color: var(--color-muted);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -178,7 +223,7 @@ body {
   width: 1rem;
   height: 1rem;
   border-radius: 0.25rem;
-  accent-color: var(--codex-accent);
+  accent-color: var(--color-accent);
 }
 
 .tiptap ul[data-type="taskList"] li > div {
@@ -187,35 +232,35 @@ body {
 
 .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
   text-decoration: line-through;
-  color: var(--codex-muted);
+  color: var(--color-muted);
 }
 
 .tiptap blockquote {
-  border-left: 3px solid var(--codex-border);
+  border-left: 3px solid var(--color-border);
   padding-left: 1rem;
   margin: 0.75rem 0;
-  color: var(--codex-muted);
+  color: var(--color-muted);
   font-style: italic;
 }
 
 .dark .tiptap blockquote {
-  border-left-color: var(--codex-border);
-  color: var(--codex-muted);
+  border-left-color: var(--color-border);
+  color: var(--color-muted);
 }
 
 .tiptap hr {
   border: none;
-  border-top: 1px solid var(--codex-border);
+  border-top: 1px solid var(--color-border);
   margin: 1.5rem 0;
 }
 
 .dark .tiptap hr {
-  border-top-color: var(--codex-border);
+  border-top-color: var(--color-border);
 }
 
 .tiptap pre {
-  background: var(--codex-surface);
-  color: var(--codex-foreground);
+  background: var(--color-surface-secondary);
+  color: var(--color-ink);
   font-family: var(--font-mono), monospace;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;

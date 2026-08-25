@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";

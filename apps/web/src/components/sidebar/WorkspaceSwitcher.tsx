@@ -89,7 +89,7 @@ export function WorkspaceSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-codex-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[240px] animate-in fade-in-0 zoom-in-95 duration-100">
+        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 glass-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[240px] animate-in fade-in-0 zoom-in-95 duration-100">
           <div className="px-2 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
             Workspaces
           </div>

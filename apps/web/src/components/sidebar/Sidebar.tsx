@@ -9,6 +9,7 @@ import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { PageTreeItem } from "./PageTreeItem";
 import { Plus, LogOut, FileText, Compass, Trash2 } from "lucide-react";
 import { TrashModal } from "./TrashModal";
+import { AppearanceModal } from "./AppearanceModal";
 
 export function Sidebar() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export function Sidebar() {
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, createPage } = usePageStore();
   const [isTrashOpen, setIsTrashOpen] = useState(false);
+  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
 
   const rootPages = pages.filter(
     (p) => (p.parentPageId === null || p.parentPageId === undefined) && !p.isArchived,
@@ -112,7 +114,10 @@ export function Sidebar() {
 
       {/* User profile & Logout */}
       <div className="p-3 border-t border-codex-border/50 flex items-center justify-between">
-        <div className="flex items-center gap-2.5 min-w-0">
+        <button
+          onClick={() => setIsAppearanceOpen(true)}
+          className="flex items-center gap-2.5 min-w-0 text-left hover:opacity-80 transition-opacity"
+        >
           <div className="w-7 h-7 rounded-full bg-codex-surface border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-semibold shrink-0">
             {user?.name?.charAt(0).toUpperCase() || "U"}
           </div>
@@ -122,7 +127,7 @@ export function Sidebar() {
             </p>
             <p className="text-[10px] text-codex-muted truncate">{user?.email}</p>
           </div>
-        </div>
+        </button>
         <button
           onClick={handleLogout}
           className="p-1.5 text-codex-muted hover:text-codex-danger rounded-codex-md hover:bg-codex-surface/50 transition-colors shrink-0"
@@ -132,6 +137,7 @@ export function Sidebar() {
         </button>
       </div>
       <TrashModal isOpen={isTrashOpen} onClose={() => setIsTrashOpen(false)} />
+      <AppearanceModal isOpen={isAppearanceOpen} onClose={() => setIsAppearanceOpen(false)} />
     </aside>
   );
 }

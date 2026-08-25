@@ -126,7 +126,7 @@ function PageDetail({ page }: { page: Page }) {
           )}
 
           {isEmojiPickerOpen && (
-            <div className="absolute left-0 top-full mt-2 z-50 bg-codex-surface border border-codex-border rounded-codex-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute left-0 top-full mt-2 z-50 glass-surface border border-codex-border rounded-codex-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
               <div className="text-[11px] font-semibold text-codex-muted uppercase tracking-wider mb-2">
                 Select Icon
               </div>

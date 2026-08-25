@@ -190,7 +190,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
               </button>
 
               {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 bg-codex-surface border border-codex-border rounded-codex-md p-1 min-w-[140px] text-xs animate-in fade-in-0 zoom-in-95 duration-100">
+                <div className="absolute right-0 top-full mt-1 z-50 glass-surface border border-codex-border rounded-codex-md p-1 min-w-[140px] text-xs animate-in fade-in-0 zoom-in-95 duration-100">
                   <button
                     type="button"
                     onClick={(e) => {
