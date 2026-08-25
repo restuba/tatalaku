@@ -198,6 +198,17 @@ export const api = {
           method: "DELETE",
         },
       ),
+    getMembers: (workspaceId: string) =>
+      request<{
+        success: boolean;
+        data: Array<{
+          id: string;
+          name: string;
+          email: string;
+          avatarUrl: string | null;
+          role: "owner" | "member";
+        }>;
+      }>(`/workspaces/${workspaceId}/members`),
   },
 
   pages: {

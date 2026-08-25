@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Routes that require authentication
-const PROTECTED_ROUTES = ["/workspace"];
+const PROTECTED_ROUTES = ["/workspace", "/invite"];
 // Routes only for unauthenticated users
 const AUTH_ROUTES = ["/login", "/register"];
 

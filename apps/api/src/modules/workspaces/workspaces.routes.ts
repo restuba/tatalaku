@@ -32,6 +32,13 @@ workspacesRouter.get("/:workspaceId", validate(workspaceParamsSchema, "params"),
   workspacesController.getById(req, res, next),
 );
 
+// GET /api/workspaces/:workspaceId/members - Get workspace members
+workspacesRouter.get(
+  "/:workspaceId/members",
+  validate(workspaceParamsSchema, "params"),
+  (req, res, next) => workspacesController.getMembers(req, res, next),
+);
+
 // PATCH /api/workspaces/:workspaceId - Update workspace name
 workspacesRouter.patch(
   "/:workspaceId",

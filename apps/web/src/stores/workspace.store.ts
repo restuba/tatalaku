@@ -8,6 +8,13 @@ import { api } from "@/lib/api";
 interface WorkspaceState {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
+  activeWorkspaceMembers: Array<{
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+    role: "owner" | "member";
+  }>;
   isLoading: boolean;
   isInitialized: boolean;
 }
@@ -21,6 +28,7 @@ interface WorkspaceActions {
   inviteMember: (workspaceId: string, email: string) => Promise<void>;
   acceptInvite: (workspaceId: string, token: string) => Promise<void>;
   removeMember: (workspaceId: string, userId: string) => Promise<void>;
+  fetchActiveWorkspaceMembers: () => Promise<void>;
 }
 
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
@@ -28,6 +36,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
     (set, get) => ({
       workspaces: [],
       activeWorkspace: null,
+      activeWorkspaceMembers: [],
       isLoading: false,
       isInitialized: false,
 
@@ -61,7 +70,18 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
       },
 
       setActiveWorkspace: (workspace) => {
-        set({ activeWorkspace: workspace });
+        set({ activeWorkspace: workspace, activeWorkspaceMembers: [] });
+      },
+
+      fetchActiveWorkspaceMembers: async () => {
+        const active = get().activeWorkspace;
+        if (!active) return;
+        try {
+          const res = await api.workspaces.getMembers(active.id);
+          set({ activeWorkspaceMembers: res.data });
+        } catch (err) {
+          console.error("Failed to fetch workspace members:", err);
+        }
       },
 
       createWorkspace: async (name: string) => {

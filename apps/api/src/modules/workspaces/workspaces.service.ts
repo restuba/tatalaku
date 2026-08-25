@@ -1,5 +1,6 @@
 import type { Workspace, PaginatedResponse, PaginationQuery } from "@tatalaku/shared";
 import { WorkspaceModel, type WorkspaceDocument } from "./workspaces.model.js";
+import { UserModel } from "../auth/auth.model.js";
 import { PageModel } from "../pages/pages.model.js";
 import { ForbiddenError, NotFoundError } from "../../utils/errors.js";
 import type { CreateWorkspaceInput, UpdateWorkspaceInput } from "./workspaces.validation.js";
@@ -67,6 +68,48 @@ export class WorkspacesService {
     }
 
     return toWorkspaceResponse(doc);
+  }
+
+  /**
+   * Get workspace members (owner and members) with details
+   */
+  async getMembers(
+    workspaceId: string,
+    userId: string,
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      email: string;
+      avatarUrl: string | null;
+      role: "owner" | "member";
+    }>
+  > {
+    const doc = await WorkspaceModel.findById(workspaceId);
+    if (!doc) {
+      throw new NotFoundError("Workspace");
+    }
+
+    const isMember = doc.ownerId === userId || doc.memberIds.includes(userId);
+    if (!isMember) {
+      throw new ForbiddenError("You do not have access to this workspace");
+    }
+
+    const allUserIds = [doc.ownerId, ...doc.memberIds];
+    const users = await UserModel.find({ _id: { $in: allUserIds } });
+
+    // Ensure owner is first, then members
+    const owner = users.find((u) => u._id.toString() === doc.ownerId);
+    const members = users.filter((u) => u._id.toString() !== doc.ownerId);
+    const sortedUsers = owner ? [owner, ...members] : members;
+
+    return sortedUsers.map((u) => ({
+      id: u._id.toString(),
+      name: u.name,
+      email: u.email,
+      avatarUrl: u.avatarUrl,
+      role: u._id.toString() === doc.ownerId ? "owner" : "member",
+    }));
   }
 
   /**
@@ -144,6 +187,9 @@ export class WorkspacesService {
 
     await doc.save();
     // Here we would typically send an email with the token link
+    console.log(`\n[DEV] ✉️  Simulated Email Sent!`);
+    console.log(`[DEV] To: ${email}`);
+    console.log(`[DEV] Link: http://localhost:3000/invite/${workspaceId}/${token}\n`);
   }
 
   /**

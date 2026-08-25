@@ -32,6 +32,16 @@ export class WorkspacesController {
     }
   }
 
+  async getMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const workspaceId = req.params["workspaceId"] as string;
+      const members = await workspacesService.getMembers(workspaceId, req.user!.id);
+      res.status(200).json({ success: true, data: members });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const workspaceId = req.params["workspaceId"] as string;

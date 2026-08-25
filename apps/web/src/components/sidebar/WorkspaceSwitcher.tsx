@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace.store";
-import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus } from "lucide-react";
+import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus, Users } from "lucide-react";
+import { WorkspaceMembersModal } from "./WorkspaceMembersModal";
 
 export function WorkspaceSwitcher() {
   const { workspaces, activeWorkspace, setActiveWorkspace, createWorkspace, deleteWorkspace } =
@@ -11,6 +12,7 @@ export function WorkspaceSwitcher() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [isInviting, setIsInviting] = useState<string | null>(null); // store workspace id being invited to
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
@@ -113,7 +115,20 @@ export function WorkspaceSwitcher() {
                   </div>
                   <div className="flex items-center gap-1">
                     {activeWorkspace?.id === ws.id && (
-                      <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <>
+                        <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsOpen(false);
+                            setIsMembersModalOpen(true);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-purple-600 rounded transition-all"
+                          title="View members"
+                        >
+                          <Users className="w-3.5 h-3.5" />
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={(e) => {
@@ -209,6 +224,11 @@ export function WorkspaceSwitcher() {
           </div>
         </div>
       )}
+
+      <WorkspaceMembersModal
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
+      />
     </div>
   );
 }
