@@ -56,9 +56,11 @@ export function BlockMenu({ editor }: BlockMenuProps) {
       if (!nodeDOM || nodeDOM.nodeType !== 1) return;
 
       const rect = nodeDOM.getBoundingClientRect();
-      const parentRect = view.dom.parentElement?.getBoundingClientRect();
+      const relativeParent = view.dom.closest(".relative") || view.dom.parentElement;
 
-      if (!parentRect) return;
+      if (!relativeParent) return;
+
+      const parentRect = relativeParent.getBoundingClientRect();
 
       // Position relative to the editor container
       setMenuPos({
