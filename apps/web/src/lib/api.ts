@@ -50,14 +50,23 @@ async function doRefresh(): Promise<string | null> {
 
     if (!res.ok) {
       accessToken = null;
+      if (res.status >= 500) {
+        throw new Error(`Server error during refresh: ${res.status}`);
+      }
       return null;
     }
 
     const json = (await res.json()) as RefreshResponse;
     accessToken = json.data.accessToken;
     return accessToken;
-  } catch {
+  } catch (err) {
     accessToken = null;
+    if (
+      err instanceof TypeError ||
+      (err instanceof Error && err.message.includes("Server error"))
+    ) {
+      throw err;
+    }
     return null;
   }
 }

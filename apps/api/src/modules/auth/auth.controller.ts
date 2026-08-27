@@ -57,6 +57,9 @@ export class AuthController {
         data: { accessToken: tokens.accessToken },
       });
     } catch (err) {
+      // If refresh fails (e.g., token expired, user deleted from DB), clear the invalid cookie
+      // so the client's middleware doesn't get stuck in an infinite redirect loop.
+      res.clearCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
       next(err);
     }
   }

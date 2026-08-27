@@ -10,7 +10,7 @@ import { Loader2, Plus, Sparkles } from "lucide-react";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, isInitialized: isAuthInit, fetchMe } = useAuthStore();
+  const { user, isInitialized: isAuthInit, error, fetchMe } = useAuthStore();
   const {
     workspaces,
     activeWorkspace,
@@ -36,10 +36,19 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
   // Fetch pages whenever active workspace changes
   useEffect(() => {
-    if (activeWorkspace) {
-      fetchPages(activeWorkspace.id);
+    if (activeWorkspace && user) {
+      fetchPages(activeWorkspace.id).catch((err) => {
+        console.error("Failed to fetch pages:", err);
+      });
     }
-  }, [activeWorkspace, fetchPages]);
+  }, [activeWorkspace, user, fetchPages]);
+
+  // Redirect to login if unauthenticated
+  useEffect(() => {
+    if (isAuthInit && !user) {
+      router.push("/login");
+    }
+  }, [isAuthInit, user, router]);
 
   async function handleCreateFirstWorkspace(e: React.FormEvent) {
     e.preventDefault();
@@ -65,12 +74,28 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // If user is not logged in and initialization is complete, redirect to login
-  if (isAuthInit && !user) {
-    router.push("/login");
-    return null;
+  // If auth has an error (e.g. backend down), show the error UI
+  if (isAuthInit && error) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-codex-surface border border-codex-border rounded-codex-2xl p-8 text-center">
+          <h1 className="text-xl font-bold text-codex-danger mb-2">Connection Error</h1>
+          <p className="text-sm text-codex-muted mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
+  // If user is not logged in and initialization is complete, redirect to login
+  if (isAuthInit && !user) {
+    return null;
+  }
   // If user has no workspaces at all, show friendly Onboarding screen
   if (isWsInit && workspaces.length === 0) {
     return (

@@ -2,13 +2,14 @@
 
 import { create } from "zustand";
 import type { User } from "@tatalaku/shared";
-import { api, setAccessToken } from "@/lib/api";
+import { api, setAccessToken, ApiRequestError } from "@/lib/api";
 import type { LoginFormValues, RegisterFormValues } from "@/types/auth.types";
 
 interface AuthState {
   user: User | null;
   isLoading: boolean;
   isInitialized: boolean;
+  error: string | null;
 }
 
 interface AuthActions {
@@ -17,12 +18,16 @@ interface AuthActions {
   logout: () => Promise<void>;
   fetchMe: () => Promise<void>;
   setUser: (user: User | null) => void;
+  clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   user: null,
   isLoading: false,
   isInitialized: false,
+  error: null,
+
+  clearError: () => set({ error: null }),
 
   setUser: (user) => set({ user }),
 
@@ -61,7 +66,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   },
 
   fetchMe: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
     try {
       // Try to refresh first to get a valid access token
       const token = await api.auth.refresh();
@@ -71,9 +76,21 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
       }
       const res = await api.auth.me();
       set({ user: res.data.user, isLoading: false, isInitialized: true });
-    } catch {
+    } catch (err: unknown) {
       setAccessToken(null);
-      set({ user: null, isLoading: false, isInitialized: true });
+
+      let errorMessage =
+        "Connection to server failed. Please ensure the backend and database are running.";
+      if (err instanceof ApiRequestError && [401, 403, 404].includes(err.status)) {
+        errorMessage = ""; // Invalid session, just redirect naturally
+      }
+
+      set({
+        user: null,
+        isLoading: false,
+        isInitialized: true,
+        error: errorMessage || null,
+      });
     }
   },
 }));
