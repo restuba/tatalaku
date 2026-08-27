@@ -67,7 +67,7 @@ function PageDetail({ page }: { page: Page }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col max-w-4xl w-full mx-auto p-6 sm:p-12">
+    <div className="flex-1 flex flex-col max-w-6xl w-full mx-auto p-6 sm:p-12">
       {/* Top Bar / Breadcrumb & Actions */}
       <div className="flex items-center justify-between text-xs text-codex-muted mb-8 select-none">
         <div className="flex items-center gap-1.5 flex-wrap truncate">

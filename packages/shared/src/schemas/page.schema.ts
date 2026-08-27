@@ -7,7 +7,7 @@ export const PageSchema = z.object({
   title: z.string(),
   icon: z.string().nullable(),
   coverImage: z.string().url().nullable(),
-  blockIds: z.array(z.string()),
+  content: z.string().nullable(),
   createdBy: z.string(),
   isArchived: z.boolean().default(false),
   createdAt: z.date().or(z.string()),

@@ -19,18 +19,9 @@ const pageSchema = new Schema<PageDocument>(
       type: String,
       default: "Untitled",
     },
-    icon: {
-      type: String,
-      default: null,
-    },
-    coverImage: {
-      type: String,
-      default: null,
-    },
-    blockIds: {
-      type: [String],
-      default: [],
-    },
+    icon: { type: String, default: null },
+    coverImage: { type: String, default: null },
+    content: { type: String, default: null },
     createdBy: {
       type: String,
       required: true,

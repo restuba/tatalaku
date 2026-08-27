@@ -98,7 +98,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
       title: input.title ?? "Untitled",
       icon: input.icon ?? null,
       coverImage: null,
-      blockIds: [],
+      content: null,
       createdBy: "current-user",
       isArchived: false,
       createdAt: new Date().toISOString(),

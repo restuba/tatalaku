@@ -1,6 +1,18 @@
 import { useEffect, useState, useRef } from "react";
 import { Editor } from "@tiptap/react";
-import { GripVertical, Copy, Trash2, MoreVertical } from "lucide-react";
+import {
+  GripVertical,
+  Copy,
+  Trash2,
+  Type,
+  Heading1,
+  Heading2,
+  Heading3,
+  ListTodo,
+  List,
+  ListOrdered,
+  Quote,
+} from "lucide-react";
 
 interface BlockMenuProps {
   editor: Editor | null;
@@ -64,9 +76,8 @@ export function BlockMenu({ editor }: BlockMenuProps) {
 
       // Position relative to the editor container
       setMenuPos({
-        top: rect.top - parentRect.top,
-        // Usually position it to the left of the editor content.
-        left: -32,
+        top: rect.top - parentRect.top + 2, // Geser 2px ke bawah agar sejajar dengan teks
+        left: -32, // Kembalikan ke -32 karena sekarang hanya 1 tombol (sebelumnya -48 terlalu jauh)
       });
       setHoveredPos(nodeStart);
     };
@@ -123,6 +134,39 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     setMenuPos(null);
   };
 
+  const turnInto = (type: string, level?: number) => {
+    if (hoveredPos === null) return;
+    editor.chain().focus().setNodeSelection(hoveredPos).run();
+
+    switch (type) {
+      case "paragraph":
+        editor.chain().focus().setParagraph().run();
+        break;
+      case "heading":
+        editor
+          .chain()
+          .focus()
+          .toggleHeading({ level: level as any })
+          .run();
+        break;
+      case "bulletList":
+        editor.chain().focus().toggleBulletList().run();
+        break;
+      case "orderedList":
+        editor.chain().focus().toggleOrderedList().run();
+        break;
+      case "taskList":
+        editor.chain().focus().toggleTaskList().run();
+        break;
+      case "blockquote":
+        editor.chain().focus().toggleBlockquote().run();
+        break;
+    }
+
+    setIsOpen(false);
+    setMenuPos(null);
+  };
+
   return (
     <div
       ref={containerRef}
@@ -132,26 +176,22 @@ export function BlockMenu({ editor }: BlockMenuProps) {
         left: `${menuPos.left}px`,
       }}
     >
-      <div
-        className="p-1 rounded-codex-sm cursor-grab hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
-        draggable
-        onDragStart={handleDragStart}
-        title="Drag to move"
-      >
-        <GripVertical className="w-4 h-4" />
-      </div>
-
       <div className="relative">
-        <button
+        <div
+          className="p-1 rounded-codex-sm cursor-grab hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
+          draggable
+          onDragStart={handleDragStart}
           onClick={() => setIsOpen(!isOpen)}
-          className="p-1 rounded-codex-sm hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
-          title="Block options"
+          title="Click to open menu, drag to move"
         >
-          <MoreVertical className="w-4 h-4" />
-        </button>
+          <GripVertical className="w-4 h-4" />
+        </div>
 
         {isOpen && (
-          <div className="absolute left-0 mt-1 w-32 glass-surface border border-codex-border rounded-codex-md py-1 text-sm">
+          <div className="absolute left-0 mt-1 w-56 glass-surface border border-codex-border rounded-codex-md py-1 text-sm max-h-[60vh] overflow-y-auto">
+            <div className="px-3 py-1.5 text-[10px] font-semibold text-codex-muted uppercase tracking-wider">
+              Actions
+            </div>
             <button
               onClick={duplicateNode}
               className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
@@ -165,6 +205,60 @@ export function BlockMenu({ editor }: BlockMenuProps) {
             >
               <Trash2 className="w-4 h-4" />
               Delete
+            </button>
+
+            <div className="h-px bg-codex-border my-1" />
+
+            <div className="px-3 py-1.5 text-[10px] font-semibold text-codex-muted uppercase tracking-wider">
+              Turn into
+            </div>
+            <button
+              onClick={() => turnInto("paragraph")}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <Type className="w-4 h-4" /> Text
+            </button>
+            <button
+              onClick={() => turnInto("heading", 1)}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <Heading1 className="w-4 h-4" /> Heading 1
+            </button>
+            <button
+              onClick={() => turnInto("heading", 2)}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <Heading2 className="w-4 h-4" /> Heading 2
+            </button>
+            <button
+              onClick={() => turnInto("heading", 3)}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <Heading3 className="w-4 h-4" /> Heading 3
+            </button>
+            <button
+              onClick={() => turnInto("taskList")}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <ListTodo className="w-4 h-4" /> To-do list
+            </button>
+            <button
+              onClick={() => turnInto("bulletList")}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <List className="w-4 h-4" /> Bullet list
+            </button>
+            <button
+              onClick={() => turnInto("orderedList")}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <ListOrdered className="w-4 h-4" /> Numbered list
+            </button>
+            <button
+              onClick={() => turnInto("blockquote")}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+            >
+              <Quote className="w-4 h-4" /> Quote
             </button>
           </div>
         )}

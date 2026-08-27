@@ -15,6 +15,8 @@ import {
   Quote,
   Minus,
   ImageIcon,
+  Table as TableIcon,
+  Workflow as WorkflowIcon,
 } from "lucide-react";
 
 export interface CommandItem {
@@ -38,7 +40,7 @@ export const SLASH_COMMANDS: CommandItem[] = [
     description: "Big section heading.",
     icon: Heading1,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run();
+      editor.chain().focus().deleteRange(range).toggleHeading({ level: 1 }).run();
     },
   },
   {
@@ -46,7 +48,7 @@ export const SLASH_COMMANDS: CommandItem[] = [
     description: "Medium section heading.",
     icon: Heading2,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run();
+      editor.chain().focus().deleteRange(range).toggleHeading({ level: 2 }).run();
     },
   },
   {
@@ -54,7 +56,7 @@ export const SLASH_COMMANDS: CommandItem[] = [
     description: "Small section heading.",
     icon: Heading3,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run();
+      editor.chain().focus().deleteRange(range).toggleHeading({ level: 3 }).run();
     },
   },
   {
@@ -124,6 +126,27 @@ export const SLASH_COMMANDS: CommandItem[] = [
       } else {
         editor.chain().focus().deleteRange(range).run();
       }
+    },
+  },
+  {
+    title: "Table",
+    description: "Insert a simple table.",
+    icon: TableIcon,
+    command: ({ editor, range }) => {
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+        .run();
+    },
+  },
+  {
+    title: "Mermaid Diagram",
+    description: "Insert a flow chart or diagram.",
+    icon: WorkflowIcon,
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertContent({ type: "mermaid" }).run();
     },
   },
 ];

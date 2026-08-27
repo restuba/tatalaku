@@ -13,7 +13,6 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { workspacesRouter } from "./modules/workspaces/workspaces.routes.js";
 import { pagesRouter } from "./modules/pages/pages.routes.js";
-import { blocksRouter } from "./modules/blocks/blocks.routes.js";
 
 export function createApp(): Express {
   const app = express();
@@ -41,7 +40,6 @@ export function createApp(): Express {
   app.use("/api/auth", authRouter);
   app.use("/api/workspaces", workspacesRouter);
   app.use("/api/pages", pagesRouter);
-  app.use("/api/blocks", blocksRouter);
 
   // ── 404 handler ───────────────────────────────────────────────────────────────
   app.use((_req, res) => {

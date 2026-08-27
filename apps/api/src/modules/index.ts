@@ -15,9 +15,3 @@ export * from "./pages/pages.model.js";
 export * from "./pages/pages.routes.js";
 export * from "./pages/pages.service.js";
 export * from "./pages/pages.validation.js";
-
-export * from "./blocks/blocks.controller.js";
-export * from "./blocks/blocks.model.js";
-export * from "./blocks/blocks.routes.js";
-export * from "./blocks/blocks.service.js";
-export * from "./blocks/blocks.validation.js";

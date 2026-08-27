@@ -14,6 +14,7 @@ export const updatePageSchema = z.object({
   title: z.string().max(500).optional(),
   icon: z.string().nullable().optional(),
   coverImage: z.string().url().nullable().optional(),
+  content: z.string().nullable().optional(),
   parentPageId: z.string().nullable().optional(),
   isArchived: z.boolean().optional(),
 });

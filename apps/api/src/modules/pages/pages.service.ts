@@ -18,7 +18,7 @@ function toPageResponse(doc: PageDocument): Page {
     title: doc.title,
     icon: doc.icon ?? null,
     coverImage: doc.coverImage ?? null,
-    blockIds: doc.blockIds ?? [],
+    content: doc.content ?? null,
     createdBy: doc.createdBy,
     isArchived: doc.isArchived,
     createdAt: doc.createdAt,
@@ -157,7 +157,7 @@ export class PagesService {
       title: input.title?.trim() || "Untitled",
       icon: input.icon ?? null,
       coverImage: null,
-      blockIds: [],
+      content: null,
       createdBy: userId,
       isArchived: false,
     });
@@ -228,6 +228,10 @@ export class PagesService {
 
     if (input.coverImage !== undefined) {
       doc.coverImage = input.coverImage;
+    }
+
+    if (input.content !== undefined) {
+      doc.content = input.content;
     }
 
     if (input.isArchived !== undefined) {
