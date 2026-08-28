@@ -276,6 +276,77 @@ body {
   font-size: inherit;
 }
 
+/* Highlight.js syntax highlighting adapted to current theme */
+.tiptap pre .hljs-comment,
+.tiptap pre .hljs-quote {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.tiptap pre .hljs-doctag,
+.tiptap pre .hljs-keyword,
+.tiptap pre .hljs-formula {
+  color: var(--color-accent);
+}
+
+.tiptap pre .hljs-section,
+.tiptap pre .hljs-name,
+.tiptap pre .hljs-selector-tag,
+.tiptap pre .hljs-deletion,
+.tiptap pre .hljs-subst {
+  color: var(--color-danger);
+}
+
+.tiptap pre .hljs-literal {
+  color: var(--color-info);
+}
+
+.tiptap pre .hljs-string,
+.tiptap pre .hljs-regexp,
+.tiptap pre .hljs-addition,
+.tiptap pre .hljs-attribute,
+.tiptap pre .hljs-meta .hljs-string {
+  color: var(--color-success);
+}
+
+.tiptap pre .hljs-attr,
+.tiptap pre .hljs-variable,
+.tiptap pre .hljs-template-variable,
+.tiptap pre .hljs-type,
+.tiptap pre .hljs-selector-class,
+.tiptap pre .hljs-selector-attr,
+.tiptap pre .hljs-selector-pseudo,
+.tiptap pre .hljs-number {
+  color: var(--color-accent);
+}
+
+.tiptap pre .hljs-symbol,
+.tiptap pre .hljs-bullet,
+.tiptap pre .hljs-link,
+.tiptap pre .hljs-meta,
+.tiptap pre .hljs-selector-id,
+.tiptap pre .hljs-title {
+  color: var(--color-info);
+}
+
+.tiptap pre .hljs-built_in,
+.tiptap pre .hljs-title.class_,
+.tiptap pre .hljs-class .hljs-title {
+  color: var(--color-accent);
+}
+
+.tiptap pre .hljs-emphasis {
+  font-style: italic;
+}
+
+.tiptap pre .hljs-strong {
+  font-weight: bold;
+}
+
+.tiptap pre .hljs-link {
+  text-decoration: underline;
+}
+
 .tiptap img {
   max-width: 100%;
   height: auto;
@@ -293,16 +364,16 @@ body {
 }
 .tiptap table td,
 .tiptap table th {
-  border: 1px solid var(--color-border);
+  border: 1.5px solid color-mix(in srgb, var(--color-ink) 15%, var(--color-surface));
   box-sizing: border-box;
   min-width: 1em;
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
   position: relative;
   vertical-align: top;
 }
 .tiptap table th {
-  background-color: var(--color-surface-secondary);
-  font-weight: bold;
+  background-color: color-mix(in srgb, var(--color-ink) 6%, var(--color-surface));
+  font-weight: 600;
   text-align: left;
 }
 .tiptap .tableWrapper {
