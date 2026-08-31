@@ -11,10 +11,10 @@ import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
-import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-import { common, createLowlight } from "lowlight";
+import { all, createLowlight } from "lowlight";
+import { CodeBlock } from "./extensions/code-block";
 
-const lowlight = createLowlight(common);
+const lowlight = createLowlight(all);
 
 import { Toggle } from "./extensions/toggle";
 import { SlashCommands } from "./extensions/slash-command";
@@ -74,7 +74,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
         },
         codeBlock: false,
       }),
-      CodeBlockLowlight.configure({
+      CodeBlock.configure({
         lowlight,
       }),
       TaskList,

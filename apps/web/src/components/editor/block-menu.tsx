@@ -130,7 +130,6 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     e.dataTransfer.effectAllowed = "move";
 
     // 4. Important: Tell ProseMirror we are dragging this slice internally to perform a MOVE
-    // @ts-expect-error - view.dragging is an internal API often used for custom drag handles
     // eslint-disable-next-line react-hooks/immutability
     view.dragging = { slice, move: true };
   };
