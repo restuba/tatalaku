@@ -94,12 +94,6 @@ html[data-code-theme="everforest-light"] {
   background-color: var(--color-surface);
 }
 
-html[data-opaque-windows="false"] .glass-surface {
-  background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
 /* Default Theme (DARK - absolutely) */
 html.dark, html.dark[data-code-theme="github-dark"] {
   --color-accent: #cc7d5e;

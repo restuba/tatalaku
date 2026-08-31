@@ -1,25 +1,32 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { BlockEditor } from "@/components/editor/block-editor";
-import { ChevronRight, FileText, Plus, Trash2, Smile, ArrowLeft, Calendar } from "lucide-react";
+import { ChevronRight, FileText, Plus, Smile, ArrowLeft, Calendar } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
 
 function PageDetail({ page }: { page: Page }) {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
-  const { pages, updatePage, archivePage, createPage } = usePageStore();
+  const { pages, updatePage, createPage } = usePageStore();
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (titleInputRef.current) {
+      titleInputRef.current.style.height = "auto";
+      titleInputRef.current.style.height = `${titleInputRef.current.scrollHeight}px`;
+    }
+  }, [page.id]); // Adjust on initial mount when page loads
 
   // Build breadcrumb hierarchy
   const breadcrumbs: Page[] = [];
@@ -47,13 +54,6 @@ function PageDetail({ page }: { page: Page }) {
     setIcon(selectedIcon);
     setIsEmojiPickerOpen(false);
     await updatePage(page.id, { icon: selectedIcon });
-  }
-
-  async function handleArchive() {
-    if (confirm("Move this page and its subpages to archive?")) {
-      await archivePage(page.id);
-      router.push("/workspace");
-    }
   }
 
   async function handleAddSubpage() {
@@ -89,17 +89,6 @@ function PageDetail({ page }: { page: Page }) {
           <span className="text-codex-foreground font-medium truncate max-w-[160px]">
             {page.title || "Untitled"}
           </span>
-        </div>
-
-        <div className="flex items-center gap-1 shrink-0 ml-4">
-          <button
-            onClick={handleArchive}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs text-codex-muted hover:text-codex-danger hover:bg-codex-danger-bg/10 rounded-codex-sm transition-colors"
-            title="Archive page"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Archive</span>
-          </button>
         </div>
       </div>
 
@@ -159,7 +148,11 @@ function PageDetail({ page }: { page: Page }) {
           rows={1}
           value={title}
           placeholder="Untitled"
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          }}
           onBlur={handleTitleBlur}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -167,7 +160,7 @@ function PageDetail({ page }: { page: Page }) {
               titleInputRef.current?.blur();
             }
           }}
-          className="w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none border-none p-0 tracking-tight leading-tight"
+          className="w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
         />
 
         {/* Metadata info */}
