@@ -22,8 +22,8 @@ authRouter.post("/login", authLimiter, validate(loginSchema), (req, res, next) =
 // POST /api/auth/refresh
 authRouter.post("/refresh", (req, res, next) => authController.refresh(req, res, next));
 
-// POST /api/auth/logout
-authRouter.post("/logout", (req, res) => authController.logout(req, res));
+// POST /api/auth/logout  (protected)
+authRouter.post("/logout", authGuard, (req, res, next) => authController.logout(req, res, next));
 
 // GET /api/auth/me  (protected)
 authRouter.get("/me", authGuard, (req, res, next) => authController.getMe(req, res, next));

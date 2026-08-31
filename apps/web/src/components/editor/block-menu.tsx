@@ -25,13 +25,19 @@ export function BlockMenu({ editor }: BlockMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (isOpen) return;
 
-      const view = editor.view;
-      if (!view) return;
+      let view;
+      try {
+        view = editor.view;
+        if (!view) return;
+      } catch {
+        // Editor view not mounted yet
+        return;
+      }
 
       // Ensure we don't hide if moving over the menu itself
       if (containerRef.current?.contains(e.target as Node)) {
@@ -82,10 +88,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
       setHoveredPos(nodeStart);
     };
 
-    const wrapper = editor.view.dom.parentElement;
-    if (wrapper) {
-      window.addEventListener("mousemove", handleMouseMove);
-    }
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);

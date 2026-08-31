@@ -64,9 +64,17 @@ export class AuthController {
     }
   }
 
-  logout(_req: Request, res: Response): void {
-    res.clearCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
-    res.status(200).json({ success: true, data: null });
+  async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Revoke all stored refresh tokens for this user
+      if (req.user) {
+        await authService.revokeAllTokens(req.user.id);
+      }
+      res.clearCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
+      res.status(200).json({ success: true, data: null });
+    } catch (err) {
+      next(err);
+    }
   }
 
   async getMe(req: Request, res: Response, next: NextFunction): Promise<void> {

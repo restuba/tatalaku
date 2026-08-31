@@ -264,14 +264,35 @@ export class PagesService {
   }
 
   /**
-   * Helper to recursively archive descendant pages
+   * Helper to archive all descendant pages in bulk (BFS, no N+1)
    */
   private async archiveDescendants(parentId: string, workspaceId: string): Promise<void> {
-    const children = await PageModel.find({ parentPageId: parentId, workspaceId });
-    for (const child of children) {
-      child.isArchived = true;
-      await child.save();
-      await this.archiveDescendants(child._id.toString(), workspaceId);
+    // BFS to collect all descendant IDs
+    const queue = [parentId];
+    const allDescendantIds: string[] = [];
+
+    while (queue.length > 0) {
+      const currentBatch = [...queue];
+      queue.length = 0;
+
+      const children = await PageModel.find(
+        { parentPageId: { $in: currentBatch }, workspaceId, isArchived: false },
+        { _id: 1 },
+      ).lean();
+
+      for (const child of children) {
+        const childId = child._id.toString();
+        allDescendantIds.push(childId);
+        queue.push(childId);
+      }
+    }
+
+    // Single bulk update for all descendants
+    if (allDescendantIds.length > 0) {
+      await PageModel.updateMany(
+        { _id: { $in: allDescendantIds } },
+        { $set: { isArchived: true } },
+      );
     }
   }
 

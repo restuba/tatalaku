@@ -35,13 +35,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   }, [isAuthInit, user, fetchWorkspaces]);
 
   // Fetch pages whenever active workspace changes
+  const activeWorkspaceId = activeWorkspace?.id;
   useEffect(() => {
-    if (activeWorkspace && user) {
-      fetchPages(activeWorkspace.id).catch((err) => {
+    if (isWsInit && activeWorkspaceId && user) {
+      fetchPages(activeWorkspaceId).catch((err) => {
         console.error("Failed to fetch pages:", err);
       });
     }
-  }, [activeWorkspace, user, fetchPages]);
+  }, [isWsInit, activeWorkspaceId, user, fetchPages]);
 
   // Redirect to login if unauthenticated
   useEffect(() => {

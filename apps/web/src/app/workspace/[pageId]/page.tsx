@@ -174,7 +174,7 @@ function PageDetail({ page }: { page: Page }) {
         <div className="flex items-center gap-4 text-xs text-codex-muted pt-1">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
-            Created {new Date(page.createdAt).toLocaleDateString()}
+            Created {page.createdAt ? new Date(page.createdAt).toLocaleDateString() : "Unknown"}
           </span>
         </div>
       </div>
@@ -222,8 +222,25 @@ function PageDetail({ page }: { page: Page }) {
 export default function PageView() {
   const params = useParams();
   const pageId = params?.["pageId"] as string;
-  const { pages } = usePageStore();
+  const { pages, isInitialized } = usePageStore();
   const currentPage = pages.find((p) => p.id === pageId);
+
+  // Pages haven't been fetched yet — show loading skeleton instead of "not found"
+  if (!isInitialized || (!currentPage && !isInitialized)) {
+    return (
+      <div className="flex-1 flex flex-col p-8 md:p-12 max-w-4xl mx-auto w-full animate-pulse">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-12 h-12 rounded-codex-xl bg-codex-sidebar shrink-0" />
+          <div className="h-10 w-3/4 max-w-lg bg-codex-sidebar rounded-codex-lg" />
+        </div>
+        <div className="space-y-6">
+          <div className="h-4 w-full bg-codex-sidebar/50 rounded-codex-md" />
+          <div className="h-4 w-5/6 bg-codex-sidebar/50 rounded-codex-md" />
+          <div className="h-4 w-4/6 bg-codex-sidebar/50 rounded-codex-md" />
+        </div>
+      </div>
+    );
+  }
 
   if (!currentPage) {
     return (

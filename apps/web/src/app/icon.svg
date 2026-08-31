@@ -8,5 +8,5 @@
     }
   </style>
 
-  <text x="32" y="36" font-family="Astoria, serif" font-size="46" text-anchor="middle" dominant-baseline="middle"><tspan fill="#000">T</tspan><tspan fill="#F8E731">.</tspan></text>
+  <text x="32" y="36" font-family="Astoria, serif" font-size="46" text-anchor="middle" dominant-baseline="middle"><tspan fill="#fff">T</tspan><tspan fill="#F8E731">.</tspan></text>
 </svg>

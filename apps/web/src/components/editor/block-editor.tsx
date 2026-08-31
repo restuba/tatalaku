@@ -65,6 +65,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
   );
 
   const editor = useEditor({
+    immediatelyRender: true,
     extensions: [
       GlobalId,
       StarterKit.configure({

@@ -6,7 +6,6 @@ import { api } from "@/lib/api";
 
 interface PageState {
   pages: Page[];
-  activePage: Page | null;
   expandedPageIds: string[];
   isLoading: boolean;
   isInitialized: boolean;
@@ -15,7 +14,6 @@ interface PageState {
 
 interface PageActions {
   fetchPages: (workspaceId: string) => Promise<Page[]>;
-  setActivePage: (page: Page | null) => void;
   createPage: (input: {
     workspaceId: string;
     parentPageId?: string | null;
@@ -41,7 +39,6 @@ interface PageActions {
 
 export const usePageStore = create<PageState & PageActions>((set, get) => ({
   pages: [],
-  activePage: null,
   expandedPageIds: [],
   isLoading: false,
   isInitialized: false,
@@ -58,10 +55,6 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
       set({ isLoading: false, isInitialized: true });
       throw err;
     }
-  },
-
-  setActivePage: (page) => {
-    set({ activePage: page });
   },
 
   toggleExpand: (pageId: string) => {
@@ -120,7 +113,6 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
       // Replace optimistic page with actual server page
       set((state) => ({
         pages: state.pages.map((p) => (p.id === tempId ? createdPage : p)),
-        activePage: state.activePage?.id === tempId ? createdPage : state.activePage,
       }));
 
       return createdPage;
@@ -135,13 +127,10 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
 
   updatePage: async (id, input) => {
     const previousPages = get().pages;
-    const previousActive = get().activePage;
 
     // Optimistic update
     set((state) => ({
       pages: state.pages.map((p) => (p.id === id ? { ...p, ...input } : p)),
-      activePage:
-        state.activePage?.id === id ? { ...state.activePage, ...input } : state.activePage,
     }));
 
     try {
@@ -150,20 +139,18 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
 
       set((state) => ({
         pages: state.pages.map((p) => (p.id === id ? updatedPage : p)),
-        activePage: state.activePage?.id === id ? updatedPage : state.activePage,
       }));
 
       return updatedPage;
     } catch (err) {
       // Rollback
-      set({ pages: previousPages, activePage: previousActive });
+      set({ pages: previousPages });
       throw err;
     }
   },
 
   archivePage: async (id: string) => {
     const previousPages = get().pages;
-    const previousActive = get().activePage;
     const previousArchived = get().archivedPages;
 
     // Optimistically remove page and its children
@@ -179,7 +166,6 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
 
     set((state) => ({
       pages: state.pages.filter((p) => !idsToRemove.has(p.id)),
-      activePage: idsToRemove.has(state.activePage?.id ?? "") ? null : state.activePage,
       archivedPages: [...state.archivedPages, ...archivedOnes],
     }));
 
@@ -187,7 +173,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
       await api.pages.archive(id);
     } catch (err) {
       // Rollback
-      set({ pages: previousPages, activePage: previousActive, archivedPages: previousArchived });
+      set({ pages: previousPages, archivedPages: previousArchived });
       throw err;
     }
   },
