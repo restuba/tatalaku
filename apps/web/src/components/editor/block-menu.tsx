@@ -108,9 +108,31 @@ export function BlockMenu({ editor }: BlockMenuProps) {
 
   if (!editor || !menuPos || hoveredPos === null) return null;
 
-  const handleDragStart = (_e: React.DragEvent) => {
+  const handleDragStart = (e: React.DragEvent) => {
     setIsOpen(false);
+
+    const view = editor.view;
+    if (!view) return;
+
+    // 1. Select the node to be dragged
     editor.commands.setNodeSelection(hoveredPos);
+
+    // 2. Extract the slice of the document being dragged
+    const selection = view.state.selection;
+    const slice = selection.content();
+
+    // 3. Serialize to HTML and Plain Text for the DataTransfer object
+    const { dom, text } = view.serializeForClipboard(slice);
+
+    e.dataTransfer.clearData();
+    e.dataTransfer.setData("text/html", dom.innerHTML);
+    e.dataTransfer.setData("text/plain", text);
+    e.dataTransfer.effectAllowed = "move";
+
+    // 4. Important: Tell ProseMirror we are dragging this slice internally to perform a MOVE
+    // @ts-expect-error - view.dragging is an internal API often used for custom drag handles
+    // eslint-disable-next-line react-hooks/immutability
+    view.dragging = { slice, move: true };
   };
 
   const duplicateNode = () => {
