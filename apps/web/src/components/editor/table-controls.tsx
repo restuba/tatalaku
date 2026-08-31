@@ -107,7 +107,7 @@ export function TableControls({ editor }: TableControlsProps) {
         if (typeof pos === "number") {
           activeCellPos.current = pos;
         }
-      } catch (err) {
+      } catch {
         // Fallback or ignore if posAtDOM fails
       }
     };
@@ -137,7 +137,9 @@ export function TableControls({ editor }: TableControlsProps) {
     return true;
   };
 
-  const handleAction = (action: (chain: any) => any) => {
+  const handleAction = (
+    action: (chain: ReturnType<Editor["chain"]>) => ReturnType<Editor["chain"]>,
+  ) => {
     if (selectCell()) {
       action(editor.chain().focus()).run();
     }

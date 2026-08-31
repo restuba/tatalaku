@@ -146,7 +146,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
         editor
           .chain()
           .focus()
-          .toggleHeading({ level: level as any })
+          .toggleHeading({ level: level as 1 | 2 | 3 | 4 | 5 | 6 })
           .run();
         break;
       case "bulletList":
