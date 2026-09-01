@@ -88,7 +88,15 @@ export const SLASH_COMMANDS: CommandItem[] = [
     description: "Toggles can hide and show content inside.",
     icon: ChevronRight,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).insertContent({ type: "toggle" }).run();
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({
+          type: "toggle",
+          content: [{ type: "paragraph" }],
+        })
+        .run();
     },
   },
   {

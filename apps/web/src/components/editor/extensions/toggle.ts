@@ -6,6 +6,21 @@ export const Toggle = Node.create({
   content: "paragraph block*",
   defining: true,
 
+  addAttributes() {
+    return {
+      open: {
+        default: true,
+        parseHTML: (element) => element.hasAttribute("open"),
+        renderHTML: (attributes) => {
+          if (attributes.open) {
+            return { open: "" };
+          }
+          return {};
+        },
+      },
+    };
+  },
+
   parseHTML() {
     return [{ tag: "details" }];
   },
