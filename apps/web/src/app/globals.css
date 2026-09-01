@@ -136,6 +136,11 @@ body {
     sans-serif;
 }
 
+::selection {
+  background-color: var(--color-info-bg);
+  /* color: inherit; (Browser usually handles text color contrast nicely, or we can leave it default) */
+}
+
 /* Tiptap Notion-style Editor Typography & Blocks */
 .tiptap {
   outline: none;
@@ -400,7 +405,8 @@ body {
 .tiptap .block-selected {
   background-color: var(--color-info-bg) !important;
   caret-color: transparent;
-  border-radius: 0.25rem;
+  border-radius: 0.125rem;
+  box-shadow: 0 0 0 2px var(--color-info-bg) !important;
 }
 .tiptap .block-selected ::selection,
 .tiptap .block-selected *::selection {
@@ -408,9 +414,11 @@ body {
   color: inherit !important;
 }
 
-/* Hide native selection entirely when lasso is active */
+/* Hide native selection entirely when lasso is active or multi-block selection is active */
 .is-lassoing .tiptap ::selection,
-.is-lassoing .tiptap *::selection {
+.is-lassoing .tiptap *::selection,
+.tiptap.is-multi-block ::selection,
+.tiptap.is-multi-block *::selection {
   background: transparent !important;
   color: inherit !important;
 }

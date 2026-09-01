@@ -89,7 +89,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
         // Push the grip down slightly. Since the user said it's too high,
         // we add +4 pixels to push it down further.
         targetTop = textCoords.top + textHeight / 2 - 8;
-      } catch (e) {
+      } catch {
         // Fallback to block boundary if pos is invalid
       }
 

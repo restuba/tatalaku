@@ -157,6 +157,31 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
     };
   }, [pageId, editor]);
 
+  // Global Ctrl+A / Cmd+A interceptor for when the editor is blurred
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+        const activeEl = document.activeElement;
+        const isInputFocused =
+          activeEl &&
+          (activeEl.tagName === "INPUT" ||
+            activeEl.tagName === "TEXTAREA" ||
+            activeEl.hasAttribute("contenteditable"));
+
+        // If focus is on the body/background (not in any input or the editor itself)
+        if (editor && !editor.isDestroyed && !isInputFocused) {
+          e.preventDefault();
+          // Focus the editor and force select all blocks
+          editor.commands.focus();
+          editor.commands.selectAll();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [editor]);
+
   return (
     <LassoSelection editor={editor}>
       <div className="relative flex-1 flex gap-12 mt-4">

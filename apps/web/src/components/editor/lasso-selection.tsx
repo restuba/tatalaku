@@ -132,8 +132,18 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
           if (fromPos >= 0 && toPos >= 0) {
             editor.commands.setTextSelection({ from: fromPos, to: toPos });
           }
-        } catch (err) {
+        } catch {
           // Ignore pos errors
+        }
+      } else {
+        // Clear selection if nothing intersects
+        try {
+          editor.commands.setTextSelection({
+            from: editor.state.selection.from,
+            to: editor.state.selection.from,
+          });
+        } catch {
+          // Ignore
         }
       }
     };
@@ -142,7 +152,7 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
       if (isSelecting) {
         try {
           mainEl.releasePointerCapture(e.pointerId);
-        } catch (err) {
+        } catch {
           // Ignore if pointer is already released or invalid
         }
         setIsSelecting(false);
