@@ -395,3 +395,22 @@ body {
 .tiptap-toggle summary::-webkit-details-marker {
   display: none;
 }
+
+/* Multi-Block Selection (Notion-style) */
+.tiptap .block-selected {
+  background-color: var(--color-info-bg) !important;
+  caret-color: transparent;
+  border-radius: 0.25rem;
+}
+.tiptap .block-selected ::selection,
+.tiptap .block-selected *::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Hide native selection entirely when lasso is active */
+.is-lassoing .tiptap ::selection,
+.is-lassoing .tiptap *::selection {
+  background: transparent !important;
+  color: inherit !important;
+}

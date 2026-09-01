@@ -20,11 +20,13 @@ import { Toggle } from "./extensions/toggle";
 import { SlashCommands } from "./extensions/slash-command";
 import { GlobalId } from "./extensions/global-id";
 import { Mermaid } from "./extensions/mermaid";
+import { BlockSelection } from "./extensions/block-selection";
 import { api } from "@/lib/api";
 import { BlockMenu } from "./block-menu";
 import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls } from "./table-controls";
 import { TableOfContents } from "./table-of-contents";
+import { LassoSelection } from "./lasso-selection";
 import { Check, Cloud, Loader2 } from "lucide-react";
 
 interface BlockEditorProps {
@@ -97,6 +99,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
       Toggle,
       Mermaid,
       SlashCommands,
+      BlockSelection,
     ],
     editorProps: {
       attributes: {
@@ -155,55 +158,60 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
   }, [pageId, editor]);
 
   return (
-    <div className="relative flex-1 flex gap-12 mt-4">
-      {/* Main Editor Column */}
-      <div className="flex-1 flex flex-col min-w-0 max-w-3xl">
-        <BlockMenu editor={editor} />
-        {/* Top Floating Status Indicator */}
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-codex-border/50 text-xs select-none">
-          <div className="flex items-center gap-2 text-codex-muted">
-            <span className="font-mono text-[11px]">Type &apos;/&apos; to insert blocks</span>
+    <LassoSelection editor={editor}>
+      <div className="relative flex-1 flex gap-12 mt-4">
+        {/* Main Editor Column */}
+        <div className="flex-1 flex flex-col min-w-0 max-w-3xl">
+          {/* Top Floating Status Indicator */}
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-codex-border/50 text-xs select-none">
+            <div className="flex items-center gap-2 text-codex-muted">
+              <span className="font-mono text-[11px]">Type &apos;/&apos; to insert blocks</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 font-medium">
+              {saveStatus === "saving" && (
+                <span className="flex items-center gap-1.5 text-codex-muted animate-pulse">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Saving...</span>
+                </span>
+              )}
+              {saveStatus === "saved" && (
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Saved</span>
+                </span>
+              )}
+              {saveStatus === "error" && (
+                <span className="flex items-center gap-1 text-codex-danger">
+                  <Cloud className="w-3.5 h-3.5" />
+                  <span>Failed to save</span>
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5 font-medium">
-            {saveStatus === "saving" && (
-              <span className="flex items-center gap-1.5 text-codex-muted animate-pulse">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Saving...</span>
-              </span>
-            )}
-            {saveStatus === "saved" && (
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                <Check className="w-3.5 h-3.5" />
-                <span>Saved</span>
-              </span>
-            )}
-            {saveStatus === "error" && (
-              <span className="flex items-center gap-1 text-codex-danger">
-                <Cloud className="w-3.5 h-3.5" />
-                <span>Failed to save</span>
-              </span>
-            )}
-          </div>
+          {/* Editor Content Area */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-24 text-codex-muted">
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              <span className="text-xs">Loading editor content...</span>
+            </div>
+          ) : (
+            <div
+              className="relative min-h-[500px] cursor-text"
+              onClick={() => editor?.commands.focus()}
+            >
+              <BlockMenu editor={editor} />
+              <EditorBubbleMenu editor={editor} />
+              <TableControls editor={editor} />
+              <EditorContent editor={editor} />
+            </div>
+          )}
         </div>
 
-        {/* Editor Content Area */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-24 text-codex-muted">
-            <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            <span className="text-xs">Loading editor content...</span>
-          </div>
-        ) : (
-          <div className="min-h-[500px] cursor-text" onClick={() => editor?.commands.focus()}>
-            <EditorBubbleMenu editor={editor} />
-            <TableControls editor={editor} />
-            <EditorContent editor={editor} />
-          </div>
-        )}
+        {/* Right Sidebar: Table of Contents */}
+        <TableOfContents editor={editor} />
       </div>
-
-      {/* Right Sidebar: Table of Contents */}
-      <TableOfContents editor={editor} />
-    </div>
+    </LassoSelection>
   );
 }

@@ -80,10 +80,29 @@ export function BlockMenu({ editor }: BlockMenuProps) {
 
       const parentRect = relativeParent.getBoundingClientRect();
 
-      // Position relative to the editor container
-      setMenuPos({
-        top: rect.top - parentRect.top + 2, // Geser 2px ke bawah agar sejajar dengan teks
-        left: -32, // Kembalikan ke -32 karena sekarang hanya 1 tombol (sebelumnya -48 terlalu jauh)
+      // Get exact text coordinates for vertical alignment
+      let targetTop = rect.top;
+      try {
+        const textCoords = view.coordsAtPos(nodeStart + 1);
+        const textHeight = textCoords.bottom - textCoords.top;
+
+        // Push the grip down slightly. Since the user said it's too high,
+        // we add +4 pixels to push it down further.
+        targetTop = textCoords.top + textHeight / 2 - 8;
+      } catch (e) {
+        // Fallback to block boundary if pos is invalid
+      }
+
+      setMenuPos((prev) => {
+        // Position relative to the editor container
+        const newTop = targetTop - parentRect.top;
+        const newLeft = -32;
+
+        if (prev && prev.top === newTop && prev.left === newLeft) {
+          return prev;
+        }
+
+        return { top: newTop, left: newLeft };
       });
       setHoveredPos(nodeStart);
     };
@@ -114,8 +133,15 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     const view = editor.view;
     if (!view) return;
 
-    // 1. Select the node to be dragged
-    editor.commands.setNodeSelection(hoveredPos);
+    // 1. Determine what to drag
+    const currentSelection = editor.state.selection;
+    const isHoveredInsideSelection =
+      hoveredPos >= currentSelection.from && hoveredPos < currentSelection.to;
+
+    // If the grip being dragged is not part of the active selection, select only this block
+    if (!isHoveredInsideSelection) {
+      editor.commands.setNodeSelection(hoveredPos);
+    }
 
     // 2. Extract the slice of the document being dragged
     const selection = view.state.selection;
@@ -205,8 +231,23 @@ export function BlockMenu({ editor }: BlockMenuProps) {
           className="p-1 rounded-codex-sm cursor-grab hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
           draggable
           onDragStart={handleDragStart}
-          onClick={() => setIsOpen(!isOpen)}
-          title="Click to open menu, drag to move"
+          onClick={(e) => {
+            if (e.shiftKey && hoveredPos !== null) {
+              const currentSelection = editor.state.selection;
+              const startPos = currentSelection.from;
+              const node = editor.state.doc.nodeAt(hoveredPos);
+              const endPos = hoveredPos + (node ? node.nodeSize : 0);
+
+              const from = Math.min(startPos, hoveredPos);
+              const to = Math.max(currentSelection.to, endPos);
+
+              editor.chain().focus().setTextSelection({ from, to }).run();
+            } else if (hoveredPos !== null) {
+              editor.chain().focus().setNodeSelection(hoveredPos).run();
+              setIsOpen(!isOpen);
+            }
+          }}
+          title="Click to open menu, drag to move (Shift+Click to select blocks)"
         >
           <GripVertical className="w-4 h-4" />
         </div>

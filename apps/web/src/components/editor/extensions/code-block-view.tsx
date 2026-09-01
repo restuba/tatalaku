@@ -40,11 +40,9 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
         ))}
       </select>
       <pre className="!m-0 !p-4 !bg-transparent">
-        {/* @ts-expect-error - NodeViewContent 'as' prop is typed strictly to 'div' but accepts string at runtime */}
-        <NodeViewContent
-          as="code"
-          className={node.attrs.language ? `language-${node.attrs.language}` : ""}
-        />
+        <code className={node.attrs.language ? `language-${node.attrs.language}` : ""}>
+          <NodeViewContent />
+        </code>
       </pre>
     </NodeViewWrapper>
   );
