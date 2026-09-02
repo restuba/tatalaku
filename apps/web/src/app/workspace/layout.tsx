@@ -172,9 +172,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="h-screen w-full flex overflow-hidden">
+    <div className="relative h-screen w-full flex overflow-hidden bg-codex-background">
+      {/* Subtle background glow to make the translucent sidebar pop */}
+      <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[50%] rounded-full bg-codex-accent/20 dark:bg-codex-accent/10 blur-[120px] pointer-events-none" />
+
       <Sidebar />
-      <main className="flex-1 h-screen overflow-y-auto flex flex-col">{children}</main>
+      <main className="flex-1 h-screen overflow-y-auto flex flex-col relative z-10 bg-codex-background/50">
+        {children}
+      </main>
     </div>
   );
 }
