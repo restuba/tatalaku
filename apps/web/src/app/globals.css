@@ -141,6 +141,16 @@ body {
   background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
 }
 
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"]:disabled {
+  cursor: default; /* Tailwind utility classes will override this to not-allowed where needed */
+}
+
 /* Tiptap Notion-style Editor Typography & Blocks */
 .tiptap {
   outline: none;
