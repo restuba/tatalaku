@@ -8,6 +8,7 @@ import { usePageStore } from "@/stores/page.store";
 import { Sidebar } from "@/app/workspace/_components/sidebar";
 import { Loader2, Plus, Sparkles } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
+import WorkspaceLoading from "./loading";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -66,14 +67,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
   // Loading state
   if (!isAuthInit || (!isWsInit && user)) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-codex-muted" />
-          <p className="text-sm text-codex-muted">Loading your workspace...</p>
-        </div>
-      </div>
-    );
+    return <WorkspaceLoading />;
   }
 
   // If auth has an error (e.g. backend down), show the error UI
