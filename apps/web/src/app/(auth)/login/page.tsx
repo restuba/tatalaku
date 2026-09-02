@@ -114,7 +114,7 @@ function LoginContent() {
             id="login-submit"
             type="submit"
             disabled={isLoading}
-            className="relative w-full overflow-hidden rounded-codex-lg bg-codex-accent hover:bg-codex-accent/90 disabled:opacity-80 text-codex-background font-medium text-sm py-2.5 transition-all duration-300 h-[44px] flex items-center justify-center"
+            className="relative w-full overflow-hidden rounded-codex-lg bg-codex-accent hover:bg-codex-accent/90 disabled:opacity-80 disabled:cursor-not-allowed text-codex-background font-medium text-sm py-2.5 transition-all duration-300 h-[44px] flex items-center justify-center"
           >
             {isLoading ? (
               <span className="flex items-center justify-center">

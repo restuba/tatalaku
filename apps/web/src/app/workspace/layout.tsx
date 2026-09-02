@@ -154,7 +154,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             <button
               type="submit"
               disabled={!initialWorkspaceName.trim() || isCreatingFirstWs}
-              className="w-full flex items-center justify-center h-[44px] rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-codex-accent/20"
+              className="w-full flex items-center justify-center h-[44px] rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-codex-accent/20"
             >
               {isCreatingFirstWs ? (
                 <LogoSpinner size="sm" className="w-5 h-5 opacity-80" />

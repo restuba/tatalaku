@@ -150,7 +150,7 @@ export function Sidebar() {
                     handleCreateTopLevelPage();
                   }}
                   disabled={!activeWorkspace}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-codex-surface rounded-codex-sm transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-codex-surface rounded-codex-sm transition-all disabled:cursor-not-allowed"
                   title="Create page"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -168,7 +168,7 @@ export function Sidebar() {
                       <button
                         onClick={handleCreateTopLevelPage}
                         disabled={!activeWorkspace}
-                        className="mt-2 text-xs text-codex-accent hover:underline font-medium"
+                        className="mt-2 text-xs text-codex-accent hover:underline font-medium disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         + Create first page
                       </button>
@@ -184,7 +184,7 @@ export function Sidebar() {
             <button
               onClick={() => setIsTrashOpen(true)}
               disabled={!activeWorkspace}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
             >
               <Trash2 className="w-4 h-4" />
               <span>Trash</span>

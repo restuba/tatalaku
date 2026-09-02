@@ -189,7 +189,7 @@ export function WorkspaceSwitcher() {
                       <button
                         type="submit"
                         disabled={!inviteEmail.trim()}
-                        className="px-2 py-1 text-xs font-medium bg-codex-accent hover:opacity-90 text-codex-background rounded-codex-sm disabled:opacity-50 transition-colors"
+                        className="px-2 py-1 text-xs font-medium bg-codex-accent hover:opacity-90 text-codex-background rounded-codex-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Send
                       </button>
@@ -222,7 +222,7 @@ export function WorkspaceSwitcher() {
                   <button
                     type="submit"
                     disabled={!newWorkspaceName.trim()}
-                    className="px-2.5 py-1 text-xs font-medium bg-codex-accent text-codex-background rounded-codex-md disabled:opacity-50"
+                    className="px-2.5 py-1 text-xs font-medium bg-codex-accent text-codex-background rounded-codex-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Create
                   </button>

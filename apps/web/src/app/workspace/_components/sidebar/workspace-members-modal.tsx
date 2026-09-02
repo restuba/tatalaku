@@ -96,7 +96,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                       <button
                         onClick={() => handleRemoveMember(member.id)}
                         disabled={isRemoving === member.id}
-                        className="p-1.5 text-codex-muted hover:text-codex-danger hover:bg-codex-danger-bg/10 rounded-codex-sm transition-colors disabled:opacity-50"
+                        className="p-1.5 text-codex-muted hover:text-codex-danger hover:bg-codex-danger-bg/10 rounded-codex-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Remove member"
                       >
                         <UserMinus className="w-4 h-4" />
