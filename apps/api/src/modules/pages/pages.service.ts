@@ -21,6 +21,7 @@ function toPageResponse(doc: PageDocument): Page {
     content: doc.content ?? null,
     createdBy: doc.createdBy,
     isArchived: doc.isArchived,
+    isFullWidth: doc.isFullWidth ?? false,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -160,6 +161,7 @@ export class PagesService {
       content: null,
       createdBy: userId,
       isArchived: false,
+      isFullWidth: false,
     });
 
     return toPageResponse(doc);
@@ -236,6 +238,10 @@ export class PagesService {
 
     if (input.isArchived !== undefined) {
       doc.isArchived = input.isArchived;
+    }
+
+    if (input.isFullWidth !== undefined) {
+      doc.isFullWidth = input.isFullWidth;
     }
 
     await doc.save();

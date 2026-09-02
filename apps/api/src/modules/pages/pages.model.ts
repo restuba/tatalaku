@@ -33,6 +33,10 @@ const pageSchema = new Schema<PageDocument>(
       // Index: queries always filter out archived pages
       index: true,
     },
+    isFullWidth: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },

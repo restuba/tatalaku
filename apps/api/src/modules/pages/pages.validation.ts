@@ -17,6 +17,7 @@ export const updatePageSchema = z.object({
   content: z.string().nullable().optional(),
   parentPageId: z.string().nullable().optional(),
   isArchived: z.boolean().optional(),
+  isFullWidth: z.boolean().optional(),
 });
 
 export const pageParamsSchema = z.object({

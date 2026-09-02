@@ -27,7 +27,9 @@ function PageDetail({ page }: { page: Page }) {
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (titleInputRef.current) {
@@ -35,6 +37,17 @@ function PageDetail({ page }: { page: Page }) {
       titleInputRef.current.style.height = `${titleInputRef.current.scrollHeight}px`;
     }
   }, [page.id]); // Adjust on initial mount when page loads
+
+  // Click outside to close options
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (isOptionsOpen && optionsRef.current && !optionsRef.current.contains(e.target as Node)) {
+        setIsOptionsOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
+  }, [isOptionsOpen]);
 
   // Build breadcrumb hierarchy
   const breadcrumbs: Page[] = [];
@@ -100,18 +113,56 @@ function PageDetail({ page }: { page: Page }) {
         </div>
 
         {/* Options Button */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative" ref={optionsRef}>
           <button
-            className="p-1.5 rounded-codex-md hover:bg-codex-surface text-codex-muted hover:text-codex-foreground transition-colors"
+            onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+            className={`p-1.5 rounded-codex-md transition-colors ${
+              isOptionsOpen
+                ? "bg-codex-surface text-codex-foreground"
+                : "hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
+            }`}
             title="Options"
           >
             <MoreHorizontal className="w-4 h-4" />
           </button>
+
+          {isOptionsOpen && (
+            <div className="absolute top-full right-0 mt-1 w-64 glass-surface border border-codex-border rounded-codex-xl p-2 z-50 shadow-xl animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2 text-[11px] font-semibold text-codex-muted uppercase tracking-wider">
+                Page Settings
+              </div>
+
+              <div className="flex items-center justify-between px-3 py-2 hover:bg-codex-background rounded-codex-md transition-colors">
+                <span className="text-sm text-codex-foreground">Full Width</span>
+                <button
+                  onClick={async () => {
+                    const newFullWidth = !page.isFullWidth;
+                    await updatePage(page.id, { isFullWidth: newFullWidth });
+                  }}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full p-0.5 transition-colors focus:outline-none ${
+                    page.isFullWidth
+                      ? "bg-codex-accent"
+                      : "bg-codex-muted/30 hover:bg-codex-muted/50"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-codex-background shadow-sm ring-1 ring-black/5 transition-transform duration-200 ease-in-out ${
+                      page.isFullWidth ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col max-w-6xl w-full mx-auto p-6 sm:px-12 sm:py-10">
+      <div
+        className={`flex-1 flex flex-col w-full mx-auto p-6 sm:px-12 sm:py-10 transition-all duration-300 ${
+          page.isFullWidth ? "max-w-none" : "max-w-4xl"
+        }`}
+      >
         {/* Page Header: Icon & Title */}
         <div className="mb-6 space-y-3">
           {/* Icon picker toggle */}

@@ -28,6 +28,7 @@ interface PageActions {
       coverImage?: string | null;
       parentPageId?: string | null;
       isArchived?: boolean;
+      isFullWidth?: boolean;
     },
   ) => Promise<Page>;
   archivePage: (id: string) => Promise<void>;
@@ -94,6 +95,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
       content: null,
       createdBy: "current-user",
       isArchived: false,
+      isFullWidth: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
