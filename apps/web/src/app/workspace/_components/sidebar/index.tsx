@@ -65,12 +65,12 @@ export function Sidebar() {
           className={`w-64 flex flex-col h-full overflow-hidden transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         >
           {/* Top: Workspace Selector */}
-          <div className="p-3 border-b border-codex-border/50">
+          <div className="px-3 pt-3 pb-1">
             <WorkspaceSwitcher />
           </div>
 
           {/* Quick Actions */}
-          <div className="px-2 py-2 space-y-0.5">
+          <div className="px-2 pb-2 space-y-0.5">
             <button
               onClick={() => {}}
               className="w-full flex items-center justify-between px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground hover:scale-[1.02] active:scale-95 transition-all duration-200 group"
