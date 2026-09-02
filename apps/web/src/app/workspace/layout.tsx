@@ -7,6 +7,7 @@ import { useWorkspaceStore } from "@/stores/workspace.store";
 import { usePageStore } from "@/stores/page.store";
 import { Sidebar } from "@/app/workspace/_components/sidebar";
 import { Loader2, Plus, Sparkles } from "lucide-react";
+import { LogoSpinner } from "@/components/ui/logo-spinner";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -100,35 +101,66 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   // If user has no workspaces at all, show friendly Onboarding screen
   if (isWsInit && workspaces.length === 0) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-codex-surface border border-codex-border rounded-codex-2xl p-8 text-center animate-in fade-in zoom-in-95 duration-200">
-          <div className="w-12 h-12 bg-codex-background border border-codex-border rounded-codex-xl flex items-center justify-center mx-auto mb-4 text-codex-foreground">
-            <Sparkles className="w-6 h-6" />
+      <div className="relative min-h-screen w-full flex items-center justify-center p-4 bg-codex-surface/10 overflow-hidden">
+        {/* Soft Organic Orbs (Zen Canvas) */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute -top-[5%] -left-[10%] w-[70%] h-[70%] rounded-full bg-codex-accent opacity-60 dark:opacity-40 blur-[120px] animate-pulse"
+            style={{ animationDuration: "12s" }}
+          />
+          <div className="absolute top-[30%] -right-[15%] w-[80%] h-[80%] rounded-full bg-codex-info opacity-50 dark:opacity-30 blur-[130px]" />
+          <div
+            className="absolute -bottom-[10%] left-[10%] w-[60%] h-[60%] rounded-full bg-codex-skill opacity-50 dark:opacity-30 blur-[100px] animate-pulse"
+            style={{ animationDuration: "18s" }}
+          />
+        </div>
+
+        {/* Frosted Glass Overlay */}
+        <div className="absolute inset-0 backdrop-blur-[80px] bg-codex-surface/30 dark:bg-codex-surface/50 pointer-events-none" />
+
+        <div className="relative z-10 max-w-md w-full p-8 text-center">
+          <div
+            className="w-16 h-16 bg-codex-accent/10 text-codex-accent rounded-full flex items-center justify-center mx-auto mb-6 opacity-0 animate-slide-up-fade"
+            style={{ animationDelay: "100ms" }}
+          >
+            <Sparkles className="w-8 h-8" />
           </div>
-          <h1 className="text-xl font-bold text-codex-foreground">Welcome to Tatalaku!</h1>
-          <p className="text-sm text-codex-muted mt-1 mb-6">
+          <h1
+            className="text-2xl font-bold text-codex-foreground opacity-0 animate-slide-up-fade"
+            style={{ animationDelay: "200ms" }}
+          >
+            Welcome to Tatalaku!
+          </h1>
+          <p
+            className="text-sm text-codex-muted mt-2 mb-8 opacity-0 animate-slide-up-fade"
+            style={{ animationDelay: "300ms" }}
+          >
             Let&apos;s create your first workspace to start taking notes and organizing docs.
           </p>
 
-          <form onSubmit={handleCreateFirstWorkspace} className="space-y-3">
+          <form
+            onSubmit={handleCreateFirstWorkspace}
+            className="space-y-4 opacity-0 animate-slide-up-fade"
+            style={{ animationDelay: "400ms" }}
+          >
             <input
               type="text"
               autoFocus
               placeholder="e.g. My Notes, Personal, Acme Team"
               value={initialWorkspaceName}
               onChange={(e) => setInitialWorkspaceName(e.target.value)}
-              className="w-full px-3.5 py-2 text-sm rounded-codex-xl border border-codex-border bg-codex-background text-codex-foreground outline-none focus:ring-2 focus:ring-codex-accent transition-all"
+              className="w-full px-4 py-3 text-sm rounded-codex-xl bg-codex-surface/50 dark:bg-codex-surface/30 text-codex-foreground outline-none focus:ring-2 focus:ring-codex-accent transition-all placeholder:text-codex-muted/50"
             />
             <button
               type="submit"
               disabled={!initialWorkspaceName.trim() || isCreatingFirstWs}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 disabled:opacity-50 transition-all"
+              className="w-full flex items-center justify-center h-[44px] rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-codex-accent/20"
             >
               {isCreatingFirstWs ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <LogoSpinner size="sm" className="w-5 h-5 opacity-80" />
               ) : (
                 <>
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 mr-2" />
                   <span>Create Workspace</span>
                 </>
               )}
