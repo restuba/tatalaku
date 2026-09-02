@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/auth.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
-import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus, Users } from "lucide-react";
+import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus, Users, LogOut } from "lucide-react";
 import { WorkspaceMembersModal } from "./workspace-members-modal";
 
 export function WorkspaceSwitcher() {
+  const { user, logout } = useAuthStore();
   const { workspaces, activeWorkspace, setActiveWorkspace, createWorkspace, deleteWorkspace } =
     useWorkspaceStore();
   const router = useRouter();
@@ -75,21 +77,35 @@ export function WorkspaceSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-2 rounded-codex-md hover:bg-codex-surface/50 transition-colors text-left group"
+        className="w-full flex items-center justify-between p-2 rounded-codex-md hover:bg-codex-surface/80 transition-colors text-left group"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-6 h-6 rounded-codex-sm bg-codex-surface border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-semibold shrink-0">
             {activeWorkspace?.name?.charAt(0).toUpperCase() || "W"}
           </div>
-          <span className="font-medium text-sm text-codex-foreground truncate">
-            {activeWorkspace?.name || "Select Workspace"}
-          </span>
+          <div className="min-w-0 flex flex-col">
+            <span className="font-medium text-sm text-codex-foreground truncate leading-tight">
+              {activeWorkspace?.name || "Select Workspace"}
+            </span>
+          </div>
         </div>
         <ChevronDown className="w-4 h-4 text-codex-muted group-hover:text-codex-foreground transition-colors shrink-0" />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 glass-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[240px] animate-in fade-in-0 zoom-in-95 duration-100">
+        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 glass-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[240px] shadow-lg animate-in fade-in-0 zoom-in-95 duration-100">
+          {/* User Profile Section */}
+          <div className="flex items-center gap-2.5 px-2 py-2 mb-1.5 border-b border-codex-border/50">
+            <div className="w-8 h-8 rounded-full bg-codex-background border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-bold shrink-0">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-codex-foreground truncate">
+                {user?.name || "User"}
+              </p>
+              <p className="text-[10px] text-codex-muted truncate">{user?.email}</p>
+            </div>
+          </div>
           <div className="px-2 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
             Workspaces
           </div>
@@ -221,6 +237,20 @@ export function WorkspaceSwitcher() {
                 <span>New workspace</span>
               </button>
             )}
+          </div>
+
+          {/* Settings & Logout */}
+          <div className="border-t border-codex-border mt-1.5 pt-1.5 space-y-0.5">
+            <button
+              onClick={async () => {
+                await logout();
+                router.push("/login");
+              }}
+              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-codex-danger hover:bg-codex-danger/10 hover:text-codex-danger rounded-codex-md transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Log out</span>
+            </button>
           </div>
         </div>
       )}

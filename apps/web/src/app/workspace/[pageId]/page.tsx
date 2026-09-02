@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
+import { useUIStore } from "@/stores";
 import { BlockEditor } from "@/components/editor/block-editor";
 import {
   ChevronRight,
@@ -15,6 +16,7 @@ import {
   ArrowLeft,
   Calendar,
   MoreHorizontal,
+  Menu,
 } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
@@ -23,6 +25,7 @@ function PageDetail({ page }: { page: Page }) {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, updatePage, createPage } = usePageStore();
+  const { isSidebarOpen, setSidebarOpen } = useUIStore();
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
@@ -91,7 +94,16 @@ function PageDetail({ page }: { page: Page }) {
     <div className="flex-1 flex flex-col relative w-full">
       {/* Sticky Header */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-codex-background/80 backdrop-blur-md border-b border-codex-border/50 transition-colors select-none">
-        <div className="flex items-center gap-1.5 flex-wrap truncate text-xs text-codex-muted">
+        <div className="flex items-center gap-1.5 flex-wrap truncate text-xs text-codex-muted transition-all">
+          {!isSidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-1 mr-1 hover:bg-codex-surface rounded-codex-md text-codex-muted hover:text-codex-foreground transition-colors"
+              title="Open sidebar"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+          )}
           <Link href="/workspace" className="hover:text-codex-foreground transition-colors">
             {activeWorkspace?.name || "Workspace"}
           </Link>

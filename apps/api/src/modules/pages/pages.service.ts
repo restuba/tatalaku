@@ -21,6 +21,7 @@ function toPageResponse(doc: PageDocument): Page {
     content: doc.content ?? null,
     createdBy: doc.createdBy,
     isArchived: doc.isArchived,
+    isFavorite: doc.isFavorite ?? false,
     isFullWidth: doc.isFullWidth ?? false,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
@@ -161,6 +162,7 @@ export class PagesService {
       content: null,
       createdBy: userId,
       isArchived: false,
+      isFavorite: false,
       isFullWidth: false,
     });
 
@@ -238,6 +240,10 @@ export class PagesService {
 
     if (input.isArchived !== undefined) {
       doc.isArchived = input.isArchived;
+    }
+
+    if (input.isFavorite !== undefined) {
+      doc.isFavorite = input.isFavorite;
     }
 
     if (input.isFullWidth !== undefined) {

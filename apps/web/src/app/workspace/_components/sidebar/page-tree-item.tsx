@@ -5,7 +5,16 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page.store";
-import { ChevronRight, FileText, Plus, MoreHorizontal, Trash2, Edit2 } from "lucide-react";
+import {
+  ChevronRight,
+  FileText,
+  Plus,
+  MoreHorizontal,
+  Trash2,
+  Edit2,
+  Pin,
+  PinOff,
+} from "lucide-react";
 
 interface PageTreeItemProps {
   page: Page;
@@ -91,16 +100,30 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     }
   }
 
+  async function handleToggleFavorite(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    try {
+      await updatePage(page.id, { isFavorite: !page.isFavorite });
+    } catch {
+      // Error handled by store
+    }
+  }
+
   return (
     <div className="select-none">
       <div
-        className={`group flex items-center justify-between py-1 px-2 rounded-codex-md text-sm transition-colors cursor-pointer ${
+        className={`group flex items-center justify-between py-1 px-2 rounded-codex-md text-sm transition-colors cursor-pointer relative ${
           isActive
-            ? "bg-codex-surface text-codex-foreground font-medium"
-            : "text-codex-muted hover:bg-codex-surface/50 hover:text-codex-foreground"
+            ? "bg-codex-accent/10 text-codex-accent font-medium"
+            : "text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground"
         }`}
         style={{ paddingLeft: `${Math.max(level * 14 + 8, 8)}px` }}
       >
+        {isActive && (
+          <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-codex-accent rounded-r-full" />
+        )}
         <div className="flex items-center gap-1 min-w-0 flex-1">
           {/* Chevron or placeholder */}
           <button
@@ -207,11 +230,28 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                   </button>
                   <button
                     type="button"
+                    onClick={handleToggleFavorite}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
+                  >
+                    {page.isFavorite ? (
+                      <>
+                        <PinOff className="w-3.5 h-3.5" />
+                        <span>Remove from Favorites</span>
+                      </>
+                    ) : (
+                      <>
+                        <Pin className="w-3.5 h-3.5" />
+                        <span>Add to Favorites</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleArchive}
                     className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-danger-bg/10 text-codex-danger transition-colors text-left"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete / Archive</span>
+                    <span>Delete</span>
                   </button>
                 </div>
               )}

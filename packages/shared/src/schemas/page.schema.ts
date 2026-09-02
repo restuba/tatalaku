@@ -10,6 +10,7 @@ export const PageSchema = z.object({
   content: z.string().nullable(),
   createdBy: z.string(),
   isArchived: z.boolean().default(false),
+  isFavorite: z.boolean().default(false),
   isFullWidth: z.boolean().default(false),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),

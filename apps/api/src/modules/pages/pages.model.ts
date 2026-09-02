@@ -33,6 +33,10 @@ const pageSchema = new Schema<PageDocument>(
       // Index: queries always filter out archived pages
       index: true,
     },
+    isFavorite: {
+      type: Boolean,
+      default: false,
+    },
     isFullWidth: {
       type: Boolean,
       default: false,
