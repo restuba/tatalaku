@@ -27,7 +27,9 @@ import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls } from "./table-controls";
 import { TableOfContents } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
-import { Check, Cloud, Loader2 } from "lucide-react";
+import { Check, Cloud } from "lucide-react";
+import { LogoSpinner } from "@/components/ui/logo-spinner";
+import { Logo } from "@/components/ui/logo";
 
 interface BlockEditorProps {
   pageId: string;
@@ -196,7 +198,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
             <div className="flex items-center gap-1.5 font-medium">
               {saveStatus === "saving" && (
                 <span className="flex items-center gap-1.5 text-codex-muted animate-pulse">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <LogoSpinner size="sm" className="gap-0 scale-75" />
                   <span>Saving...</span>
                 </span>
               )}
@@ -218,18 +220,26 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
           {/* Editor Content Area */}
           {isLoading ? (
             <div className="flex items-center justify-center py-24 text-codex-muted">
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              <span className="text-xs">Loading editor content...</span>
+              <LogoSpinner size="md" text="Loading editor content..." />
             </div>
           ) : (
             <div
               className="relative min-h-[500px] cursor-text"
               onClick={() => editor?.commands.focus()}
             >
-              <BlockMenu editor={editor} />
-              <EditorBubbleMenu editor={editor} />
-              <TableControls editor={editor} />
-              <EditorContent editor={editor} />
+              {/* Brand Watermark for entirely empty document */}
+              {editor?.getText().trim().length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] grayscale transition-opacity duration-1000 select-none z-0">
+                  <Logo variant="icon-only" size="xl" className="w-64 h-64 scale-150" />
+                </div>
+              )}
+
+              <div className="relative z-10">
+                <BlockMenu editor={editor} />
+                <EditorBubbleMenu editor={editor} />
+                <TableControls editor={editor} />
+                <EditorContent editor={editor} />
+              </div>
             </div>
           )}
         </div>

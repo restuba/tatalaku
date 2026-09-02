@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { ApiRequestError } from "@/lib/api";
 import { Eye, EyeOff } from "lucide-react";
+import { LogoSpinner } from "@/components/ui/logo-spinner";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -35,17 +36,22 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="bg-codex-background rounded-codex-2xl border border-codex-border p-8">
-      <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-codex-foreground">Create your account</h1>
-        <p className="mt-1 text-sm text-codex-muted">Start building your workspace today</p>
+    <div className="w-full">
+      <div
+        className="mb-10 text-center animate-slide-up-fade opacity-0"
+        style={{ animationDelay: "0ms" }}
+      >
+        <h1 className="text-3xl font-semibold tracking-tight text-codex-foreground">
+          Create your account
+        </h1>
+        <p className="mt-2 text-sm text-codex-muted">Start building your workspace today</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4" id="register-form">
-        <div>
+      <form onSubmit={handleSubmit} className="space-y-5" id="register-form">
+        <div className="animate-slide-up-fade opacity-0" style={{ animationDelay: "100ms" }}>
           <label
             htmlFor="register-name"
-            className="block text-sm font-medium text-codex-foreground mb-1"
+            className="block text-sm font-medium text-codex-foreground mb-1.5"
           >
             Full name
           </label>
@@ -57,14 +63,14 @@ export default function RegisterPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            className="w-full rounded-codex-lg border border-codex-border px-3 py-2 text-sm outline-none focus:border-codex-border focus:ring-2 focus:ring-codex-border/20 transition"
+            className="w-full rounded-codex-lg border border-codex-border bg-transparent px-3 py-2.5 text-sm outline-none focus:border-codex-accent focus:ring-1 focus:ring-codex-accent transition-all duration-200"
           />
         </div>
 
-        <div>
+        <div className="animate-slide-up-fade opacity-0" style={{ animationDelay: "200ms" }}>
           <label
             htmlFor="register-email"
-            className="block text-sm font-medium text-codex-foreground mb-1"
+            className="block text-sm font-medium text-codex-foreground mb-1.5"
           >
             Email
           </label>
@@ -76,14 +82,14 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full rounded-codex-lg border border-codex-border px-3 py-2 text-sm outline-none focus:border-codex-border focus:ring-2 focus:ring-codex-border/20 transition"
+            className="w-full rounded-codex-lg border border-codex-border bg-transparent px-3 py-2.5 text-sm outline-none focus:border-codex-accent focus:ring-1 focus:ring-codex-accent transition-all duration-200"
           />
         </div>
 
-        <div>
+        <div className="animate-slide-up-fade opacity-0" style={{ animationDelay: "300ms" }}>
           <label
             htmlFor="register-password"
-            className="block text-sm font-medium text-codex-foreground mb-1"
+            className="block text-sm font-medium text-codex-foreground mb-1.5"
           >
             Password
           </label>
@@ -97,7 +103,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 8 characters"
-              className="w-full rounded-codex-lg border border-codex-border px-3 py-2 text-sm outline-none focus:border-codex-border focus:ring-2 focus:ring-codex-border/20 transition pr-10"
+              className="w-full rounded-codex-lg border border-codex-border bg-transparent px-3 py-2.5 text-sm outline-none focus:border-codex-accent focus:ring-1 focus:ring-codex-accent transition-all duration-200 pr-10"
             />
             <button
               type="button"
@@ -119,19 +125,33 @@ export default function RegisterPage() {
           </p>
         )}
 
-        <button
-          id="register-submit"
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-codex-lg bg-codex-accent hover:bg-codex-accent disabled:opacity-60 text-codex-background font-medium text-sm py-2.5 transition"
-        >
-          {isLoading ? "Creating account…" : "Create account"}
-        </button>
+        <div className="pt-2 animate-slide-up-fade opacity-0" style={{ animationDelay: "400ms" }}>
+          <button
+            id="register-submit"
+            type="submit"
+            disabled={isLoading}
+            className="relative w-full overflow-hidden rounded-codex-lg bg-codex-accent hover:bg-codex-accent/90 disabled:opacity-80 text-codex-background font-medium text-sm py-2.5 transition-all duration-300 h-[44px] flex items-center justify-center"
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <LogoSpinner size="sm" className="w-5 h-5 opacity-80" />
+              </span>
+            ) : (
+              "Create account"
+            )}
+          </button>
+        </div>
       </form>
 
-      <p className="mt-6 text-center text-sm text-codex-muted">
+      <p
+        className="mt-8 text-center text-sm text-codex-muted animate-slide-up-fade opacity-0"
+        style={{ animationDelay: "500ms" }}
+      >
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-codex-info hover:underline">
+        <Link
+          href="/login"
+          className="font-medium text-codex-foreground hover:text-codex-accent transition-colors"
+        >
           Sign in
         </Link>
       </p>
