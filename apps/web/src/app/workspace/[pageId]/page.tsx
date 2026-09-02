@@ -7,7 +7,15 @@ import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { BlockEditor } from "@/components/editor/block-editor";
-import { ChevronRight, FileText, Plus, Smile, ArrowLeft, Calendar } from "lucide-react";
+import {
+  ChevronRight,
+  FileText,
+  Plus,
+  Smile,
+  ArrowLeft,
+  Calendar,
+  MoreHorizontal,
+} from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
 
@@ -67,10 +75,10 @@ function PageDetail({ page }: { page: Page }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col max-w-6xl w-full mx-auto p-6 sm:p-12">
-      {/* Top Bar / Breadcrumb & Actions */}
-      <div className="flex items-center justify-between text-xs text-codex-muted mb-8 select-none">
-        <div className="flex items-center gap-1.5 flex-wrap truncate">
+    <div className="flex-1 flex flex-col relative w-full">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-codex-background/80 backdrop-blur-md border-b border-codex-border/50 transition-colors select-none">
+        <div className="flex items-center gap-1.5 flex-wrap truncate text-xs text-codex-muted">
           <Link href="/workspace" className="hover:text-codex-foreground transition-colors">
             {activeWorkspace?.name || "Workspace"}
           </Link>
@@ -90,124 +98,137 @@ function PageDetail({ page }: { page: Page }) {
             {page.title || "Untitled"}
           </span>
         </div>
-      </div>
 
-      {/* Page Header: Icon & Title */}
-      <div className="mb-6 space-y-3">
-        {/* Icon picker toggle */}
-        <div className="relative inline-block">
-          {icon ? (
-            <button
-              onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-              className="text-4xl hover:opacity-80 transition-opacity p-1 -ml-1 rounded-codex-sm"
-              title="Change icon"
-            >
-              {icon}
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-              className="inline-flex items-center gap-1.5 text-xs text-codex-muted hover:text-codex-foreground py-1 rounded-codex-sm transition-colors"
-            >
-              <Smile className="w-4 h-4" />
-              <span>Add icon</span>
-            </button>
-          )}
-
-          {isEmojiPickerOpen && (
-            <div className="absolute left-0 top-full mt-2 z-50 glass-surface border border-codex-border rounded-codex-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
-              <div className="text-[11px] font-semibold text-codex-muted uppercase tracking-wider mb-2">
-                Select Icon
-              </div>
-              <div className="grid grid-cols-6 gap-1.5">
-                {COMMON_EMOJIS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => handleSelectIcon(emoji)}
-                    className="w-8 h-8 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-background transition-colors"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-              {icon && (
-                <button
-                  onClick={() => handleSelectIcon(null)}
-                  className="w-full text-center text-xs text-codex-danger hover:underline mt-2 pt-2 border-t border-codex-border"
-                >
-                  Remove icon
-                </button>
-              )}
-            </div>
-          )}
+        {/* Options Button */}
+        <div className="flex items-center gap-2">
+          <button
+            className="p-1.5 rounded-codex-md hover:bg-codex-surface text-codex-muted hover:text-codex-foreground transition-colors"
+            title="Options"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
         </div>
+      </header>
 
-        {/* Editable Title */}
-        <textarea
-          ref={titleInputRef}
-          rows={1}
-          value={title}
-          placeholder="Untitled"
-          onChange={(e) => {
-            setTitle(e.target.value);
-            e.target.style.height = "auto";
-            e.target.style.height = `${e.target.scrollHeight}px`;
-          }}
-          onBlur={handleTitleBlur}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              titleInputRef.current?.blur();
-            }
-          }}
-          className="w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
-        />
-
-        {/* Metadata info */}
-        <div className="flex items-center gap-4 text-xs text-codex-muted pt-1">
-          <span className="flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
-            Created {page.createdAt ? new Date(page.createdAt).toLocaleDateString() : "Unknown"}
-          </span>
-        </div>
-      </div>
-
-      {/* Subpages Section */}
-      {childPages.length > 0 && (
-        <div className="mb-8 pt-4 border-t border-codex-border">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-codex-muted">
-              Subpages ({childPages.length})
-            </h3>
-            <button
-              onClick={handleAddSubpage}
-              className="inline-flex items-center gap-1 text-xs text-codex-accent hover:opacity-80 transition-opacity"
-            >
-              <Plus className="w-3 h-3" />
-              <span>Add subpage</span>
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {childPages.map((child) => (
-              <Link
-                key={child.id}
-                href={`/workspace/${child.id}`}
-                className="flex items-center gap-2 p-3 rounded-codex-xl border border-codex-border bg-codex-surface hover:border-codex-accent/50 hover:bg-codex-surface/80 text-sm transition-all"
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col max-w-6xl w-full mx-auto p-6 sm:px-12 sm:py-10">
+        {/* Page Header: Icon & Title */}
+        <div className="mb-6 space-y-3">
+          {/* Icon picker toggle */}
+          <div className="relative inline-block">
+            {icon ? (
+              <button
+                onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                className="text-4xl hover:opacity-80 transition-opacity p-1 -ml-1 rounded-codex-sm"
+                title="Change icon"
               >
-                <span className="text-codex-muted">
-                  {child.icon ? child.icon : <FileText className="w-4 h-4" />}
-                </span>
-                <span className="font-medium text-codex-foreground truncate">
-                  {child.title || "Untitled"}
-                </span>
-              </Link>
-            ))}
+                {icon}
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                className="inline-flex items-center gap-1.5 text-xs text-codex-muted hover:text-codex-foreground py-1 rounded-codex-sm transition-colors"
+              >
+                <Smile className="w-4 h-4" />
+                <span>Add icon</span>
+              </button>
+            )}
+
+            {isEmojiPickerOpen && (
+              <div className="absolute left-0 top-full mt-2 z-50 glass-surface border border-codex-border rounded-codex-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
+                <div className="text-[11px] font-semibold text-codex-muted uppercase tracking-wider mb-2">
+                  Select Icon
+                </div>
+                <div className="grid grid-cols-6 gap-1.5">
+                  {COMMON_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => handleSelectIcon(emoji)}
+                      className="w-8 h-8 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-background transition-colors"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                {icon && (
+                  <button
+                    onClick={() => handleSelectIcon(null)}
+                    className="w-full text-center text-xs text-codex-danger hover:underline mt-2 pt-2 border-t border-codex-border"
+                  >
+                    Remove icon
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Editable Title */}
+          <textarea
+            ref={titleInputRef}
+            rows={1}
+            value={title}
+            placeholder="Untitled"
+            onChange={(e) => {
+              setTitle(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
+            onBlur={handleTitleBlur}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                titleInputRef.current?.blur();
+              }
+            }}
+            className="w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
+          />
+
+          {/* Metadata info */}
+          <div className="flex items-center gap-4 text-xs text-codex-muted pt-1">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5" />
+              Created {page.createdAt ? new Date(page.createdAt).toLocaleDateString() : "Unknown"}
+            </span>
           </div>
         </div>
-      )}
 
-      {/* Block Editor Area */}
-      <BlockEditor pageId={page.id} />
+        {/* Subpages Section */}
+        {childPages.length > 0 && (
+          <div className="mb-8 pt-4 border-t border-codex-border">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-codex-muted">
+                Subpages ({childPages.length})
+              </h3>
+              <button
+                onClick={handleAddSubpage}
+                className="inline-flex items-center gap-1 text-xs text-codex-accent hover:opacity-80 transition-opacity"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add subpage</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {childPages.map((child) => (
+                <Link
+                  key={child.id}
+                  href={`/workspace/${child.id}`}
+                  className="flex items-center gap-2 p-3 rounded-codex-xl border border-codex-border bg-codex-surface hover:border-codex-accent/50 hover:bg-codex-surface/80 text-sm transition-all"
+                >
+                  <span className="text-codex-muted">
+                    {child.icon ? child.icon : <FileText className="w-4 h-4" />}
+                  </span>
+                  <span className="font-medium text-codex-foreground truncate">
+                    {child.title || "Untitled"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Block Editor Area */}
+        <BlockEditor pageId={page.id} />
+      </div>
     </div>
   );
 }
