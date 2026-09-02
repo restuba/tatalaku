@@ -14,15 +14,15 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
   return (
     <BubbleMenu
       editor={editor}
-      className="flex items-center gap-1 p-1 bg-codex-surface border border-codex-border/50 rounded-codex-lg shadow-xl backdrop-blur-md"
+      className="flex items-center gap-1 p-1 bg-codex-surface/80 dark:bg-codex-surface/60 border border-codex-border/40 rounded-codex-xl shadow-2xl shadow-black/10 backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200"
     >
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={`p-1.5 rounded-codex-md transition-colors ${
+        className={`p-1.5 rounded-codex-md transition-all duration-200 ${
           editor.isActive("bold")
-            ? "bg-codex-border text-codex-foreground"
-            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background"
+            ? "bg-codex-background/80 text-codex-foreground shadow-sm scale-[0.95]"
+            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background/50 hover:scale-[1.1]"
         }`}
         aria-label="Bold"
       >
@@ -31,10 +31,10 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={`p-1.5 rounded-codex-md transition-colors ${
+        className={`p-1.5 rounded-codex-md transition-all duration-200 ${
           editor.isActive("italic")
-            ? "bg-codex-border text-codex-foreground"
-            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background"
+            ? "bg-codex-background/80 text-codex-foreground shadow-sm scale-[0.95]"
+            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background/50 hover:scale-[1.1]"
         }`}
         aria-label="Italic"
       >
@@ -43,10 +43,10 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleStrike().run()}
-        className={`p-1.5 rounded-codex-md transition-colors ${
+        className={`p-1.5 rounded-codex-md transition-all duration-200 ${
           editor.isActive("strike")
-            ? "bg-codex-border text-codex-foreground"
-            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background"
+            ? "bg-codex-background/80 text-codex-foreground shadow-sm scale-[0.95]"
+            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background/50 hover:scale-[1.1]"
         }`}
         aria-label="Strikethrough"
       >
@@ -56,10 +56,10 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleCode().run()}
-        className={`p-1.5 rounded-codex-md transition-colors ${
+        className={`p-1.5 rounded-codex-md transition-all duration-200 ${
           editor.isActive("code")
-            ? "bg-codex-border text-codex-foreground"
-            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background"
+            ? "bg-codex-background/80 text-codex-foreground shadow-sm scale-[0.95]"
+            : "text-codex-muted hover:text-codex-foreground hover:bg-codex-background/50 hover:scale-[1.1]"
         }`}
         aria-label="Code"
       >

@@ -22,9 +22,12 @@ export function TrashModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-codex-foreground/50 p-4">
-      <div className="w-full max-w-md glass-surface border border-codex-border rounded-codex-2xl flex flex-col max-h-[80vh]">
-        <div className="flex items-center justify-between p-6 border-b border-codex-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-codex-background/60 backdrop-blur-sm p-4 transition-all duration-300">
+      <div
+        className="w-full max-w-md bg-codex-surface/60 dark:bg-codex-surface/40 backdrop-blur-2xl border border-codex-border/40 rounded-codex-2xl flex flex-col max-h-[80vh] shadow-2xl shadow-black/10 animate-slide-up-fade"
+        style={{ animationDuration: "300ms" }}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-codex-border/40">
           <h2 className="text-lg font-semibold flex items-center gap-2 text-codex-foreground">
             <Trash2 className="w-5 h-5 text-codex-muted" />
             Trash

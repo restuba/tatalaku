@@ -1,28 +1,28 @@
+import { LogoSpinner } from "@/components/ui/logo-spinner";
+
 export default function WorkspaceLoading() {
   return (
-    <div className="flex flex-col flex-1 p-8 space-y-8 animate-pulse">
-      {/* Header Skeleton */}
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-codex-xl bg-codex-surface border border-codex-border" />
-        <div className="flex flex-col gap-2">
-          <div className="h-6 w-48 bg-codex-surface rounded-codex-md" />
-          <div className="h-4 w-24 bg-codex-border/50 rounded-codex-md" />
-        </div>
+    <div className="flex-1 h-full min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Zen Canvas Orbs */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute top-[20%] left-[30%] w-[40%] h-[40%] rounded-full bg-codex-accent opacity-30 dark:opacity-20 blur-[120px] animate-pulse"
+          style={{ animationDuration: "8s" }}
+        />
+        <div
+          className="absolute bottom-[20%] right-[30%] w-[30%] h-[30%] rounded-full bg-codex-skill opacity-30 dark:opacity-20 blur-[100px] animate-pulse"
+          style={{ animationDuration: "12s" }}
+        />
       </div>
 
-      {/* Grid Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="h-32 rounded-codex-xl border border-codex-border bg-codex-surface"
-          >
-            <div className="p-5 flex flex-col h-full justify-between">
-              <div className="h-5 w-3/4 bg-codex-border/80 rounded-codex-md" />
-              <div className="h-3 w-1/2 bg-codex-border/80 rounded-codex-md" />
-            </div>
-          </div>
-        ))}
+      <div
+        className="relative z-10 flex flex-col items-center justify-center opacity-0 animate-slide-up-fade"
+        style={{ animationDelay: "100ms" }}
+      >
+        <LogoSpinner size="lg" className="w-12 h-12 text-codex-accent" />
+        <p className="mt-6 text-sm font-medium text-codex-muted tracking-wide">
+          Entering sanctuary...
+        </p>
       </div>
     </div>
   );

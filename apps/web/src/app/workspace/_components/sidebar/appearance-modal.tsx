@@ -20,9 +20,12 @@ export function AppearanceModal({ isOpen, onClose }: { isOpen: boolean; onClose:
   const currentPresets = presets.filter((p) => p.variant === currentVariant);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-codex-foreground/50 p-4">
-      <div className="glass-surface w-full max-w-md border border-codex-border rounded-codex-2xl flex flex-col shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-codex-border/50">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-codex-background/60 backdrop-blur-sm p-4 transition-all duration-300">
+      <div
+        className="bg-codex-surface/60 dark:bg-codex-surface/40 backdrop-blur-2xl w-full max-w-md border border-codex-border/40 rounded-codex-2xl flex flex-col shadow-2xl shadow-black/10 animate-slide-up-fade"
+        style={{ animationDuration: "300ms" }}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-codex-border/40">
           <h2 className="text-lg font-semibold text-codex-foreground">Appearance</h2>
           <button
             onClick={onClose}
@@ -39,10 +42,10 @@ export function AppearanceModal({ isOpen, onClose }: { isOpen: boolean; onClose:
             <div className="grid grid-cols-3 gap-3 p-1 bg-codex-surface-secondary/50 rounded-codex-lg border border-codex-border/50">
               <button
                 onClick={() => setTheme("system")}
-                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all ${
+                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
                   theme === "system"
-                    ? "bg-codex-surface shadow-sm text-codex-foreground ring-1 ring-codex-border"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/50"
+                    ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
+                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
                 }`}
               >
                 <Monitor className="w-5 h-5" />
@@ -50,10 +53,10 @@ export function AppearanceModal({ isOpen, onClose }: { isOpen: boolean; onClose:
               </button>
               <button
                 onClick={() => setTheme("light")}
-                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all ${
+                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
                   theme === "light"
-                    ? "bg-codex-surface shadow-sm text-codex-foreground ring-1 ring-codex-border"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/50"
+                    ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
+                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
                 }`}
               >
                 <Sun className="w-5 h-5" />
@@ -61,10 +64,10 @@ export function AppearanceModal({ isOpen, onClose }: { isOpen: boolean; onClose:
               </button>
               <button
                 onClick={() => setTheme("dark")}
-                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all ${
+                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
                   theme === "dark"
-                    ? "bg-codex-surface shadow-sm text-codex-foreground ring-1 ring-codex-border"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/50"
+                    ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
+                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
                 }`}
               >
                 <Moon className="w-5 h-5" />
@@ -84,10 +87,10 @@ export function AppearanceModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                   <button
                     key={preset.codeThemeId}
                     onClick={() => setCodeThemeId(preset.codeThemeId, currentVariant)}
-                    className={`flex items-center gap-3 p-3 rounded-codex-xl text-left transition-all border ${
+                    className={`flex items-center gap-3 p-3 rounded-codex-xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-95 border ${
                       isActive
-                        ? "border-codex-accent bg-codex-surface ring-1 ring-codex-accent/30"
-                        : "border-codex-border bg-codex-surface-secondary/30 hover:bg-codex-surface-secondary hover:border-codex-border/80"
+                        ? "border-codex-accent bg-codex-surface/80 ring-1 ring-codex-accent/30 shadow-sm"
+                        : "border-codex-border/30 bg-codex-surface-secondary/20 hover:bg-codex-surface-secondary/50 hover:border-codex-border/50"
                     }`}
                   >
                     {/* Swatch Preview */}

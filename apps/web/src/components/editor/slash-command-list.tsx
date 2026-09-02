@@ -202,14 +202,14 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
 
     if (props.items.length === 0) {
       return (
-        <div className="z-50 glass-surface border border-codex-border rounded-codex-xl p-2 min-w-[240px] text-xs text-codex-muted">
+        <div className="z-50 bg-codex-surface/80 dark:bg-codex-surface/60 backdrop-blur-xl border border-codex-border/40 shadow-xl rounded-codex-xl p-2 min-w-[240px] text-xs text-codex-muted">
           No matching blocks
         </div>
       );
     }
 
     return (
-      <div className="z-50 glass-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+      <div className="z-50 bg-codex-surface/80 dark:bg-codex-surface/60 backdrop-blur-xl border border-codex-border/40 shadow-2xl shadow-black/10 rounded-codex-xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
         <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-codex-muted">
           Basic blocks
         </div>
@@ -222,10 +222,10 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
                 key={item.title}
                 type="button"
                 onClick={() => props.command(item)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-left transition-colors ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-left transition-all duration-200 ${
                   isSelected
-                    ? "bg-codex-background border border-codex-border text-codex-foreground"
-                    : "text-codex-muted hover:bg-codex-background hover:text-codex-foreground border border-transparent"
+                    ? "bg-codex-background/80 border border-codex-border/50 text-codex-foreground shadow-sm scale-[0.98]"
+                    : "text-codex-muted hover:bg-codex-background/50 hover:text-codex-foreground border border-transparent hover:scale-[1.02]"
                 }`}
               >
                 <div
