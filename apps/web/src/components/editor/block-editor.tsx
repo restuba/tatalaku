@@ -31,13 +31,15 @@ import { Check, Cloud } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { Logo } from "@/components/ui/logo";
 
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
+
 interface BlockEditorProps {
   pageId: string;
+  onSaveStatusChange?: (status: SaveStatus) => void;
+  onSaved?: (updatedAt: Date | string) => void;
 }
 
-type SaveStatus = "idle" | "saving" | "saved" | "error";
-
-export function BlockEditor({ pageId }: BlockEditorProps) {
+export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditorProps) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [isLoading, setIsLoading] = useState(true);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -53,19 +55,25 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
       }
 
       setSaveStatus("saving");
+      onSaveStatusChange?.("saving");
 
       debounceTimerRef.current = setTimeout(async () => {
         try {
           const json = editorInstance.getJSON();
-          await api.pages.update(pageId, { content: JSON.stringify(json) });
+          const res = await api.pages.update(pageId, { content: JSON.stringify(json) });
 
           setSaveStatus("saved");
+          onSaveStatusChange?.("saved");
+          if (res?.data?.updatedAt) {
+            onSaved?.(res.data.updatedAt);
+          }
         } catch {
           setSaveStatus("error");
+          onSaveStatusChange?.("error");
         }
       }, 700);
     },
-    [pageId],
+    [pageId, onSaveStatusChange, onSaved],
   );
 
   const editor = useEditor({

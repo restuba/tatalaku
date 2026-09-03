@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page.store";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { useUIStore } from "@/stores";
-import { BlockEditor } from "@/components/editor/block-editor";
+import { BlockEditor, type SaveStatus } from "@/components/editor/block-editor";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
+import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import {
   ChevronRight,
   FileText,
@@ -18,6 +19,9 @@ import {
   Calendar,
   MoreHorizontal,
   Menu,
+  Cloud,
+  CloudOff,
+  Check,
 } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
@@ -32,8 +36,36 @@ function PageDetail({ page }: { page: Page }) {
   const [icon, setIcon] = useState(page.icon);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [localEditedAt, setLocalEditedAt] = useState<Date | string | null>(null);
+  const lastEditedAt = localEditedAt || page.updatedAt || null;
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const resetSavedTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Periodic tick to automatically refresh relative timestamp ("just now", "1m ago", etc.)
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleSaveStatusChange = useCallback((status: SaveStatus) => {
+    setSaveStatus(status);
+    if (resetSavedTimerRef.current) {
+      clearTimeout(resetSavedTimerRef.current);
+      resetSavedTimerRef.current = null;
+    }
+    if (status === "saved") {
+      resetSavedTimerRef.current = setTimeout(() => {
+        setSaveStatus("idle");
+      }, 3000);
+    }
+  }, []);
+
+  const handleSaved = useCallback((updatedAt: Date | string) => {
+    setLocalEditedAt(updatedAt);
+  }, []);
 
   useEffect(() => {
     if (titleInputRef.current) {
@@ -71,14 +103,28 @@ function PageDetail({ page }: { page: Page }) {
   async function handleTitleBlur() {
     const finalTitle = title.trim() || "Untitled";
     if (finalTitle !== page.title) {
-      await updatePage(page.id, { title: finalTitle });
+      handleSaveStatusChange("saving");
+      try {
+        const updated = await updatePage(page.id, { title: finalTitle });
+        handleSaveStatusChange("saved");
+        if (updated?.updatedAt) setLocalEditedAt(updated.updatedAt);
+      } catch {
+        handleSaveStatusChange("error");
+      }
     }
   }
 
   async function handleSelectIcon(selectedIcon: string | null) {
     setIcon(selectedIcon);
     setIsEmojiPickerOpen(false);
-    await updatePage(page.id, { icon: selectedIcon });
+    handleSaveStatusChange("saving");
+    try {
+      const updated = await updatePage(page.id, { icon: selectedIcon });
+      handleSaveStatusChange("saved");
+      if (updated?.updatedAt) setLocalEditedAt(updated.updatedAt);
+    } catch {
+      handleSaveStatusChange("error");
+    }
   }
 
   async function handleAddSubpage() {
@@ -95,7 +141,7 @@ function PageDetail({ page }: { page: Page }) {
     <div className="flex-1 flex flex-col relative w-full">
       {/* Sticky Header */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-codex-background border-b border-codex-border transition-colors select-none">
-        <div className="flex items-center gap-1.5 flex-wrap truncate text-xs text-codex-muted transition-all">
+        <div className="flex items-center gap-1.5 flex-wrap truncate text-xs text-codex-muted transition-all min-w-0 mr-2">
           {!isSidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
@@ -105,11 +151,14 @@ function PageDetail({ page }: { page: Page }) {
               <Menu className="w-4 h-4" />
             </button>
           )}
-          <Link href="/workspace" className="hover:text-codex-foreground transition-colors">
+          <Link
+            href="/workspace"
+            className="hover:text-codex-foreground transition-colors shrink-0"
+          >
             {activeWorkspace?.name || "Workspace"}
           </Link>
           {breadcrumbs.map((b) => (
-            <div key={b.id} className="flex items-center gap-1.5">
+            <div key={b.id} className="flex items-center gap-1.5 shrink-0">
               <ChevronRight className="w-3 h-3 text-codex-muted shrink-0" />
               <Link
                 href={`/workspace/${b.id}`}
@@ -121,12 +170,64 @@ function PageDetail({ page }: { page: Page }) {
           ))}
           <ChevronRight className="w-3 h-3 text-codex-muted shrink-0" />
           <span className="text-codex-foreground font-medium truncate max-w-[160px]">
-            {page.title || "Untitled"}
+            {title || page.title || "Untitled"}
           </span>
         </div>
 
-        {/* Header Actions: Page Options */}
-        <div className="flex items-center gap-1.5">
+        {/* Header Actions: Save Status, Last Edited & Page Options */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Status & Last Edited Group */}
+          <div className="flex items-center gap-1.5 text-xs text-codex-muted">
+            {/* Save / Sync Status Indicator */}
+            <div className="flex items-center gap-1.5">
+              {saveStatus === "saving" ? (
+                <span
+                  className="flex items-center gap-1 text-codex-muted animate-pulse"
+                  title="Saving changes to cloud..."
+                >
+                  <LogoSpinner size="sm" className="gap-0 scale-75" />
+                  <span className="text-[11px] font-medium hidden md:inline">Saving...</span>
+                </span>
+              ) : saveStatus === "saved" ? (
+                <span
+                  className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 animate-in fade-in duration-200"
+                  title="All changes saved to cloud"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-medium hidden md:inline">Saved</span>
+                </span>
+              ) : saveStatus === "error" ? (
+                <span
+                  className="flex items-center gap-1 text-codex-danger"
+                  title="Failed to save changes"
+                >
+                  <CloudOff className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-medium hidden md:inline">Failed to save</span>
+                </span>
+              ) : (
+                <span
+                  className="flex items-center gap-1 text-codex-muted/60 hover:text-codex-muted transition-colors cursor-default"
+                  title="All changes saved to cloud"
+                >
+                  <Cloud className="w-3.5 h-3.5" />
+                </span>
+              )}
+            </div>
+
+            {/* Last Edited Time */}
+            {lastEditedAt && (
+              <>
+                <span className="text-codex-border select-none">·</span>
+                <span
+                  className="text-[11px] text-codex-muted/80 hover:text-codex-foreground transition-colors cursor-default"
+                  title={lastEditedAt ? `Last edited: ${formatFullDate(lastEditedAt)}` : undefined}
+                >
+                  Edited {formatTimeAgo(lastEditedAt)}
+                </span>
+              </>
+            )}
+          </div>
+
           <div className="flex items-center relative" ref={optionsRef}>
             <button
               onClick={() => setIsOptionsOpen(!isOptionsOpen)}
@@ -293,7 +394,11 @@ function PageDetail({ page }: { page: Page }) {
         )}
 
         {/* Block Editor Area */}
-        <BlockEditor pageId={page.id} />
+        <BlockEditor
+          pageId={page.id}
+          onSaveStatusChange={handleSaveStatusChange}
+          onSaved={handleSaved}
+        />
       </div>
     </div>
   );
