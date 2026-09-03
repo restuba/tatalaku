@@ -12,6 +12,8 @@ import {
   List,
   ListOrdered,
   Quote,
+  Link2,
+  Check,
 } from "lucide-react";
 
 interface BlockMenuProps {
@@ -22,6 +24,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [hoveredPos, setHoveredPos] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -184,6 +187,34 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     setMenuPos(null);
   };
 
+  const copyLinkToBlock = async () => {
+    if (hoveredPos === null || !editor) return;
+    const node = editor.state.doc.nodeAt(hoveredPos);
+    let blockId = node?.attrs?.id;
+
+    // Fallback if node doesn't have an ID in attrs
+    if (!blockId) {
+      blockId = crypto.randomUUID();
+      const tr = editor.state.tr.setNodeMarkup(hoveredPos, undefined, {
+        ...node?.attrs,
+        id: blockId,
+      });
+      editor.view.dispatch(tr);
+    }
+
+    const url = `${window.location.origin}${window.location.pathname}#${blockId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+        setIsOpen(false);
+      }, 700);
+    } catch {
+      setIsOpen(false);
+    }
+  };
+
   const turnInto = (type: string, level?: number) => {
     if (hoveredPos === null) return;
     editor.chain().focus().setNodeSelection(hoveredPos).run();
@@ -257,6 +288,22 @@ export function BlockMenu({ editor }: BlockMenuProps) {
             <div className="px-3 py-1.5 text-[10px] font-semibold text-codex-muted uppercase tracking-wider">
               Actions
             </div>
+            <button
+              onClick={copyLinkToBlock}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground transition-colors"
+            >
+              {isCopied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-500" />
+                  <span className="text-emerald-500 font-medium text-xs">Link copied!</span>
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-4 h-4" />
+                  <span>Copy link to block</span>
+                </>
+              )}
+            </button>
             <button
               onClick={duplicateNode}
               className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"

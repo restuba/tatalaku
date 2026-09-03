@@ -25,7 +25,7 @@ import { api } from "@/lib/api";
 import { BlockMenu } from "./block-menu";
 import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls } from "./table-controls";
-import { TableOfContents } from "./table-of-contents";
+import { TableOfContents, OutlineFloatingPill, scrollToTargetNode } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
 import { Check, Cloud } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
@@ -184,11 +184,59 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, [editor]);
 
+  // Handle URL hash anchor link redirect (e.g. #block-... or #heading-...)
+  useEffect(() => {
+    if (isLoading || !editor || editor.isDestroyed) return;
+
+    const handleHashScroll = () => {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return;
+
+      // Delay slightly to ensure content and DOM elements are rendered
+      setTimeout(() => {
+        let targetEl: HTMLElement | null = null;
+        try {
+          targetEl = document.querySelector(
+            `[data-id="${hash}"], #${CSS.escape(hash)}`,
+          ) as HTMLElement | null;
+        } catch {
+          targetEl = document.querySelector(`[data-id="${hash}"]`) as HTMLElement | null;
+        }
+
+        if (!targetEl && editor) {
+          const blocks = editor.view.dom.querySelectorAll(
+            "[data-id], h1, h2, h3, p, li, blockquote, pre",
+          );
+          for (const b of blocks) {
+            if (b.getAttribute("data-id") === hash || b.id === hash) {
+              targetEl = b as HTMLElement;
+              break;
+            }
+          }
+        }
+
+        if (targetEl) {
+          scrollToTargetNode(targetEl);
+        }
+      }, 350);
+    };
+
+    handleHashScroll();
+    window.addEventListener("hashchange", handleHashScroll);
+    return () => window.removeEventListener("hashchange", handleHashScroll);
+  }, [isLoading, editor]);
+
   return (
     <LassoSelection editor={editor}>
-      <div className="relative flex-1 flex gap-12 mt-4">
+      <div className="relative flex-1 flex flex-col w-full mt-4">
+        {/* Floating Outline Pill Button (when scrolling down) */}
+        <OutlineFloatingPill editor={editor} />
+
+        {/* Outline Popover / Drawer Panel */}
+        <TableOfContents editor={editor} />
+
         {/* Main Editor Column */}
-        <div className="flex-1 flex flex-col min-w-0 max-w-3xl">
+        <div className="flex-1 flex flex-col min-w-0 w-full">
           {/* Top Floating Status Indicator */}
           <div className="flex items-center justify-between pb-3 mb-4 border-b border-codex-border/50 text-xs select-none">
             <div className="flex items-center gap-2 text-codex-muted">
@@ -243,9 +291,6 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
             </div>
           )}
         </div>
-
-        {/* Right Sidebar: Table of Contents */}
-        <TableOfContents editor={editor} />
       </div>
     </LassoSelection>
   );

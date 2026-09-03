@@ -447,3 +447,33 @@ button:disabled,
 .animate-slide-up-fade {
   animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Block redirect flash highlight */
+@keyframes blockFlash {
+  0% {
+    background-color: color-mix(in srgb, var(--color-accent) 28%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+  30% {
+    background-color: color-mix(in srgb, var(--color-accent) 22%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 15%, transparent);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.block-highlight-flash {
+  animation: blockFlash 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  border-radius: var(--radius-codex-sm);
+}
+
+/* Smooth scroll offset for block navigation under sticky header */
+.tiptap [data-id],
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap > * {
+  scroll-margin-top: 4.5rem;
+}

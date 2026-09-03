@@ -22,12 +22,13 @@ export const GlobalId = Extension.create({
         attributes: {
           id: {
             default: null,
-            parseHTML: (element) => element.getAttribute("data-id"),
+            parseHTML: (element) => element.getAttribute("data-id") || element.getAttribute("id"),
             renderHTML: (attributes) => {
               if (!attributes["id"]) {
                 return {};
               }
               return {
+                id: attributes["id"],
                 "data-id": attributes["id"],
               };
             },

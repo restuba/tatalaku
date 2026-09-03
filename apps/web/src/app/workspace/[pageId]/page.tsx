@@ -18,6 +18,7 @@ import {
   Calendar,
   MoreHorizontal,
   Menu,
+  ListTree,
 } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
@@ -26,7 +27,7 @@ function PageDetail({ page }: { page: Page }) {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, updatePage, createPage } = usePageStore();
-  const { isSidebarOpen, setSidebarOpen } = useUIStore();
+  const { isSidebarOpen, setSidebarOpen, isOutlineOpen, toggleOutline } = useUIStore();
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
@@ -125,48 +126,62 @@ function PageDetail({ page }: { page: Page }) {
           </span>
         </div>
 
-        {/* Options Button */}
-        <div className="flex items-center gap-2 relative" ref={optionsRef}>
+        {/* Header Actions: Outline Toggle & Page Options */}
+        <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+            onClick={toggleOutline}
             className={`p-1.5 rounded-codex-md transition-colors ${
-              isOptionsOpen
-                ? "bg-codex-surface text-codex-foreground"
+              isOutlineOpen
+                ? "bg-codex-surface text-codex-foreground border border-codex-border/60"
                 : "hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
             }`}
-            title="Options"
+            title={isOutlineOpen ? "Close outline" : "Open outline"}
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <ListTree className="w-4 h-4" />
           </button>
 
-          {isOptionsOpen && (
-            <div className="absolute top-full right-0 mt-1 w-64 glass-surface border border-codex-border rounded-codex-xl p-2 z-50 shadow-xl animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-2 text-[11px] font-semibold text-codex-muted uppercase tracking-wider">
-                Page Settings
-              </div>
+          <div className="flex items-center relative" ref={optionsRef}>
+            <button
+              onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+              className={`p-1.5 rounded-codex-md transition-colors ${
+                isOptionsOpen
+                  ? "bg-codex-surface text-codex-foreground"
+                  : "hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
+              }`}
+              title="Options"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
 
-              <div className="flex items-center justify-between px-3 py-2 hover:bg-codex-background rounded-codex-md transition-colors">
-                <span className="text-sm text-codex-foreground">Full Width</span>
-                <button
-                  onClick={async () => {
-                    const newFullWidth = !page.isFullWidth;
-                    await updatePage(page.id, { isFullWidth: newFullWidth });
-                  }}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full p-0.5 transition-colors focus:outline-none ${
-                    page.isFullWidth
-                      ? "bg-codex-accent"
-                      : "bg-codex-muted/30 hover:bg-codex-muted/50"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-codex-background shadow-sm ring-1 ring-black/5 transition-transform duration-200 ease-in-out ${
-                      page.isFullWidth ? "translate-x-4" : "translate-x-0"
+            {isOptionsOpen && (
+              <div className="absolute top-full right-0 mt-1 w-64 glass-surface border border-codex-border rounded-codex-xl p-2 z-50 shadow-xl animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-2 text-[11px] font-semibold text-codex-muted uppercase tracking-wider">
+                  Page Settings
+                </div>
+
+                <div className="flex items-center justify-between px-3 py-2 hover:bg-codex-background rounded-codex-md transition-colors">
+                  <span className="text-sm text-codex-foreground">Full Width</span>
+                  <button
+                    onClick={async () => {
+                      const newFullWidth = !page.isFullWidth;
+                      await updatePage(page.id, { isFullWidth: newFullWidth });
+                    }}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full p-0.5 transition-colors focus:outline-none ${
+                      page.isFullWidth
+                        ? "bg-codex-accent"
+                        : "bg-codex-muted/30 hover:bg-codex-muted/50"
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-codex-background shadow-sm ring-1 ring-black/5 transition-transform duration-200 ease-in-out ${
+                        page.isFullWidth ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
