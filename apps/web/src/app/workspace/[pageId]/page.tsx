@@ -18,7 +18,6 @@ import {
   Calendar,
   MoreHorizontal,
   Menu,
-  ListTree,
 } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
@@ -27,7 +26,7 @@ function PageDetail({ page }: { page: Page }) {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, updatePage, createPage } = usePageStore();
-  const { isSidebarOpen, setSidebarOpen, isOutlineOpen, toggleOutline } = useUIStore();
+  const { isSidebarOpen, setSidebarOpen } = useUIStore();
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
@@ -126,20 +125,8 @@ function PageDetail({ page }: { page: Page }) {
           </span>
         </div>
 
-        {/* Header Actions: Outline Toggle & Page Options */}
+        {/* Header Actions: Page Options */}
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={toggleOutline}
-            className={`p-1.5 rounded-codex-md transition-colors ${
-              isOutlineOpen
-                ? "bg-codex-surface text-codex-foreground border border-codex-border/60"
-                : "hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
-            }`}
-            title={isOutlineOpen ? "Close outline" : "Open outline"}
-          >
-            <ListTree className="w-4 h-4" />
-          </button>
-
           <div className="flex items-center relative" ref={optionsRef}>
             <button
               onClick={() => setIsOptionsOpen(!isOptionsOpen)}

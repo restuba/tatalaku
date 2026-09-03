@@ -25,7 +25,7 @@ import { api } from "@/lib/api";
 import { BlockMenu } from "./block-menu";
 import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls } from "./table-controls";
-import { TableOfContents, OutlineFloatingPill, scrollToTargetNode } from "./table-of-contents";
+import { TableOfContents, scrollToTargetNode } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
 import { Check, Cloud } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
@@ -229,10 +229,7 @@ export function BlockEditor({ pageId }: BlockEditorProps) {
   return (
     <LassoSelection editor={editor}>
       <div className="relative flex-1 flex flex-col w-full mt-4">
-        {/* Floating Outline Pill Button (when scrolling down) */}
-        <OutlineFloatingPill editor={editor} />
-
-        {/* Outline Popover / Drawer Panel */}
+        {/* Outline Bars & Hover Popover */}
         <TableOfContents editor={editor} />
 
         {/* Main Editor Column */}
