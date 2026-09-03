@@ -55,10 +55,8 @@ export function Sidebar() {
   return (
     <>
       <aside
-        className={`h-screen bg-codex-surface/80 dark:bg-codex-surface/40 backdrop-blur-2xl border-codex-border/40 flex flex-col select-none shrink-0 transition-all duration-300 ease-out relative group/sidebar z-20 ${
-          isSidebarOpen
-            ? "w-64 border-r shadow-2xl shadow-black/5 dark:shadow-black/20"
-            : "w-0 border-r-0 overflow-hidden"
+        className={`h-screen bg-codex-sidebar border-codex-border flex flex-col select-none shrink-0 transition-all duration-300 ease-out relative group/sidebar z-20 ${
+          isSidebarOpen ? "w-64 border-r" : "w-0 border-r-0 overflow-hidden"
         }`}
       >
         <div
@@ -73,7 +71,7 @@ export function Sidebar() {
           <div className="px-2 pb-2 space-y-0.5">
             <button
               onClick={() => {}}
-              className="w-full flex items-center justify-between px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground hover:scale-[1.02] active:scale-95 transition-all duration-200 group"
+              className="w-full flex items-center justify-between px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface hover:text-codex-foreground transition-colors duration-150 group"
             >
               <div className="flex items-center gap-2">
                 <Search className="w-4 h-4" />
@@ -87,14 +85,14 @@ export function Sidebar() {
             </button>
             <button
               onClick={() => router.push("/workspace")}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground hover:scale-[1.02] active:scale-95 transition-all duration-200"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface hover:text-codex-foreground transition-colors duration-150"
             >
               <Home className="w-4 h-4" />
               <span>Home</span>
             </button>
             <button
               onClick={() => setIsAppearanceOpen(true)}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground hover:scale-[1.02] active:scale-95 transition-all duration-200"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface hover:text-codex-foreground transition-colors duration-150"
             >
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -180,11 +178,11 @@ export function Sidebar() {
           </div>
 
           {/* Trash Menu (Bottom) */}
-          <div className="px-2 py-2 border-t border-codex-border/30">
+          <div className="px-2 py-2 border-t border-codex-border">
             <button
               onClick={() => setIsTrashOpen(true)}
               disabled={!activeWorkspace}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface/80 hover:text-codex-foreground hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface hover:text-codex-foreground transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="w-4 h-4" />
               <span>Trash</span>
@@ -195,7 +193,7 @@ export function Sidebar() {
         {isSidebarOpen && (
           <button
             onClick={toggleSidebar}
-            className="absolute -right-3.5 top-8 z-50 p-1 bg-codex-surface/80 backdrop-blur-md border border-codex-border/40 rounded-full text-codex-muted hover:text-codex-foreground hover:bg-codex-background hover:scale-110 opacity-0 group-hover/sidebar:opacity-100 transition-all shadow-sm flex items-center justify-center"
+            className="absolute -right-3 top-8 z-50 p-1 bg-codex-sidebar border border-codex-border rounded-full text-codex-muted hover:text-codex-foreground hover:bg-codex-surface opacity-0 group-hover/sidebar:opacity-100 transition-colors shadow-xs flex items-center justify-center"
             title="Close sidebar"
           >
             <ChevronsLeft className="w-3.5 h-3.5" />

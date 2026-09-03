@@ -94,7 +94,7 @@ function PageDetail({ page }: { page: Page }) {
   return (
     <div className="flex-1 flex flex-col relative w-full">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-codex-background/80 backdrop-blur-md border-b border-codex-border/50 transition-colors select-none">
+      <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-codex-background border-b border-codex-border transition-colors select-none">
         <div className="flex items-center gap-1.5 flex-wrap truncate text-xs text-codex-muted transition-all">
           {!isSidebarOpen && (
             <button

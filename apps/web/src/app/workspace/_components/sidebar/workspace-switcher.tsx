@@ -77,7 +77,7 @@ export function WorkspaceSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-2 rounded-codex-md hover:bg-codex-surface/80 transition-colors text-left group"
+        className="w-full flex items-center justify-between p-2 rounded-codex-md hover:bg-codex-surface transition-colors text-left group"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-6 h-6 rounded-codex-sm bg-codex-surface border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-semibold shrink-0">
