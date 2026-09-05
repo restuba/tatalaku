@@ -3,7 +3,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Workspace } from "@tatalaku/shared";
-import { api } from "@/lib/api";
+import { getListWorkspaces } from "@/services/workspace/get-list-workspaces";
+import { createWorkspace } from "@/services/workspace/create-workspace";
+import { updateWorkspace } from "@/services/workspace/update-workspace";
+import { deleteWorkspace } from "@/services/workspace/delete-workspace";
+import { inviteMember } from "@/services/workspace/invite-member";
+import { acceptInvite } from "@/services/workspace/accept-invite";
+import { removeMember } from "@/services/workspace/remove-member";
+import { getMembers } from "@/services/workspace/get-members";
 
 interface WorkspaceState {
   workspaces: Workspace[];
@@ -43,7 +50,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
       fetchWorkspaces: async () => {
         set({ isLoading: true });
         try {
-          const res = await api.workspaces.list();
+          const res = await getListWorkspaces();
           const workspaces = res.data;
 
           const currentActive = get().activeWorkspace;
@@ -77,7 +84,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
         const active = get().activeWorkspace;
         if (!active) return;
         try {
-          const res = await api.workspaces.getMembers(active.id);
+          const res = await getMembers(active.id);
           set({ activeWorkspaceMembers: res.data });
         } catch (err) {
           console.error("Failed to fetch workspace members:", err);
@@ -87,7 +94,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
       createWorkspace: async (name: string) => {
         set({ isLoading: true });
         try {
-          const res = await api.workspaces.create({ name });
+          const res = await createWorkspace({ name });
           const newWorkspace = res.data;
           set((state) => ({
             workspaces: [newWorkspace, ...state.workspaces],
@@ -113,7 +120,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
         }));
 
         try {
-          const res = await api.workspaces.update(id, { name });
+          const res = await updateWorkspace(id, { name });
           set((state) => ({
             workspaces: state.workspaces.map((w) => (w.id === id ? res.data : w)),
             activeWorkspace: state.activeWorkspace?.id === id ? res.data : state.activeWorkspace,
@@ -137,7 +144,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
         });
 
         try {
-          await api.workspaces.delete(id);
+          await deleteWorkspace(id);
         } catch (err) {
           // Rollback
           set({ workspaces: previous, activeWorkspace: previousActive });
@@ -146,17 +153,17 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
       },
 
       inviteMember: async (workspaceId: string, email: string) => {
-        await api.workspaces.inviteMember(workspaceId, email);
+        await inviteMember(workspaceId, email);
         await get().fetchWorkspaces();
       },
 
       acceptInvite: async (workspaceId: string, token: string) => {
-        await api.workspaces.acceptInvite(workspaceId, token);
+        await acceptInvite(workspaceId, token);
         await get().fetchWorkspaces();
       },
 
       removeMember: async (workspaceId: string, userId: string) => {
-        await api.workspaces.removeMember(workspaceId, userId);
+        await removeMember(workspaceId, userId);
         await get().fetchWorkspaces();
       },
     }),

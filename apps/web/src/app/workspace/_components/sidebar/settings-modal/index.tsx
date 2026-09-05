@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useWorkspaceStore } from "@/stores/workspace.store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 import { AccountTab } from "./account-tab";
 import { AppearanceTab } from "./appearance-tab";
 import { GeneralTab } from "./general-tab";

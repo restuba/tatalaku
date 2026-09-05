@@ -21,7 +21,8 @@ import { SlashCommands } from "./extensions/slash-command";
 import { GlobalId } from "./extensions/global-id";
 import { Mermaid } from "./extensions/mermaid";
 import { BlockSelection } from "./extensions/block-selection";
-import { api } from "@/lib/api";
+import { getPage } from "@/services/page/get-page";
+import { updatePage } from "@/services/page/update-page";
 import { BlockMenu } from "./block-menu";
 import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls } from "./table-controls";
@@ -61,7 +62,7 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
       debounceTimerRef.current = setTimeout(async () => {
         try {
           const json = editorInstance.getJSON();
-          const res = await api.pages.update(pageId, { content: JSON.stringify(json) });
+          const res = await updatePage(pageId, { content: JSON.stringify(json) });
 
           setSaveStatus("saved");
           onSaveStatusChange?.("saved");
@@ -129,7 +130,7 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
     async function loadBlocks() {
       setIsLoading(true);
       try {
-        const res = await api.pages.get(pageId);
+        const res = await getPage(pageId);
         if (!isMounted) return;
 
         const page = res.data;

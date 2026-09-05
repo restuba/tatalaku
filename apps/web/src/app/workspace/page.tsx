@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useWorkspaceStore } from "@/stores/workspace.store";
-import { usePageStore } from "@/stores/page.store";
-import { useUIStore } from "@/stores";
+import { useWorkspaceStore } from "@/stores/workspace-store";
+import { usePageStore } from "@/stores/page-store";
+import { useUIStore } from "@/stores/ui-store";
 import { WorkspaceHomeSkeleton } from "@/components/ui/skeleton";
 import { FileText, Plus, Clock, Sparkles, Menu } from "lucide-react";
 

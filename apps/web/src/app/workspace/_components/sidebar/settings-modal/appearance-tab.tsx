@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useThemeStore } from "@/stores/theme.store";
+import { useThemeStore } from "@/stores/theme-store";
 import { presets } from "@/lib/themes";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";

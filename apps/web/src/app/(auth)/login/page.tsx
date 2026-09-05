@@ -3,8 +3,8 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuthStore } from "@/stores/auth.store";
-import { ApiRequestError } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
+import { ApiRequestError } from "@/helpers/api-error";
 import { Eye, EyeOff } from "lucide-react";
 
 import { Suspense } from "react";

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { Page } from "@tatalaku/shared";
-import { usePageStore } from "@/stores/page.store";
+import { usePageStore } from "@/stores/page-store";
 import {
   ChevronRight,
   FileText,

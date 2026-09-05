@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useWorkspaceStore } from "@/stores/workspace.store";
-import { useAuthStore } from "@/stores/auth.store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { UserMinus, ShieldAlert, Mail, Users, Check } from "lucide-react";
 
 export function MembersTab() {

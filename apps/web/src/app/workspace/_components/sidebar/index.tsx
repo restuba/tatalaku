@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useWorkspaceStore } from "@/stores/workspace.store";
-import { usePageStore } from "@/stores/page.store";
-import { useUIStore } from "@/stores";
+import { useWorkspaceStore } from "@/stores/workspace-store";
+import { usePageStore } from "@/stores/page-store";
+import { useUIStore } from "@/stores/ui-store";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { PageTreeItem } from "./page-tree-item";
 import {

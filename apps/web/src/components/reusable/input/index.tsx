@@ -280,7 +280,8 @@ const Search = forwardRef<InputRef, SearchProps>(
 
 Search.displayName = "InputSearch";
 
-// ─── Compound export ────────────────────────────────────────────────
+const CompoundInput = Object.assign(Input, { Search });
 
-export default Object.assign(Input, { Search });
+export { CompoundInput as Input };
+export default CompoundInput;
 export type { InputProps, SearchProps, InputRef, InputSize, InputVariant, InputStatus };

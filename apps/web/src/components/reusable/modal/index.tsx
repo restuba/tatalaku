@@ -103,5 +103,6 @@ Modal.Header = ModalHeader;
 Modal.Content = ModalContent;
 Modal.Action = ModalAction;
 
+export { Modal };
 export default Modal;
 export type { ModalProps, ModalHeaderProps, ModalContentProps, ModalActionProps, MaxWidth, Scroll };

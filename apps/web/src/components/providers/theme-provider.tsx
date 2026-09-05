@@ -2,7 +2,7 @@
 
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 import { useEffect, type ReactNode } from "react";
-import { useThemeStore } from "@/stores/theme.store";
+import { useThemeStore } from "@/stores/theme-store";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   return (

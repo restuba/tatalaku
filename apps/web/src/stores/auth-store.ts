@@ -2,7 +2,13 @@
 
 import { create } from "zustand";
 import type { User } from "@tatalaku/shared";
-import { api, setAccessToken, ApiRequestError } from "@/lib/api";
+import { login } from "@/services/auth/login";
+import { register } from "@/services/auth/register";
+import { logout } from "@/services/auth/logout";
+import { getMe } from "@/services/auth/get-me";
+import { refreshToken } from "@/services/auth/refresh-token";
+import { setAccessToken } from "@/helpers/auth-token";
+import { ApiRequestError } from "@/helpers/api-error";
 import type { LoginFormValues, RegisterFormValues } from "@/types/auth.types";
 
 interface AuthState {
@@ -34,7 +40,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   login: async (values) => {
     set({ isLoading: true });
     try {
-      const res = await api.auth.login(values);
+      const res = await login(values);
       setAccessToken(res.data.accessToken);
       set({ user: res.data.user, isLoading: false });
     } catch (err) {
@@ -46,7 +52,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   register: async (values) => {
     set({ isLoading: true });
     try {
-      const res = await api.auth.register(values);
+      const res = await register(values);
       setAccessToken(res.data.accessToken);
       set({ user: res.data.user, isLoading: false });
     } catch (err) {
@@ -58,7 +64,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      await api.auth.logout();
+      await logout();
     } finally {
       setAccessToken(null);
       set({ user: null, isLoading: false });
@@ -69,12 +75,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     set({ isLoading: true, error: null });
     try {
       // Try to refresh first to get a valid access token
-      const token = await api.auth.refresh();
+      const token = await refreshToken();
       if (!token) {
         set({ user: null, isLoading: false, isInitialized: true });
         return;
       }
-      const res = await api.auth.me();
+      const res = await getMe();
       set({ user: res.data.user, isLoading: false, isInitialized: true });
     } catch (err: unknown) {
       setAccessToken(null);

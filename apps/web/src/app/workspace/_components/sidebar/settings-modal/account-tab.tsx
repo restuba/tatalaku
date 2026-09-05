@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";
 import { LogOut, Mail, User as UserIcon } from "lucide-react";
 import { useState } from "react";

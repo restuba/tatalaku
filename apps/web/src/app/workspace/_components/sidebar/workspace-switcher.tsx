@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth.store";
-import { useWorkspaceStore } from "@/stores/workspace.store";
+import { useAuthStore } from "@/stores/auth-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus, Users, LogOut } from "lucide-react";
 import { WorkspaceMembersModal } from "./workspace-members-modal";
 

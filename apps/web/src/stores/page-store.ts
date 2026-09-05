@@ -2,7 +2,11 @@
 
 import { create } from "zustand";
 import type { Page } from "@tatalaku/shared";
-import { api } from "@/lib/api";
+import { getListPages } from "@/services/page/get-list-pages";
+import { createPage } from "@/services/page/create-page";
+import { updatePage } from "@/services/page/update-page";
+import { archivePage } from "@/services/page/archive-page";
+import { restorePage } from "@/services/page/restore-page";
 
 interface PageState {
   pages: Page[];
@@ -49,7 +53,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   fetchPages: async (workspaceId: string) => {
     set({ isLoading: true });
     try {
-      const res = await api.pages.list({ workspaceId });
+      const res = await getListPages({ workspaceId });
       const pages = res.data;
       set({ pages, isLoading: false, isInitialized: true });
       return pages;
@@ -111,7 +115,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     }));
 
     try {
-      const res = await api.pages.create(input);
+      const res = await createPage(input);
       const createdPage = res.data;
 
       // Replace optimistic page with actual server page
@@ -138,7 +142,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     }));
 
     try {
-      const res = await api.pages.update(id, input);
+      const res = await updatePage(id, input);
       const updatedPage = res.data;
 
       set((state) => ({
@@ -174,7 +178,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     }));
 
     try {
-      await api.pages.archive(id);
+      await archivePage(id);
     } catch (err) {
       // Rollback
       set({ pages: previousPages, archivedPages: previousArchived });
@@ -198,7 +202,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     }));
 
     try {
-      await api.pages.restore(id);
+      await restorePage(id);
     } catch (err) {
       // Rollback
       set({ pages: previousPages, archivedPages: previousArchived });
@@ -207,7 +211,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   },
 
   fetchArchivedPages: async (workspaceId: string) => {
-    const res = await api.pages.list({ workspaceId, includeArchived: true });
+    const res = await getListPages({ workspaceId, includeArchived: true });
     const archivedPages = res.data.filter((p) => p.isArchived);
     set({ archivedPages });
     return archivedPages;

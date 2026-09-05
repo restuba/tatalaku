@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useWorkspaceStore } from "@/stores/workspace.store";
-import { useAuthStore } from "@/stores/auth.store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { Building, Copy, Check, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 
 export function GeneralTab({ onClose }: { onClose?: () => void }) {
