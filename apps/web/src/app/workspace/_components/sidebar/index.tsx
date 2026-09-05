@@ -19,7 +19,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { TrashModal } from "./trash-modal";
-import { AppearanceModal } from "./appearance-modal";
+import { SettingsModal, type SettingsTab } from "./settings-modal";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function Sidebar() {
@@ -28,7 +28,8 @@ export function Sidebar() {
   const { pages, createPage, isInitialized, isLoading } = usePageStore();
   const isPagesLoading = !isInitialized || (isLoading && pages.length === 0);
   const [isTrashOpen, setIsTrashOpen] = useState(false);
-  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTab>("account");
 
   // Accordion state
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
@@ -93,7 +94,10 @@ export function Sidebar() {
               <span>Home</span>
             </button>
             <button
-              onClick={() => setIsAppearanceOpen(true)}
+              onClick={() => {
+                setSettingsInitialTab("account");
+                setIsSettingsOpen(true);
+              }}
               className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface hover:text-codex-foreground transition-colors duration-150"
             >
               <Settings className="w-4 h-4" />
@@ -228,7 +232,11 @@ export function Sidebar() {
 
       {/* Modals placed outside the aside so they aren't trapped by backdrop-filter */}
       <TrashModal isOpen={isTrashOpen} onClose={() => setIsTrashOpen(false)} />
-      <AppearanceModal isOpen={isAppearanceOpen} onClose={() => setIsAppearanceOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        initialTab={settingsInitialTab}
+      />
     </>
   );
 }
