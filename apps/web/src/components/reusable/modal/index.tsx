@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useCallback, useSyncExternalStore } from "react";
+import { useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 import { ModalAction } from "./modal-action";
 import { ModalContent } from "./modal-content";
 import { ModalContext } from "./modal-context";
@@ -14,16 +15,6 @@ import type {
   MaxWidth,
   Scroll,
 } from "./types";
-
-const emptySubscribe = () => () => {};
-
-function useIsMounted() {
-  return useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
-}
 
 // ─── Max Width Presets ───────────────────────────────────────────────
 
