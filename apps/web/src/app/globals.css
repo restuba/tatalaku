@@ -67,6 +67,7 @@ html[data-code-theme="everforest-light"] {
   --color-codex-foreground: var(--color-ink);
   --color-codex-sidebar: var(--color-surface-secondary);
   --color-codex-surface: var(--color-surface);
+  --color-codex-surface-secondary: var(--color-surface-secondary);
   --color-codex-border: var(--color-border);
   --color-codex-accent: var(--color-accent);
   --color-codex-muted: var(--color-muted);

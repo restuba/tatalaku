@@ -9,6 +9,7 @@ import { useWorkspaceStore } from "@/stores/workspace.store";
 import { useUIStore } from "@/stores";
 import { BlockEditor, type SaveStatus } from "@/components/editor/block-editor";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
+import { PageHeaderSkeleton, PageContentSkeleton } from "@/components/ui/skeleton";
 import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import {
   ChevronRight,
@@ -410,11 +411,12 @@ export default function PageView() {
   const { pages, isInitialized } = usePageStore();
   const currentPage = pages.find((p) => p.id === pageId);
 
-  // Pages haven't been fetched yet — show LogoSpinner instead of "not found"
-  if (!isInitialized || (!currentPage && !isInitialized)) {
+  // Pages haven't been fetched yet — show Skeleton instead of "not found"
+  if (!isInitialized) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-12">
-        <LogoSpinner size="md" text="Loading workspace..." />
+      <div className="flex-1 flex flex-col relative w-full">
+        <PageHeaderSkeleton />
+        <PageContentSkeleton />
       </div>
     );
   }

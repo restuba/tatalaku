@@ -30,6 +30,7 @@ import { LassoSelection } from "./lasso-selection";
 import { Check, Cloud } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { Logo } from "@/components/ui/logo";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -272,8 +273,29 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
 
           {/* Editor Content Area */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-24 text-codex-muted">
-              <LogoSpinner size="md" text="Loading editor content..." />
+            <div className="space-y-6 py-4 animate-in fade-in duration-200">
+              <div className="space-y-2.5">
+                <Skeleton className="w-full h-4 rounded-codex-sm" />
+                <Skeleton className="w-11/12 h-4 rounded-codex-sm" />
+                <Skeleton className="w-4/5 h-4 rounded-codex-sm" />
+              </div>
+              <div className="pt-2">
+                <Skeleton className="w-1/3 max-w-xs h-6 rounded-codex-md" />
+              </div>
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
+                  <Skeleton className="w-1/2 h-4 rounded-codex-sm" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
+                  <Skeleton className="w-3/5 h-4 rounded-codex-sm" />
+                </div>
+              </div>
+              <div className="space-y-2.5 pt-2">
+                <Skeleton className="w-full h-4 rounded-codex-sm" />
+                <Skeleton className="w-5/6 h-4 rounded-codex-sm" />
+              </div>
             </div>
           ) : (
             <div

@@ -20,11 +20,13 @@ import {
 } from "lucide-react";
 import { TrashModal } from "./trash-modal";
 import { AppearanceModal } from "./appearance-modal";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function Sidebar() {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
-  const { pages, createPage } = usePageStore();
+  const { pages, createPage, isInitialized, isLoading } = usePageStore();
+  const isPagesLoading = !isInitialized || (isLoading && pages.length === 0);
   const [isTrashOpen, setIsTrashOpen] = useState(false);
   const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
 
@@ -157,7 +159,30 @@ export function Sidebar() {
 
               {isPagesOpen && (
                 <div className="space-y-0.5 mt-0.5">
-                  {rootPages.length > 0 ? (
+                  {isPagesLoading ? (
+                    <div className="space-y-1 py-1">
+                      <div className="flex items-center gap-1.5 px-2 py-1">
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-28 h-3.5 rounded-codex-sm" />
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 py-1 pl-6">
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-20 h-3.5 rounded-codex-sm" />
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 py-1 pl-6">
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-24 h-3.5 rounded-codex-sm" />
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 py-1">
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-3.5 h-3.5 rounded-codex-sm shrink-0" />
+                        <Skeleton className="w-32 h-3.5 rounded-codex-sm" />
+                      </div>
+                    </div>
+                  ) : rootPages.length > 0 ? (
                     rootPages.map((page) => <PageTreeItem key={page.id} page={page} level={0} />)
                   ) : (
                     <div className="px-3 py-4 text-center">

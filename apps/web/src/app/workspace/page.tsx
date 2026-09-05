@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useWorkspaceStore } from "@/stores/workspace.store";
 import { usePageStore } from "@/stores/page.store";
 import { useUIStore } from "@/stores";
+import { WorkspaceHomeSkeleton } from "@/components/ui/skeleton";
 import { FileText, Plus, Clock, Sparkles, Menu } from "lucide-react";
 
 export default function WorkspaceHomePage() {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
-  const { pages, createPage } = usePageStore();
+  const { pages, createPage, isInitialized } = usePageStore();
   const { isSidebarOpen, setSidebarOpen } = useUIStore();
 
   const activePages = pages.filter((p) => !p.isArchived);
@@ -26,6 +27,10 @@ export default function WorkspaceHomePage() {
     } catch {
       // Handled
     }
+  }
+
+  if (!isInitialized) {
+    return <WorkspaceHomeSkeleton />;
   }
 
   return (
