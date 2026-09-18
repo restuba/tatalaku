@@ -40,6 +40,10 @@ export function TableControls({ editor }: TableControlsProps) {
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(null);
   const [showColHandle, setShowColHandle] = useState(false);
   const [showRowHandle, setShowRowHandle] = useState(false);
+  // Frozen rects for the column/row whose menu is open (the clicked one). Only
+  // this one shows the 6-dot grip + active border; others keep the hover hint.
+  const [activeColRect, setActiveColRect] = useState<DOMRect | null>(null);
+  const [activeRowRect, setActiveRowRect] = useState<DOMRect | null>(null);
   const [activeColors, setActiveColors] = useState<CellColors>({
     color: null,
     backgroundColor: null,
@@ -52,9 +56,9 @@ export function TableControls({ editor }: TableControlsProps) {
     if (!editor) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (activeMenu) return;
-
       const target = e.target as HTMLElement;
+      // Don't recompute while interacting with our own controls (e.g. an open
+      // menu), so the active grip/border stays put.
       if (containerRef.current?.contains(target)) return;
 
       const tableDOM = target.closest("table");
@@ -138,10 +142,16 @@ export function TableControls({ editor }: TableControlsProps) {
     const handleClickOutside = (e: MouseEvent) => {
       if (activeMenu && containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setActiveMenu(null);
+        setActiveColRect(null);
+        setActiveRowRect(null);
       }
     };
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActiveMenu(null);
+      if (e.key === "Escape") {
+        setActiveMenu(null);
+        setActiveColRect(null);
+        setActiveRowRect(null);
+      }
     };
     window.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("keydown", handleEscape);
@@ -166,7 +176,7 @@ export function TableControls({ editor }: TableControlsProps) {
     if (ensureCellSelected()) {
       action(editor.chain().focus()).run();
     }
-    setActiveMenu(null);
+    closeMenu();
   };
 
   /**
@@ -175,7 +185,7 @@ export function TableControls({ editor }: TableControlsProps) {
    */
   const openMenu = (menu: Exclude<ActiveMenu, null>) => {
     if (activeMenu === menu) {
-      setActiveMenu(null);
+      closeMenu();
       return;
     }
 
@@ -190,7 +200,23 @@ export function TableControls({ editor }: TableControlsProps) {
           string | null,
       });
     }
+
+    // Freeze the clicked column/row so only it shows the grip + active border,
+    // regardless of where the cursor moves afterwards.
+    if (menu === "column") {
+      setActiveColRect(colRect);
+      setActiveRowRect(null);
+    } else {
+      setActiveRowRect(rowRect);
+      setActiveColRect(null);
+    }
     setActiveMenu(menu);
+  };
+
+  const closeMenu = () => {
+    setActiveMenu(null);
+    setActiveColRect(null);
+    setActiveRowRect(null);
   };
 
   const goToEnd = (axis: "row" | "col"): boolean => {
@@ -215,126 +241,149 @@ export function TableControls({ editor }: TableControlsProps) {
     return false;
   };
 
-  const HANDLE_THICKNESS = 6; // px — thin strip, like Notion's edge handle
   const columnActive = activeMenu === "column";
   const rowActive = activeMenu === "row";
-  const showColStrip = showColHandle || columnActive;
-  const showRowStrip = showRowHandle || rowActive;
 
-  const HANDLE_GAP = 3; // px — gap between the handle strip and the column/row edge
+  // Geometry constants.
+  const SUGGESTION_LEN = 26; // hover hint length
+  const SUGGESTION_THICK = 4; // hover hint thickness
+  const GRIP_LEN = 30; // active grip main-axis length
+  const GRIP_THICK = 14; // active grip cross-axis thickness
+  const GAP = 4; // gap between handle and the column/row edge
+
+  // Show the hover suggestion for the hovered column/row, but not for the one
+  // that's currently active (it already shows the grip). This lets other
+  // columns/rows keep showing their hint while one is active.
+  const showColSuggestion = showColHandle && !columnActive;
+  const showRowSuggestion = showRowHandle && !rowActive;
 
   return (
     <div ref={containerRef} className="absolute inset-0 z-10 pointer-events-none">
-      {/* Active state: accent border wrapping the entire selected column block
-          (all four sides), like Notion. No inner cell tint. */}
-      {columnActive && (
+      {/* Active column: accent border around the whole column block. */}
+      {columnActive && activeColRect && (
         <div
           className="absolute rounded-codex-sm border-2 border-codex-accent pointer-events-none z-[5]"
           style={{
-            top: colRect.top,
-            left: colRect.left,
-            width: colRect.width,
-            height: colRect.height,
+            top: activeColRect.top,
+            left: activeColRect.left,
+            width: activeColRect.width,
+            height: activeColRect.height,
           }}
         />
       )}
 
-      {/* Active state: accent border wrapping the entire selected row block. */}
-      {rowActive && (
+      {/* Active row: accent border around the whole row block. */}
+      {rowActive && activeRowRect && (
         <div
           className="absolute rounded-codex-sm border-2 border-codex-accent pointer-events-none z-[5]"
           style={{
-            top: rowRect.top,
-            left: rowRect.left,
-            width: rowRect.width,
-            height: rowRect.height,
+            top: activeRowRect.top,
+            left: activeRowRect.left,
+            width: activeRowRect.width,
+            height: activeRowRect.height,
           }}
         />
       )}
 
-      {/* Column handle: elongated strip spanning the full column width, sitting
-          just above the column. Solid accent when its menu is active. */}
-      {showColStrip && (
+      {/* Hover suggestion line above the hovered column (thin, short). */}
+      {showColSuggestion && (
+        <button
+          type="button"
+          aria-label="Column options"
+          className="absolute rounded-codex-xl bg-codex-muted/70 hover:bg-codex-accent pointer-events-auto transition-colors"
+          style={{
+            top: colRect.top - (SUGGESTION_THICK + GAP),
+            left: colRect.left + colRect.width / 2 - SUGGESTION_LEN / 2,
+            width: SUGGESTION_LEN,
+            height: SUGGESTION_THICK,
+          }}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => openMenu("column")}
+        />
+      )}
+
+      {/* Active column grip (6 dots) + menu, on the frozen active rect. */}
+      {columnActive && activeColRect && (
         <div
           className="absolute pointer-events-auto"
           style={{
-            top: colRect.top - (HANDLE_THICKNESS + HANDLE_GAP),
-            left: colRect.left,
-            width: colRect.width,
-            height: HANDLE_THICKNESS,
+            top: activeColRect.top - (GRIP_THICK + GAP),
+            left: activeColRect.left + activeColRect.width / 2 - GRIP_LEN / 2,
+            width: GRIP_LEN,
+            height: GRIP_THICK,
           }}
         >
           <button
             type="button"
             aria-label="Column options"
-            className={`group relative flex h-full w-full items-center justify-center rounded-codex-sm border shadow-sm transition-colors ${
-              columnActive
-                ? "bg-codex-accent border-codex-accent"
-                : "bg-codex-surface-secondary border-codex-border hover:bg-codex-accent/40"
-            }`}
+            className="flex h-full w-full items-center justify-center rounded-codex-sm border border-codex-accent bg-codex-accent shadow-sm"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => openMenu("column")}
           >
-            <GripHorizontal
-              className={`h-3 w-3 ${columnActive ? "text-codex-surface" : "text-codex-muted"}`}
-            />
+            <GripHorizontal className="h-3 w-3 text-codex-surface" />
           </button>
-          {columnActive && (
-            <div className="absolute left-0 top-full mt-1 z-20">
-              <TableActionMenu
-                editor={editor}
-                axis="column"
-                onClose={() => setActiveMenu(null)}
-                runChain={runChain}
-                ensureCellSelected={ensureCellSelected}
-                activeColor={activeColors.color}
-                activeBackground={activeColors.backgroundColor}
-              />
-            </div>
-          )}
+          <div className="absolute left-1/2 top-full mt-1 -translate-x-1/2 z-20">
+            <TableActionMenu
+              editor={editor}
+              axis="column"
+              onClose={closeMenu}
+              runChain={runChain}
+              ensureCellSelected={ensureCellSelected}
+              activeColor={activeColors.color}
+              activeBackground={activeColors.backgroundColor}
+            />
+          </div>
         </div>
       )}
 
-      {/* Row handle: elongated strip spanning the full row height, sitting just
-          left of the row. Solid accent when its menu is active. */}
-      {showRowStrip && (
+      {/* Hover suggestion line left of the hovered row (thin, short). */}
+      {showRowSuggestion && (
+        <button
+          type="button"
+          aria-label="Row options"
+          className="absolute rounded-codex-xl bg-codex-muted/70 hover:bg-codex-accent pointer-events-auto transition-colors"
+          style={{
+            top: rowRect.top + rowRect.height / 2 - SUGGESTION_LEN / 2,
+            left: rowRect.left - (SUGGESTION_THICK + GAP),
+            width: SUGGESTION_THICK,
+            height: SUGGESTION_LEN,
+          }}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => openMenu("row")}
+        />
+      )}
+
+      {/* Active row grip (6 dots) + menu, on the frozen active rect. */}
+      {rowActive && activeRowRect && (
         <div
           className="absolute pointer-events-auto"
           style={{
-            top: rowRect.top,
-            left: rowRect.left - (HANDLE_THICKNESS + HANDLE_GAP),
-            width: HANDLE_THICKNESS,
-            height: rowRect.height,
+            top: activeRowRect.top + activeRowRect.height / 2 - GRIP_LEN / 2,
+            left: activeRowRect.left - (GRIP_THICK + GAP),
+            width: GRIP_THICK,
+            height: GRIP_LEN,
           }}
         >
           <button
             type="button"
             aria-label="Row options"
-            className={`group relative flex h-full w-full items-center justify-center rounded-codex-sm border shadow-sm transition-colors ${
-              rowActive
-                ? "bg-codex-accent border-codex-accent"
-                : "bg-codex-surface-secondary border-codex-border hover:bg-codex-accent/40"
-            }`}
+            className="flex h-full w-full items-center justify-center rounded-codex-sm border border-codex-accent bg-codex-accent shadow-sm"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => openMenu("row")}
           >
-            <GripVertical
-              className={`h-3 w-3 ${rowActive ? "text-codex-surface" : "text-codex-muted"}`}
-            />
+            <GripVertical className="h-3 w-3 text-codex-surface" />
           </button>
-          {rowActive && (
-            <div className="absolute left-full top-0 ml-1 z-20">
-              <TableActionMenu
-                editor={editor}
-                axis="row"
-                onClose={() => setActiveMenu(null)}
-                runChain={runChain}
-                ensureCellSelected={ensureCellSelected}
-                activeColor={activeColors.color}
-                activeBackground={activeColors.backgroundColor}
-              />
-            </div>
-          )}
+          <div className="absolute left-full top-1/2 ml-1 -translate-y-1/2 z-20">
+            <TableActionMenu
+              editor={editor}
+              axis="row"
+              onClose={closeMenu}
+              runChain={runChain}
+              ensureCellSelected={ensureCellSelected}
+              activeColor={activeColors.color}
+              activeBackground={activeColors.backgroundColor}
+            />
+          </div>
         </div>
       )}
 
@@ -346,7 +395,7 @@ export function TableControls({ editor }: TableControlsProps) {
         style={{
           top: tableRect.top,
           left: tableRect.left + tableRect.width + 2,
-          width: HANDLE_THICKNESS,
+          width: 8,
           height: tableRect.height,
         }}
         onMouseDown={(e) => e.preventDefault()}
@@ -367,7 +416,7 @@ export function TableControls({ editor }: TableControlsProps) {
           top: tableRect.top + tableRect.height + 2,
           left: tableRect.left,
           width: tableRect.width,
-          height: HANDLE_THICKNESS,
+          height: 8,
         }}
         onMouseDown={(e) => e.preventDefault()}
         onClick={(e) => {

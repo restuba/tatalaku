@@ -278,6 +278,21 @@ button:disabled,
   border-top-color: var(--color-border);
 }
 
+/* Inline code (mark) — Notion-style: subtle red-tinted pill with mono, reddish
+   text. Scoped to code NOT inside a <pre> (which is a code block). Colors use
+   Codex tokens via color-mix so they adapt to light/dark themes. */
+.tiptap code:not(pre code) {
+  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-danger) 75%, var(--color-ink));
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85em;
+  padding: 0.15em 0.35em;
+  border-radius: var(--radius-codex-sm);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .tiptap pre {
   background: var(--color-surface-secondary);
   color: var(--color-ink);
