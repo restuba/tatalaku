@@ -42,13 +42,13 @@ html[data-code-theme="github-light"] {
 
 /* LIGHT - everforest */
 html[data-code-theme="everforest-light"] {
-  --color-accent: #93b259;
-  --theme-contrast: 40;
-  --color-ink: #5c6a72;
-  --color-surface: #fdf6e3;
-  --color-diff-added: #8da101;
-  --color-diff-removed: #f85552;
-  --color-skill: #df69ba;
+  --color-accent: #708d44;
+  --theme-contrast: 35;
+  --color-ink: #3c474d;
+  --color-surface: #f7f5ed;
+  --color-diff-added: #6c854c;
+  --color-diff-removed: #d65d5b;
+  --color-skill: #708d44;
 }
 
 @theme inline {

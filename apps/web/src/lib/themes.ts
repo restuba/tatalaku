@@ -28,20 +28,20 @@ export const lightEverforest: ThemeConfig = {
   codeThemeId: "everforest-light",
   variant: "light",
   theme: {
-    accent: "#93b259",
-    contrast: 40,
+    accent: "#708d44",
+    contrast: 35,
     fonts: {
-      code: '"Geist Mono", ui-monospace, SFMono-Regular',
-      ui: "Geist, Inter",
+      code: null,
+      ui: null,
     },
-    ink: "#5c6a72",
+    ink: "#3c474d",
     opaqueWindows: true,
     semanticColors: {
-      diffAdded: "#8da101",
-      diffRemoved: "#f85552",
-      skill: "#df69ba",
+      diffAdded: "#6c854c",
+      diffRemoved: "#d65d5b",
+      skill: "#708d44",
     },
-    surface: "#fdf6e3",
+    surface: "#f7f5ed",
   },
 };
 
