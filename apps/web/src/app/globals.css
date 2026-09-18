@@ -401,6 +401,41 @@ button:disabled,
   margin: 1.5rem 0;
 }
 
+/* Notion-style cell selection: accent overlay + ring instead of raw text
+   selection, so selecting a column/row reads as highlighted cells. */
+.tiptap table .selectedCell {
+  position: relative;
+}
+.tiptap table .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--color-info) 22%, transparent);
+  z-index: 2;
+}
+
+/* Hide native text selection color inside a cell selection so only the
+   accent overlay shows. */
+.tiptap table .selectedCell ::selection,
+.tiptap table .selectedCell *::selection {
+  background: transparent;
+}
+
+/* Column resize handle from prosemirror-tables, themed to Codex tokens. */
+.tiptap table .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--color-accent);
+  pointer-events: none;
+}
+.tiptap.resize-cursor {
+  cursor: col-resize;
+}
+
 /* Toggle block styles */
 .tiptap-toggle {
   margin: 0.35rem 0;

@@ -7,8 +7,6 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
-import { TableCell } from "@tiptap/extension-table-cell";
-import { TableHeader } from "@tiptap/extension-table-header";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { all, createLowlight } from "lowlight";
@@ -25,7 +23,7 @@ import { getPage } from "@/services/page/get-page";
 import { updatePage } from "@/services/page/update-page";
 import { BlockMenu } from "./block-menu";
 import { EditorBubbleMenu } from "./editor-bubble-menu";
-import { TableControls } from "./table-controls";
+import { TableControls, ColorTableCell, ColorTableHeader } from "./table";
 import { TableOfContents, scrollToTargetNode } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
 import { Check, Cloud } from "lucide-react";
@@ -99,8 +97,8 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
         resizable: true,
       }),
       TableRow,
-      TableHeader,
-      TableCell,
+      ColorTableHeader,
+      ColorTableCell,
       Image.configure({
         inline: false,
         allowBase64: true,
