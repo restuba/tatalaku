@@ -85,11 +85,33 @@ export const darkEverforest: ThemeConfig = {
   },
 };
 
+export const darkLobster: ThemeConfig = {
+  codeThemeId: "lobster-dark",
+  variant: "dark",
+  theme: {
+    accent: "#ff5c5c",
+    contrast: 44,
+    fonts: {
+      code: null,
+      ui: null,
+    },
+    ink: "#e4e4e7",
+    opaqueWindows: true,
+    semanticColors: {
+      diffAdded: "#4ade80",
+      diffRemoved: "#f87171",
+      skill: "#ff5c5c",
+    },
+    surface: "#111827",
+  },
+};
+
 export const presets: ThemeConfig[] = [
   lightAbsolutely,
   lightEverforest,
   darkAbsolutely,
   darkEverforest,
+  darkLobster,
 ];
 
 /**

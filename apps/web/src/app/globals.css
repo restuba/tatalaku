@@ -136,6 +136,17 @@ html.dark[data-code-theme="everforest-dark"] {
   --color-skill: #d699b6;
 }
 
+/* DARK - lobster */
+html.dark[data-code-theme="lobster-dark"] {
+  --color-accent: #ff5c5c;
+  --theme-contrast: 44;
+  --color-ink: #e4e4e7;
+  --color-surface: #111827;
+  --color-diff-added: #4ade80;
+  --color-diff-removed: #f87171;
+  --color-skill: #ff5c5c;
+}
+
 body {
   background: var(--color-surface);
   color: var(--color-ink);
