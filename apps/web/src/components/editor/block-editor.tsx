@@ -10,6 +10,7 @@ import { TableRow } from "@tiptap/extension-table-row";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Focus from "@tiptap/extension-focus";
+import { TextStyle, Color, BackgroundColor } from "@tiptap/extension-text-style";
 import { all, createLowlight } from "lowlight";
 import { CodeBlock } from "./extensions/code-block";
 
@@ -114,6 +115,11 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
         className: "has-focus",
         mode: "deepest",
       }),
+      // Text color + background color marks for the bubble menu. TextStyle is the
+      // shared <span> container; Color and BackgroundColor add their attributes.
+      TextStyle,
+      Color,
+      BackgroundColor,
       Toggle,
       Mermaid,
       SlashCommands,

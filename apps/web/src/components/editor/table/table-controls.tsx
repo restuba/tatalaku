@@ -267,8 +267,10 @@ export function TableControls({ editor }: TableControlsProps) {
           <button
             type="button"
             aria-label="Column options"
-            className={`group relative flex h-full w-full items-center justify-center rounded-codex-sm transition-colors ${
-              columnActive ? "bg-codex-accent" : "bg-codex-border hover:bg-codex-surface-secondary"
+            className={`group relative flex h-full w-full items-center justify-center rounded-codex-sm border shadow-sm transition-colors ${
+              columnActive
+                ? "bg-codex-accent border-codex-accent"
+                : "bg-codex-surface-secondary border-codex-border hover:bg-codex-accent/40"
             }`}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => openMenu("column")}
@@ -308,8 +310,10 @@ export function TableControls({ editor }: TableControlsProps) {
           <button
             type="button"
             aria-label="Row options"
-            className={`group relative flex h-full w-full items-center justify-center rounded-codex-sm transition-colors ${
-              rowActive ? "bg-codex-accent" : "bg-codex-border hover:bg-codex-surface-secondary"
+            className={`group relative flex h-full w-full items-center justify-center rounded-codex-sm border shadow-sm transition-colors ${
+              rowActive
+                ? "bg-codex-accent border-codex-accent"
+                : "bg-codex-surface-secondary border-codex-border hover:bg-codex-accent/40"
             }`}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => openMenu("row")}
