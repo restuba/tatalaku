@@ -401,25 +401,27 @@ button:disabled,
   margin: 1.5rem 0;
 }
 
-/* Notion-style cell selection: accent overlay + ring instead of raw text
-   selection, so selecting a column/row reads as highlighted cells. */
-.tiptap table .selectedCell {
-  position: relative;
-}
-.tiptap table .selectedCell::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--color-info) 22%, transparent);
-  z-index: 2;
-}
-
-/* Hide native text selection color inside a cell selection so only the
-   accent overlay shows. */
+/* When a whole column/row is selected via its handle, the active-state accent
+   border is drawn as an overlay by TableControls. We only suppress the native
+   text-selection color inside those cells so it doesn't compete with the
+   border indicator. */
 .tiptap table .selectedCell ::selection,
 .tiptap table .selectedCell *::selection {
   background: transparent;
+}
+
+/* Focused single cell: thin accent border around just that cell (Notion-style).
+   Uses an inset ring so it sits inside the cell border without shifting layout.
+   Suppressed while a multi-cell selection is active (a whole column/row is
+   selected via the handle) to avoid competing indicators. */
+.tiptap table td.has-focus,
+.tiptap table th.has-focus {
+  box-shadow: inset 0 0 0 2px var(--color-info);
+  border-color: var(--color-info);
+  z-index: 3;
+}
+.tiptap table .selectedCell.has-focus {
+  box-shadow: none;
 }
 
 /* Column resize handle from prosemirror-tables, themed to Codex tokens. */

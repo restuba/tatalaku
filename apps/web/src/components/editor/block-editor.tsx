@@ -9,6 +9,7 @@ import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import Focus from "@tiptap/extension-focus";
 import { all, createLowlight } from "lowlight";
 import { CodeBlock } from "./extensions/code-block";
 
@@ -105,6 +106,13 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
       }),
       Placeholder.configure({
         placeholder: "Type '/' for commands, or just start writing...",
+      }),
+      // Adds `.has-focus` to the focused node. CSS scopes the visible outline to
+      // table cells only, so clicking a cell shows a thin accent border around
+      // that single cell (Notion-style focused-cell indicator).
+      Focus.configure({
+        className: "has-focus",
+        mode: "deepest",
       }),
       Toggle,
       Mermaid,

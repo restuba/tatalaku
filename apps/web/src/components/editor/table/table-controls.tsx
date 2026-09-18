@@ -114,14 +114,11 @@ export function TableControls({ editor }: TableControlsProps) {
       setColRect(new DOMRect(relCell.left, relTable.top, relCell.width, relTable.height));
       setRowRect(new DOMRect(relTable.left, relCell.top, relTable.width, relCell.height));
 
-      const hoverZone = 24;
-      const isTop = e.clientY - newCellRect.top < hoverZone;
-      const isLeft = e.clientX - newCellRect.left < hoverZone;
-      const isFirstRow = cellDOM.parentElement?.previousElementSibling === null;
-      const isFirstCol = cellDOM.previousElementSibling === null;
-
-      setShowColHandle(isTop || isFirstRow);
-      setShowRowHandle(isLeft || isFirstCol);
+      // Whenever the cursor is inside a cell, show both the column handle (above
+      // the hovered column) and the row handle (left of the hovered row), like
+      // Notion — no need to aim for a specific edge zone or click first.
+      setShowColHandle(true);
+      setShowRowHandle(true);
 
       try {
         const pos = editor.view.posAtDOM(cellDOM, 0);
@@ -224,15 +221,44 @@ export function TableControls({ editor }: TableControlsProps) {
   const showColStrip = showColHandle || columnActive;
   const showRowStrip = showRowHandle || rowActive;
 
+  const HANDLE_GAP = 3; // px — gap between the handle strip and the column/row edge
+
   return (
     <div ref={containerRef} className="absolute inset-0 z-10 pointer-events-none">
+      {/* Active state: accent border wrapping the entire selected column block
+          (all four sides), like Notion. No inner cell tint. */}
+      {columnActive && (
+        <div
+          className="absolute rounded-codex-sm border-2 border-codex-accent pointer-events-none z-[5]"
+          style={{
+            top: colRect.top,
+            left: colRect.left,
+            width: colRect.width,
+            height: colRect.height,
+          }}
+        />
+      )}
+
+      {/* Active state: accent border wrapping the entire selected row block. */}
+      {rowActive && (
+        <div
+          className="absolute rounded-codex-sm border-2 border-codex-accent pointer-events-none z-[5]"
+          style={{
+            top: rowRect.top,
+            left: rowRect.left,
+            width: rowRect.width,
+            height: rowRect.height,
+          }}
+        />
+      )}
+
       {/* Column handle: elongated strip spanning the full column width, sitting
           just above the column. Solid accent when its menu is active. */}
       {showColStrip && (
         <div
           className="absolute pointer-events-auto"
           style={{
-            top: colRect.top - (HANDLE_THICKNESS + 2),
+            top: colRect.top - (HANDLE_THICKNESS + HANDLE_GAP),
             left: colRect.left,
             width: colRect.width,
             height: HANDLE_THICKNESS,
@@ -274,7 +300,7 @@ export function TableControls({ editor }: TableControlsProps) {
           className="absolute pointer-events-auto"
           style={{
             top: rowRect.top,
-            left: rowRect.left - (HANDLE_THICKNESS + 2),
+            left: rowRect.left - (HANDLE_THICKNESS + HANDLE_GAP),
             width: HANDLE_THICKNESS,
             height: rowRect.height,
           }}
