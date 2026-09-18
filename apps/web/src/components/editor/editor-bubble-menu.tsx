@@ -57,10 +57,12 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     isActive: boolean,
     onClick: () => void,
     icon: React.ReactNode,
+    title?: string,
   ) => (
     <button
       type="button"
       onClick={onClick}
+      title={title ?? label}
       className={`p-1.5 rounded-codex-md transition-all duration-200 ${
         isActive
           ? "bg-codex-background/80 text-codex-foreground shadow-sm scale-[0.95]"
@@ -83,27 +85,31 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
           editor.isActive("bold"),
           () => editor.chain().focus().toggleBold().run(),
           <Bold className="w-4 h-4" />,
+          "Bold (⌘B / Ctrl+B)",
         )}
         {markButton(
           "Italic",
           editor.isActive("italic"),
           () => editor.chain().focus().toggleItalic().run(),
           <Italic className="w-4 h-4" />,
+          "Italic (⌘I / Ctrl+I)",
         )}
         {markButton(
           "Strikethrough",
           editor.isActive("strike"),
           () => editor.chain().focus().toggleStrike().run(),
           <Strikethrough className="w-4 h-4" />,
+          "Strikethrough (⌘⇧S / Ctrl+Shift+S)",
         )}
 
         <div className="w-px h-4 bg-codex-border/50 mx-1" />
 
         {markButton(
-          "Code",
+          "Mark as code",
           editor.isActive("code"),
           () => editor.chain().focus().toggleCode().run(),
           <Code className="w-4 h-4" />,
+          "Mark as code (⌘E / Ctrl+E)",
         )}
 
         <div className="w-px h-4 bg-codex-border/50 mx-1" />
