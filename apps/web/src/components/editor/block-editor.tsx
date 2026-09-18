@@ -21,6 +21,7 @@ import { SlashCommands } from "./extensions/slash-command";
 import { GlobalId } from "./extensions/global-id";
 import { Mermaid } from "./extensions/mermaid";
 import { BlockSelection } from "./extensions/block-selection";
+import { BlockDragDrop } from "./extensions/drag-drop-block";
 import { getPage } from "@/services/page/get-page";
 import { updatePage } from "@/services/page/update-page";
 import { BlockMenu } from "./block-menu";
@@ -124,6 +125,7 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
       Mermaid,
       SlashCommands,
       BlockSelection,
+      BlockDragDrop,
     ],
     editorProps: {
       attributes: {

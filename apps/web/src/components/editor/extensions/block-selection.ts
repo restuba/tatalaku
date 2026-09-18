@@ -6,11 +6,11 @@ import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 
 export const blockSelectionKey = new PluginKey("blockSelection");
 
-interface BlockSelectionState {
+export interface BlockSelectionState {
   activeBlockPos: number | null;
 }
 
-const getBlockRange = (
+export const getBlockRange = (
   selection: Selection,
   doc: ProseMirrorNode,
   pluginState: BlockSelectionState | undefined,

@@ -577,3 +577,44 @@ button:disabled,
 .tiptap > * {
   scroll-margin-top: 4.5rem;
 }
+
+/* Drag & Drop Block Reordering (Notion-style) */
+.is-dragging-source {
+  opacity: 0.35 !important;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.tiptap-drop-indicator {
+  position: relative;
+  height: 0;
+  pointer-events: none;
+  z-index: 40;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+.tiptap-drop-indicator::before {
+  content: "";
+  position: absolute;
+  top: -1.5px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--color-accent);
+  border-radius: 9999px;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
+.tiptap-drop-indicator::after {
+  content: "";
+  position: absolute;
+  top: -3.5px;
+  left: -5px;
+  width: 7px;
+  height: 7px;
+  background-color: var(--color-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-accent) 80%, transparent);
+}

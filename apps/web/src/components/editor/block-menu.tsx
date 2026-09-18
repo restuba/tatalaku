@@ -15,6 +15,8 @@ import {
   Link2,
   Check,
 } from "lucide-react";
+import { startBlockDrag, endBlockDrag, countBlocksInRange } from "./extensions/drag-drop-block";
+import { getBlockRange, blockSelectionKey } from "./extensions/block-selection";
 
 interface BlockMenuProps {
   editor: Editor | null;
@@ -136,29 +138,74 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     const view = editor.view;
     if (!view) return;
 
-    // 1. Determine what to drag
-    const currentSelection = editor.state.selection;
-    const isHoveredInsideSelection =
-      hoveredPos >= currentSelection.from && hoveredPos < currentSelection.to;
+    // 1. Determine what to drag (check for multi-block selection first)
+    const pluginState = blockSelectionKey.getState(editor.state);
+    const multiBlockRange = getBlockRange(editor.state.selection, editor.state.doc, pluginState);
 
-    // If the grip being dragged is not part of the active selection, select only this block
-    if (!isHoveredInsideSelection) {
+    let from = hoveredPos;
+    let to = hoveredPos;
+    const node = editor.state.doc.nodeAt(hoveredPos);
+    if (node) {
+      to = hoveredPos + node.nodeSize;
+    }
+
+    const isHoveredInsideMultiSelection =
+      multiBlockRange !== null &&
+      hoveredPos >= multiBlockRange.start &&
+      hoveredPos < multiBlockRange.end;
+
+    if (isHoveredInsideMultiSelection && multiBlockRange) {
+      from = multiBlockRange.start;
+      to = multiBlockRange.end;
+    } else {
       editor.commands.setNodeSelection(hoveredPos);
     }
 
-    // 2. Extract the slice of the document being dragged
-    const selection = view.state.selection;
-    const slice = selection.content();
+    // 2. Extract the slice of the document being dragged (entire block range)
+    const slice = view.state.doc.slice(from, to);
 
     // 3. Serialize to HTML and Plain Text for the DataTransfer object
     const { dom, text } = view.serializeForClipboard(slice);
 
     e.dataTransfer.clearData();
+    e.dataTransfer.setData("application/x-tatalaku-block-drag", JSON.stringify({ from, to }));
     e.dataTransfer.setData("text/html", dom.innerHTML);
     e.dataTransfer.setData("text/plain", text);
     e.dataTransfer.effectAllowed = "move";
 
-    // 4. Important: Tell ProseMirror we are dragging this slice internally to perform a MOVE
+    // 4. Dispatch startBlockDrag to BlockDragDrop plugin
+    startBlockDrag(view, { from, to });
+
+    // 5. Create clean drag preview badge
+    const count = countBlocksInRange(view, from, to);
+    const ghost = document.createElement("div");
+    ghost.style.position = "absolute";
+    ghost.style.top = "-9999px";
+    ghost.style.left = "-9999px";
+    ghost.style.zIndex = "99999";
+    ghost.style.pointerEvents = "none";
+    ghost.innerHTML = `
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--color-surface,#ffffff);color:var(--color-ink,#1f2328);border:1px solid var(--color-accent,#0969da);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.18);font-size:12px;font-weight:500;font-family:sans-serif;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="12" r="1.5"></circle>
+          <circle cx="9" cy="5" r="1.5"></circle>
+          <circle cx="9" cy="19" r="1.5"></circle>
+          <circle cx="15" cy="12" r="1.5"></circle>
+          <circle cx="15" cy="5" r="1.5"></circle>
+          <circle cx="15" cy="19" r="1.5"></circle>
+        </svg>
+        <span>${count === 1 ? "1 block" : `${count} blocks`}</span>
+      </div>
+    `;
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 12, 12);
+    setTimeout(() => {
+      if (document.body.contains(ghost)) {
+        document.body.removeChild(ghost);
+      }
+    }, 0);
+
+    // 6. Tell ProseMirror we are dragging this slice internally
     // eslint-disable-next-line react-hooks/immutability
     view.dragging = { slice, move: true };
   };
@@ -259,9 +306,14 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     >
       <div className="relative">
         <div
-          className="p-1 rounded-codex-sm cursor-grab hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
+          className="p-1 rounded-codex-sm cursor-grab active:cursor-grabbing hover:bg-codex-surface text-codex-muted hover:text-codex-foreground select-none"
           draggable
           onDragStart={handleDragStart}
+          onDragEnd={() => {
+            if (editor && !editor.isDestroyed) {
+              endBlockDrag(editor.view);
+            }
+          }}
           onClick={(e) => {
             if (e.shiftKey && hoveredPos !== null) {
               const currentSelection = editor.state.selection;
