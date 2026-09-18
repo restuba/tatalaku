@@ -28,16 +28,16 @@
   --color-info-bg: #dbeafe;
 }
 
-/* Default Theme (LIGHT - absolutely) */
+/* Default Theme (LIGHT - github) */
 :root,
 html[data-code-theme="github-light"] {
-  --color-accent: #cc7d5e;
-  --theme-contrast: 20;
-  --color-ink: #2d2d2b;
-  --color-surface: #f9f9f7;
-  --color-diff-added: #00c853;
-  --color-diff-removed: #ff5f38;
-  --color-skill: #cc7d5e;
+  --color-accent: #0969da;
+  --theme-contrast: 40;
+  --color-ink: #1f2328;
+  --color-surface: #ffffff;
+  --color-diff-added: #1a7f37;
+  --color-diff-removed: #cf222e;
+  --color-skill: #0969da;
 }
 
 /* LIGHT - everforest */
@@ -105,23 +105,23 @@ html[data-code-theme="everforest-light"] {
   background-color: var(--color-surface);
 }
 
-/* Default Theme (DARK - absolutely) */
+/* Default Theme (DARK - github) */
 html.dark,
 html.dark[data-code-theme="github-dark"] {
-  --color-accent: #cc7d5e;
+  --color-accent: #1f6feb;
   --theme-contrast: 44;
-  --color-ink: #f9f9f7;
-  --color-surface: #2d2d2b;
-  --color-diff-added: #00c853;
-  --color-diff-removed: #ff5f38;
-  --color-skill: #cc7d5e;
+  --color-ink: #e6edf3;
+  --color-surface: #0d1117;
+  --color-diff-added: #3fb950;
+  --color-diff-removed: #f85149;
+  --color-skill: #1f6feb;
 
   /* Fallback status colors */
-  --color-danger: #f87171;
+  --color-danger: #f85149;
   --color-danger-bg: #7f1d1d;
-  --color-success: #4ade80;
+  --color-success: #3fb950;
   --color-success-bg: #14532d;
-  --color-info: #60a5fa;
+  --color-info: #58a6ff;
   --color-info-bg: #1e3a8a;
 }
 

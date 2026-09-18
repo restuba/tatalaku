@@ -1,26 +1,28 @@
 /* eslint-disable no-restricted-syntax */
 import { ThemeConfig } from "@tatalaku/shared";
 
-export const lightAbsolutely: ThemeConfig = {
+export const lightGithub: ThemeConfig = {
   codeThemeId: "github-light",
   variant: "light",
   theme: {
-    accent: "#cc7d5e",
+    accent: "#0969da",
     contrast: 40,
     fonts: {
-      code: '"Geist Mono", ui-monospace, SFMono-Regular',
-      ui: "Geist, Inter",
+      code: null,
+      ui: null,
     },
-    ink: "#2d2d2b",
+    ink: "#1f2328",
     opaqueWindows: true,
     semanticColors: {
-      diffAdded: "#00c853",
-      diffRemoved: "#ff5f38",
-      skill: "#cc7d5e",
+      diffAdded: "#1a7f37",
+      diffRemoved: "#cf222e",
+      skill: "#0969da",
     },
-    surface: "#f9f9f7",
+    surface: "#ffffff",
   },
 };
+
+export const lightAbsolutely = lightGithub;
 
 export const lightEverforest: ThemeConfig = {
   codeThemeId: "everforest-light",
@@ -43,26 +45,28 @@ export const lightEverforest: ThemeConfig = {
   },
 };
 
-export const darkAbsolutely: ThemeConfig = {
+export const darkGithub: ThemeConfig = {
   codeThemeId: "github-dark",
   variant: "dark",
   theme: {
-    accent: "#cc7d5e",
+    accent: "#1f6feb",
     contrast: 44,
     fonts: {
       code: null,
       ui: null,
     },
-    ink: "#f9f9f7",
-    opaqueWindows: false,
+    ink: "#e6edf3",
+    opaqueWindows: true,
     semanticColors: {
-      diffAdded: "#00c853",
-      diffRemoved: "#ff5f38",
-      skill: "#cc7d5e",
+      diffAdded: "#3fb950",
+      diffRemoved: "#f85149",
+      skill: "#1f6feb",
     },
-    surface: "#2d2d2b",
+    surface: "#0d1117",
   },
 };
+
+export const darkAbsolutely = darkGithub;
 
 export const darkEverforest: ThemeConfig = {
   codeThemeId: "everforest-dark",
@@ -107,9 +111,9 @@ export const darkLobster: ThemeConfig = {
 };
 
 export const presets: ThemeConfig[] = [
-  lightAbsolutely,
+  lightGithub,
   lightEverforest,
-  darkAbsolutely,
+  darkGithub,
   darkEverforest,
   darkLobster,
 ];
