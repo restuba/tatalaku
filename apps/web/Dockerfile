@@ -9,7 +9,15 @@ WORKDIR /app
 COPY . .
 # Install dependencies
 RUN pnpm install --frozen-lockfile
-# Build the specific app and its dependencies
+# Build the shared package first; web imports its compiled types.
+RUN pnpm --filter @tatalaku/shared build
+
+# NEXT_PUBLIC_* values are inlined into the client bundle at build time,
+# so the API URL must be provided as a build argument.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Then build the web app.
 RUN pnpm --filter @tatalaku/web build
 
 FROM base AS runner
