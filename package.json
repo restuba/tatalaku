@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Tatalaku — Notion-like workspace web application",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "pnpm --parallel -r dev",
     "build": "pnpm -r build",
@@ -38,5 +39,11 @@
     "@tiptap/extension-table-header": "^3.30.3",
     "@tiptap/extension-table-row": "^3.30.3",
     "mermaid": "^11.17.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver"
+    ]
   }
 }
