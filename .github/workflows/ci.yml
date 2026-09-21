@@ -1,0 +1,54 @@
+name: CI
+
+# Run on every push to main and on every pull request targeting main.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint, type-check, test & build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository code into the runner.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install pnpm. Version is inferred from the "packageManager"
+      #    field in package.json, so it matches local and Docker builds.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      # 3. Install Node.js and enable pnpm dependency caching for faster runs.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # 4. Install dependencies exactly as pinned in the lockfile.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5. Build the shared package first; api and web import from it.
+      - name: Build shared package
+        run: pnpm --filter @tatalaku/shared build
+
+      # 6. Lint all workspace packages.
+      - name: Lint
+        run: pnpm -r lint
+
+      # 7. Type-check all workspace packages.
+      - name: Type-check
+        run: pnpm -r type-check
+
+      # 8. Run the API test suite (only package with tests today).
+      - name: Test API
+        run: pnpm --filter @tatalaku/api test
+
+      # 9. Build all packages to confirm everything compiles.
+      - name: Build
+        run: pnpm -r build
