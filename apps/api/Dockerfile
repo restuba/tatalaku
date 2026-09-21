@@ -8,7 +8,9 @@ WORKDIR /app
 COPY . .
 # Install dependencies
 RUN pnpm install --frozen-lockfile
-# Build the specific app and its dependencies
+# Build the shared package first; api imports its compiled types.
+RUN pnpm --filter @tatalaku/shared build
+# Then build the api itself.
 RUN pnpm --filter @tatalaku/api build
 # Prune dependencies for production
 RUN pnpm --filter @tatalaku/api deploy --prod /deploy
