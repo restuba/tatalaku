@@ -2,7 +2,7 @@ import { ApiRequestError } from "./api-error";
 import { getAccessToken, setAccessToken } from "./auth-token";
 import { tokenRefreshManager } from "./token-refresh-manager";
 
-const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export type FetchResponseType = "json" | "blob" | "text" | "file";
