@@ -17,6 +17,10 @@ RUN pnpm --filter @tatalaku/shared build
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+# next.config.ts reads API_PROXY_TARGET when generating rewrites at build time.
+ARG API_PROXY_TARGET
+ENV API_PROXY_TARGET=$API_PROXY_TARGET
+
 # Then build the web app.
 RUN pnpm --filter @tatalaku/web build
 
