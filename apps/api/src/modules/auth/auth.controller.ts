@@ -4,11 +4,27 @@ import { env } from "../../config/env.js";
 
 const REFRESH_TOKEN_COOKIE = "refreshToken";
 
+const isProduction = env.NODE_ENV === "production";
+
+// Web and API live on different sites in production
+// (tatalaku.up.railway.app vs tatalaku-services.up.railway.app), so the refresh
+// token cookie must be sent on cross-site requests. That requires SameSite=None,
+// which browsers only honor together with Secure. In development we keep Lax so
+// the cookie works over http://localhost.
 const cookieOptions = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  sameSite: "lax" as const,
+  secure: isProduction,
+  sameSite: isProduction ? ("none" as const) : ("lax" as const),
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+  path: "/",
+};
+
+// clearCookie only removes the cookie when secure/sameSite/path match the
+// attributes used when it was set, so keep these in sync with cookieOptions.
+const clearCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? ("none" as const) : ("lax" as const),
   path: "/",
 };
 
@@ -59,7 +75,7 @@ export class AuthController {
     } catch (err) {
       // If refresh fails (e.g., token expired, user deleted from DB), clear the invalid cookie
       // so the client's middleware doesn't get stuck in an infinite redirect loop.
-      res.clearCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
+      res.clearCookie(REFRESH_TOKEN_COOKIE, clearCookieOptions);
       next(err);
     }
   }
@@ -70,7 +86,7 @@ export class AuthController {
       if (req.user) {
         await authService.revokeAllTokens(req.user.id);
       }
-      res.clearCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
+      res.clearCookie(REFRESH_TOKEN_COOKIE, clearCookieOptions);
       res.status(200).json({ success: true, data: null });
     } catch (err) {
       next(err);
