@@ -8,6 +8,7 @@ import { logout } from "@/services/auth/logout";
 import { getMe } from "@/services/auth/get-me";
 import { refreshToken } from "@/services/auth/refresh-token";
 import { setAccessToken } from "@/helpers/auth-token";
+import { setSessionFlag, clearSessionFlag } from "@/helpers/session-flag";
 import { ApiRequestError } from "@/helpers/api-error";
 import type { LoginFormValues, RegisterFormValues } from "@/types/auth.types";
 
@@ -42,6 +43,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     try {
       const res = await login(values);
       setAccessToken(res.data.accessToken);
+      setSessionFlag();
       set({ user: res.data.user, isLoading: false });
     } catch (err) {
       set({ isLoading: false });
@@ -54,6 +56,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     try {
       const res = await register(values);
       setAccessToken(res.data.accessToken);
+      setSessionFlag();
       set({ user: res.data.user, isLoading: false });
     } catch (err) {
       set({ isLoading: false });
@@ -67,6 +70,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
       await logout();
     } finally {
       setAccessToken(null);
+      clearSessionFlag();
       set({ user: null, isLoading: false });
     }
   },
@@ -77,13 +81,17 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
       // Try to refresh first to get a valid access token
       const token = await refreshToken();
       if (!token) {
+        clearSessionFlag();
         set({ user: null, isLoading: false, isInitialized: true });
         return;
       }
       const res = await getMe();
+      // Re-affirm the marker in case it expired while the refresh token is still valid.
+      setSessionFlag();
       set({ user: res.data.user, isLoading: false, isInitialized: true });
     } catch (err: unknown) {
       setAccessToken(null);
+      clearSessionFlag();
 
       let errorMessage =
         "Connection to server failed. Please ensure the backend and database are running.";

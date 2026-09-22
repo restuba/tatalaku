@@ -6,10 +6,15 @@ const PROTECTED_ROUTES = ["/workspace", "/invite"];
 // Routes only for unauthenticated users
 const AUTH_ROUTES = ["/login", "/register"];
 
-// The presence of this cookie signals that user has an active session.
-// We don't verify the JWT here (Edge runtime can't use jsonwebtoken),
-// but the API will reject stale refresh tokens with 401.
-const SESSION_COOKIE = "refreshToken";
+// Presence of this marker cookie signals an active session.
+//
+// We can't read the real refresh token here: it's an httpOnly cookie owned by
+// the API domain (tatalaku-services.up.railway.app), which is a different site
+// from the web app and unshareable because up.railway.app is a public suffix.
+// Instead we read a non-sensitive marker set on the web domain after login.
+// This is only a routing hint — the API still validates the real token and
+// rejects stale sessions with 401.
+const SESSION_COOKIE = "tatalaku_session";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
