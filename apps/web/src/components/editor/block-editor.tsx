@@ -29,8 +29,6 @@ import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls, ColorTableCell, ColorTableHeader } from "./table";
 import { TableOfContents, scrollToTargetNode } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
-import { Check, Cloud } from "lucide-react";
-import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { Logo } from "@/components/ui/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -43,7 +41,6 @@ interface BlockEditorProps {
 }
 
 export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditorProps) {
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [isLoading, setIsLoading] = useState(true);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef(true);
@@ -57,7 +54,6 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
         clearTimeout(debounceTimerRef.current);
       }
 
-      setSaveStatus("saving");
       onSaveStatusChange?.("saving");
 
       debounceTimerRef.current = setTimeout(async () => {
@@ -65,13 +61,11 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
           const json = editorInstance.getJSON();
           const res = await updatePage(pageId, { content: JSON.stringify(json) });
 
-          setSaveStatus("saved");
           onSaveStatusChange?.("saved");
           if (res?.data?.updatedAt) {
             onSaved?.(res.data.updatedAt);
           }
         } catch {
-          setSaveStatus("error");
           onSaveStatusChange?.("error");
         }
       }, 700);
@@ -258,35 +252,7 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
 
         {/* Main Editor Column */}
         <div className="flex-1 flex flex-col min-w-0 w-full">
-          {/* Top Floating Status Indicator */}
-          <div className="flex items-center justify-between pb-3 mb-4 border-b border-codex-border/50 text-xs select-none">
-            <div className="flex items-center gap-2 text-codex-muted">
-              <span className="font-mono text-[11px]">Type &apos;/&apos; to insert blocks</span>
-            </div>
-
-            <div className="flex items-center gap-1.5 font-medium">
-              {saveStatus === "saving" && (
-                <span className="flex items-center gap-1.5 text-codex-muted animate-pulse">
-                  <LogoSpinner size="sm" className="gap-0 scale-75" />
-                  <span>Saving...</span>
-                </span>
-              )}
-              {saveStatus === "saved" && (
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Saved</span>
-                </span>
-              )}
-              {saveStatus === "error" && (
-                <span className="flex items-center gap-1 text-codex-danger">
-                  <Cloud className="w-3.5 h-3.5" />
-                  <span>Failed to save</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Editor Content Area */}
+          {/* Editor Content Area (save status is surfaced by the page top bar) */}
           {isLoading ? (
             <div className="space-y-6 py-4 animate-in fade-in duration-200">
               <div className="space-y-2.5">

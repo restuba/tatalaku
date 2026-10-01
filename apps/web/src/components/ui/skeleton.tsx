@@ -15,7 +15,7 @@ export function Skeleton({ className = "", ...props }: SkeletonProps) {
  */
 export function PageHeaderSkeleton() {
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 bg-codex-background border-b border-codex-border select-none">
+    <header className="sticky top-0 z-40 flex h-11 items-center justify-between px-3 bg-codex-background select-none">
       {/* Breadcrumb skeleton */}
       <div className="flex items-center gap-2">
         <Skeleton className="w-5 h-5 rounded-codex-sm" />
@@ -38,7 +38,7 @@ export function PageHeaderSkeleton() {
  */
 export function PageContentSkeleton() {
   return (
-    <div className="flex-1 max-w-4xl w-full mx-auto px-6 sm:px-12 py-10 space-y-8 animate-in fade-in duration-300">
+    <div className="flex-1 max-w-3xl w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 space-y-8 animate-in fade-in duration-300">
       {/* Page Icon & Title Skeleton */}
       <div className="space-y-4">
         <Skeleton className="w-12 h-12 rounded-codex-xl" />
@@ -88,14 +88,11 @@ export function PageContentSkeleton() {
  */
 export function SidebarSkeleton() {
   return (
-    <aside className="w-64 h-screen bg-codex-sidebar border-r border-codex-border flex flex-col select-none shrink-0 p-3 space-y-4">
+    <aside className="w-60 h-screen bg-codex-sidebar flex flex-col select-none shrink-0 p-2 space-y-4">
       {/* Workspace Switcher Skeleton */}
-      <div className="flex items-center gap-2.5 p-2 rounded-codex-lg border border-codex-border bg-codex-surface">
-        <Skeleton className="w-6 h-6 rounded-codex-md shrink-0" />
-        <div className="space-y-1 flex-1 min-w-0">
-          <Skeleton className="w-3/4 h-3.5 rounded-codex-sm" />
-          <Skeleton className="w-1/2 h-2.5 rounded-codex-sm" />
-        </div>
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        <Skeleton className="w-5 h-5 rounded-codex-sm shrink-0" />
+        <Skeleton className="w-28 h-3.5 rounded-codex-sm" />
       </div>
 
       {/* Quick Nav Items */}
@@ -142,7 +139,7 @@ export function SidebarSkeleton() {
       </div>
 
       {/* Bottom info skeleton */}
-      <div className="pt-2 border-t border-codex-border/60">
+      <div className="pt-2">
         <div className="flex items-center gap-2 px-2 py-1.5">
           <Skeleton className="w-4 h-4 rounded-codex-sm" />
           <Skeleton className="w-16 h-3 rounded-codex-sm" />
@@ -159,42 +156,39 @@ export function WorkspaceHomeSkeleton() {
   return (
     <div className="flex-1 flex flex-col relative w-full">
       {/* Header */}
-      <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 bg-codex-background border-b border-codex-border select-none">
-        <div className="flex items-center gap-2">
-          <Skeleton className="w-5 h-5 rounded-codex-sm" />
-          <Skeleton className="w-24 h-4 rounded-codex-sm" />
-        </div>
+      <header className="sticky top-0 z-40 flex h-11 items-center px-3 bg-codex-background select-none">
+        <Skeleton className="w-12 h-3.5 rounded-codex-sm" />
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-4xl w-full mx-auto p-6 sm:p-12 space-y-8 animate-in fade-in duration-300">
-        {/* Workspace Overview Header */}
-        <div className="flex items-start justify-between border-b border-codex-border pb-6">
-          <div className="space-y-2">
-            <Skeleton className="w-28 h-3 rounded-codex-sm" />
-            <Skeleton className="w-48 h-8 rounded-codex-lg" />
-            <Skeleton className="w-32 h-3.5 rounded-codex-sm" />
-          </div>
-          <Skeleton className="w-28 h-9 rounded-codex-md" />
+      <div className="flex-1 max-w-3xl w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 animate-in fade-in duration-300">
+        {/* Date, greeting & quick actions */}
+        <Skeleton className="w-40 h-4 rounded-codex-sm" />
+        <Skeleton className="mt-2 w-64 h-9 rounded-codex-lg" />
+        <div className="mt-6 flex gap-2">
+          <Skeleton className="w-28 h-8 rounded-codex-md" />
+          <Skeleton className="w-28 h-8 rounded-codex-md" />
         </div>
 
-        {/* Cards Grid */}
-        <div className="space-y-4">
-          <Skeleton className="w-20 h-4 rounded-codex-sm" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="p-4 rounded-codex-xl border border-codex-border bg-codex-surface space-y-3"
-              >
-                <Skeleton className="w-6 h-6 rounded-codex-md" />
-                <Skeleton className="w-3/4 h-4 rounded-codex-sm" />
-                <div className="pt-2">
-                  <Skeleton className="w-1/2 h-3 rounded-codex-sm" />
-                </div>
-              </div>
+        {/* Recently edited */}
+        <div className="mt-12 space-y-3">
+          <Skeleton className="w-24 h-3 rounded-codex-sm" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-32 rounded-codex-lg" />
             ))}
           </div>
+        </div>
+
+        {/* All pages list */}
+        <div className="mt-12 space-y-3">
+          <Skeleton className="w-16 h-3 rounded-codex-sm" />
+          {["w-2/5", "w-1/3", "w-1/2", "w-1/4"].map((width, i) => (
+            <div key={i} className="flex items-center gap-3 py-1">
+              <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
+              <Skeleton className={`${width} h-3.5 rounded-codex-sm`} />
+            </div>
+          ))}
         </div>
       </div>
     </div>

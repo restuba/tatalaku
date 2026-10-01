@@ -77,19 +77,15 @@ export function WorkspaceSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-2 rounded-codex-md hover:bg-codex-surface transition-colors text-left group"
+        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md hover:bg-codex-border/40 transition-colors duration-150 text-left group"
       >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-6 h-6 rounded-codex-sm bg-codex-surface border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-semibold shrink-0">
-            {activeWorkspace?.name?.charAt(0).toUpperCase() || "W"}
-          </div>
-          <div className="min-w-0 flex flex-col">
-            <span className="font-medium text-sm text-codex-foreground truncate leading-tight">
-              {activeWorkspace?.name || "Select Workspace"}
-            </span>
-          </div>
+        <div className="w-5 h-5 rounded-codex-sm bg-codex-foreground text-codex-background flex items-center justify-center text-xs font-semibold shrink-0">
+          {activeWorkspace?.name?.charAt(0).toUpperCase() || "W"}
         </div>
-        <ChevronDown className="w-4 h-4 text-codex-muted group-hover:text-codex-foreground transition-colors shrink-0" />
+        <span className="min-w-0 truncate font-medium text-sm text-codex-foreground">
+          {activeWorkspace?.name || "Select Workspace"}
+        </span>
+        <ChevronDown className="w-3.5 h-3.5 text-codex-muted shrink-0" />
       </button>
 
       {isOpen && (

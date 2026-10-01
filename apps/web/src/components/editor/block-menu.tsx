@@ -346,8 +346,8 @@ export function BlockMenu({ editor }: BlockMenuProps) {
             >
               {isCopied ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-500" />
-                  <span className="text-emerald-500 font-medium text-xs">Link copied!</span>
+                  <Check className="w-4 h-4 text-codex-success" />
+                  <span className="text-codex-success font-medium text-xs">Link copied!</span>
                 </>
               ) : (
                 <>

@@ -6,32 +6,25 @@ import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { useUIStore } from "@/stores/ui-store";
 import { BlockEditor, type SaveStatus } from "@/components/editor/block-editor";
-import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { PageHeaderSkeleton, PageContentSkeleton } from "@/components/ui/skeleton";
+import type { BreadcrumbItem } from "@/components/shared/breadcrumb";
 import { formatTimeAgo, formatFullDate } from "@/lib/date";
-import {
-  ChevronRight,
-  FileText,
-  Plus,
-  Smile,
-  ArrowLeft,
-  Calendar,
-  MoreHorizontal,
-  Menu,
-  Cloud,
-  CloudOff,
-  Check,
-} from "lucide-react";
+import { TopBar } from "../_components/top-bar";
+import { FileText, Plus, Smile, ArrowLeft, MoreHorizontal } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
+
+const SAVE_STATUS_LABEL: Record<Exclude<SaveStatus, "idle">, string> = {
+  saving: "Saving…",
+  saved: "Saved",
+  error: "Failed to save",
+};
 
 function PageDetail({ page }: { page: Page }) {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, updatePage, createPage } = usePageStore();
-  const { isSidebarOpen, setSidebarOpen } = useUIStore();
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
@@ -42,6 +35,7 @@ function PageDetail({ page }: { page: Page }) {
   const lastEditedAt = localEditedAt || page.updatedAt || null;
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const resetSavedTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Periodic tick to automatically refresh relative timestamp ("just now", "1m ago", etc.)
@@ -60,7 +54,7 @@ function PageDetail({ page }: { page: Page }) {
     if (status === "saved") {
       resetSavedTimerRef.current = setTimeout(() => {
         setSaveStatus("idle");
-      }, 3000);
+      }, 2000);
     }
   }, []);
 
@@ -75,31 +69,43 @@ function PageDetail({ page }: { page: Page }) {
     }
   }, [page.id]); // Adjust on initial mount when page loads
 
-  // Click outside to close options
+  // Click outside to close popovers
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (isOptionsOpen && optionsRef.current && !optionsRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (isOptionsOpen && optionsRef.current && !optionsRef.current.contains(target)) {
         setIsOptionsOpen(false);
+      }
+      if (isEmojiPickerOpen && emojiPickerRef.current && !emojiPickerRef.current.contains(target)) {
+        setIsEmojiPickerOpen(false);
       }
     };
     window.addEventListener("mousedown", handleClickOutside);
     return () => window.removeEventListener("mousedown", handleClickOutside);
-  }, [isOptionsOpen]);
+  }, [isOptionsOpen, isEmojiPickerOpen]);
 
-  // Build breadcrumb hierarchy
-  const breadcrumbs: Page[] = [];
+  // Build breadcrumb hierarchy (root → current)
+  const ancestors: Page[] = [];
   let curr: Page | undefined = page;
   while (curr?.parentPageId) {
     const parent = pages.find((p) => p.id === curr?.parentPageId);
     if (parent) {
-      breadcrumbs.unshift(parent);
+      ancestors.unshift(parent);
       curr = parent;
     } else {
       break;
     }
   }
 
-  const childPages = pages.filter((p) => p.parentPageId === page.id && !p.isArchived);
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: activeWorkspace?.name || "Workspace", href: "/workspace" },
+    ...ancestors.map((p) => ({
+      label: p.title || "Untitled",
+      href: `/workspace/${p.id}`,
+      icon: p.icon ?? undefined,
+    })),
+    { label: title || page.title || "Untitled", icon: icon ?? undefined },
+  ];
 
   async function handleTitleBlur() {
     const finalTitle = title.trim() || "Untitled";
@@ -130,172 +136,122 @@ function PageDetail({ page }: { page: Page }) {
 
   async function handleAddSubpage() {
     if (!activeWorkspace) return;
-    const subpage = await createPage({
-      workspaceId: activeWorkspace.id,
-      parentPageId: page.id,
-      title: "Untitled",
-    });
-    router.push(`/workspace/${subpage.id}`);
+    setIsOptionsOpen(false);
+    try {
+      const subpage = await createPage({
+        workspaceId: activeWorkspace.id,
+        parentPageId: page.id,
+        title: "Untitled",
+      });
+      router.push(`/workspace/${subpage.id}`);
+    } catch {
+      // Error handled by store
+    }
   }
+
+  const topBarActions = (
+    <>
+      {/* Save status: only visible while something is happening */}
+      {saveStatus !== "idle" && (
+        <span
+          role="status"
+          className={`px-2 text-xs animate-in fade-in duration-150 ${
+            saveStatus === "error" ? "text-codex-danger" : "text-codex-muted"
+          }`}
+        >
+          {SAVE_STATUS_LABEL[saveStatus]}
+        </span>
+      )}
+
+      <div className="relative" ref={optionsRef}>
+        <button
+          type="button"
+          onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+          className={`p-1.5 rounded-codex-md transition-colors ${
+            isOptionsOpen
+              ? "bg-codex-surface-secondary text-codex-foreground"
+              : "text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground"
+          }`}
+          aria-label="Page options"
+          aria-expanded={isOptionsOpen}
+          title="Page options"
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+
+        {isOptionsOpen && (
+          <div className="absolute top-full right-0 mt-1 w-60 glass-surface border border-codex-border rounded-codex-lg p-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+            <label className="flex items-center justify-between px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary cursor-pointer transition-colors">
+              <span>Full width</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={page.isFullWidth}
+                onClick={() => updatePage(page.id, { isFullWidth: !page.isFullWidth })}
+                className={`relative inline-flex h-4 w-7 items-center rounded-full p-0.5 transition-colors ${
+                  page.isFullWidth ? "bg-codex-accent" : "bg-codex-border"
+                }`}
+              >
+                <span
+                  className={`inline-block h-3 w-3 rounded-full bg-codex-background transition-transform duration-150 ${
+                    page.isFullWidth ? "translate-x-3" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </label>
+
+            <button
+              type="button"
+              onClick={handleAddSubpage}
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left"
+            >
+              <Plus className="w-4 h-4 text-codex-muted" />
+              <span>Add subpage</span>
+            </button>
+
+            {/* Page metadata lives here instead of cluttering the canvas */}
+            <div className="mt-1 pt-2 pb-1 px-2 border-t border-codex-border space-y-0.5 text-xs text-codex-muted">
+              {lastEditedAt && (
+                <p title={formatFullDate(lastEditedAt)}>Edited {formatTimeAgo(lastEditedAt)}</p>
+              )}
+              {page.createdAt && <p>Created {formatFullDate(page.createdAt)}</p>}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
 
   return (
     <div className="flex-1 flex flex-col relative w-full">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-codex-background border-b border-codex-border transition-colors select-none">
-        <div className="flex items-center gap-1.5 flex-wrap truncate text-xs text-codex-muted transition-all min-w-0 mr-2">
-          {!isSidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-1 mr-1 hover:bg-codex-surface rounded-codex-md text-codex-muted hover:text-codex-foreground transition-colors"
-              title="Open sidebar"
-            >
-              <Menu className="w-4 h-4" />
-            </button>
-          )}
-          <Link
-            href="/workspace"
-            className="hover:text-codex-foreground transition-colors shrink-0"
-          >
-            {activeWorkspace?.name || "Workspace"}
-          </Link>
-          {breadcrumbs.map((b) => (
-            <div key={b.id} className="flex items-center gap-1.5 shrink-0">
-              <ChevronRight className="w-3 h-3 text-codex-muted shrink-0" />
-              <Link
-                href={`/workspace/${b.id}`}
-                className="hover:text-codex-foreground truncate max-w-[120px] transition-colors"
-              >
-                {b.title || "Untitled"}
-              </Link>
-            </div>
-          ))}
-          <ChevronRight className="w-3 h-3 text-codex-muted shrink-0" />
-          <span className="text-codex-foreground font-medium truncate max-w-[160px]">
-            {title || page.title || "Untitled"}
-          </span>
-        </div>
+      <TopBar items={breadcrumbItems} actions={topBarActions} />
 
-        {/* Header Actions: Save Status, Last Edited & Page Options */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Status & Last Edited Group */}
-          <div className="flex items-center gap-1.5 text-xs text-codex-muted">
-            {/* Save / Sync Status Indicator */}
-            <div className="flex items-center gap-1.5">
-              {saveStatus === "saving" ? (
-                <span
-                  className="flex items-center gap-1 text-codex-muted animate-pulse"
-                  title="Saving changes to cloud..."
-                >
-                  <LogoSpinner size="sm" className="gap-0 scale-75" />
-                  <span className="text-[11px] font-medium hidden md:inline">Saving...</span>
-                </span>
-              ) : saveStatus === "saved" ? (
-                <span
-                  className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 animate-in fade-in duration-200"
-                  title="All changes saved to cloud"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-medium hidden md:inline">Saved</span>
-                </span>
-              ) : saveStatus === "error" ? (
-                <span
-                  className="flex items-center gap-1 text-codex-danger"
-                  title="Failed to save changes"
-                >
-                  <CloudOff className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-medium hidden md:inline">Failed to save</span>
-                </span>
-              ) : (
-                <span
-                  className="flex items-center gap-1 text-codex-muted/60 hover:text-codex-muted transition-colors cursor-default"
-                  title="All changes saved to cloud"
-                >
-                  <Cloud className="w-3.5 h-3.5" />
-                </span>
-              )}
-            </div>
-
-            {/* Last Edited Time */}
-            {lastEditedAt && (
-              <>
-                <span className="text-codex-border select-none">·</span>
-                <span
-                  className="text-[11px] text-codex-muted/80 hover:text-codex-foreground transition-colors cursor-default"
-                  title={lastEditedAt ? `Last edited: ${formatFullDate(lastEditedAt)}` : undefined}
-                >
-                  Edited {formatTimeAgo(lastEditedAt)}
-                </span>
-              </>
-            )}
-          </div>
-
-          <div className="flex items-center relative" ref={optionsRef}>
-            <button
-              onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-              className={`p-1.5 rounded-codex-md transition-colors ${
-                isOptionsOpen
-                  ? "bg-codex-surface text-codex-foreground"
-                  : "hover:bg-codex-surface text-codex-muted hover:text-codex-foreground"
-              }`}
-              title="Options"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
-
-            {isOptionsOpen && (
-              <div className="absolute top-full right-0 mt-1 w-64 glass-surface border border-codex-border rounded-codex-xl p-2 z-50 shadow-xl animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-3 py-2 text-[11px] font-semibold text-codex-muted uppercase tracking-wider">
-                  Page Settings
-                </div>
-
-                <div className="flex items-center justify-between px-3 py-2 hover:bg-codex-background rounded-codex-md transition-colors">
-                  <span className="text-sm text-codex-foreground">Full Width</span>
-                  <button
-                    onClick={async () => {
-                      const newFullWidth = !page.isFullWidth;
-                      await updatePage(page.id, { isFullWidth: newFullWidth });
-                    }}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full p-0.5 transition-colors focus:outline-none ${
-                      page.isFullWidth
-                        ? "bg-codex-accent"
-                        : "bg-codex-muted/30 hover:bg-codex-muted/50"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-codex-background shadow-sm ring-1 ring-black/5 transition-transform duration-200 ease-in-out ${
-                        page.isFullWidth ? "translate-x-4" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
       <div
-        className={`flex-1 flex flex-col w-full mx-auto p-6 sm:px-12 sm:py-10 transition-all duration-300 ${
-          page.isFullWidth ? "max-w-none" : "max-w-4xl"
+        className={`flex-1 flex flex-col w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-all duration-200 ${
+          page.isFullWidth ? "max-w-none" : "max-w-3xl"
         }`}
       >
         {/* Page Header: Icon & Title */}
-        <div className="mb-6 space-y-3">
-          {/* Icon picker toggle */}
-          <div className="relative inline-block">
+        <div className="group/title mb-2">
+          <div className="relative" ref={emojiPickerRef}>
             {icon ? (
               <button
+                type="button"
                 onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-                className="text-4xl hover:opacity-80 transition-opacity p-1 -ml-1 rounded-codex-sm"
+                className="text-5xl leading-none p-1 -ml-1 mb-3 rounded-codex-md hover:bg-codex-surface-secondary transition-colors"
+                aria-label="Change icon"
                 title="Change icon"
               >
                 {icon}
               </button>
             ) : (
+              // Revealed on hover so an empty page stays visually quiet
               <button
+                type="button"
                 onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-                className="inline-flex items-center gap-1.5 text-xs text-codex-muted hover:text-codex-foreground py-1 rounded-codex-sm transition-colors"
+                className={`inline-flex items-center gap-1.5 mb-2 px-1.5 py-1 -ml-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-all duration-150 focus-visible:opacity-100 ${
+                  isEmojiPickerOpen ? "opacity-100" : "opacity-0 group-hover/title:opacity-100"
+                }`}
               >
                 <Smile className="w-4 h-4" />
                 <span>Add icon</span>
@@ -303,16 +259,14 @@ function PageDetail({ page }: { page: Page }) {
             )}
 
             {isEmojiPickerOpen && (
-              <div className="absolute left-0 top-full mt-2 z-50 glass-surface border border-codex-border rounded-codex-xl p-3 w-64 animate-in fade-in zoom-in-95 duration-100">
-                <div className="text-[11px] font-semibold text-codex-muted uppercase tracking-wider mb-2">
-                  Select Icon
-                </div>
-                <div className="grid grid-cols-6 gap-1.5">
+              <div className="absolute left-0 top-full z-50 glass-surface border border-codex-border rounded-codex-lg p-2 w-60 animate-in fade-in zoom-in-95 duration-100">
+                <div className="grid grid-cols-6 gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
                     <button
+                      type="button"
                       key={emoji}
                       onClick={() => handleSelectIcon(emoji)}
-                      className="w-8 h-8 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-background transition-colors"
+                      className="w-8 h-8 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-surface-secondary transition-colors"
                     >
                       {emoji}
                     </button>
@@ -320,8 +274,9 @@ function PageDetail({ page }: { page: Page }) {
                 </div>
                 {icon && (
                   <button
+                    type="button"
                     onClick={() => handleSelectIcon(null)}
-                    className="w-full text-center text-xs text-codex-danger hover:underline mt-2 pt-2 border-t border-codex-border"
+                    className="w-full mt-1 px-2 py-1.5 rounded-codex-md text-left text-xs text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
                   >
                     Remove icon
                   </button>
@@ -336,6 +291,7 @@ function PageDetail({ page }: { page: Page }) {
             rows={1}
             value={title}
             placeholder="Untitled"
+            aria-label="Page title"
             onChange={(e) => {
               setTitle(e.target.value);
               e.target.style.height = "auto";
@@ -350,49 +306,7 @@ function PageDetail({ page }: { page: Page }) {
             }}
             className="w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
           />
-
-          {/* Metadata info */}
-          <div className="flex items-center gap-4 text-xs text-codex-muted pt-1">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              Created {page.createdAt ? new Date(page.createdAt).toLocaleDateString() : "Unknown"}
-            </span>
-          </div>
         </div>
-
-        {/* Subpages Section */}
-        {childPages.length > 0 && (
-          <div className="mb-8 pt-4 border-t border-codex-border">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-codex-muted">
-                Subpages ({childPages.length})
-              </h3>
-              <button
-                onClick={handleAddSubpage}
-                className="inline-flex items-center gap-1 text-xs text-codex-accent hover:opacity-80 transition-opacity"
-              >
-                <Plus className="w-3 h-3" />
-                <span>Add subpage</span>
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {childPages.map((child) => (
-                <Link
-                  key={child.id}
-                  href={`/workspace/${child.id}`}
-                  className="flex items-center gap-2 p-3 rounded-codex-xl border border-codex-border bg-codex-surface hover:border-codex-accent/50 hover:bg-codex-surface/80 text-sm transition-all"
-                >
-                  <span className="text-codex-muted">
-                    {child.icon ? child.icon : <FileText className="w-4 h-4" />}
-                  </span>
-                  <span className="font-medium text-codex-foreground truncate">
-                    {child.title || "Untitled"}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Block Editor Area */}
         <BlockEditor

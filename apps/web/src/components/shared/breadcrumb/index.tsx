@@ -17,34 +17,38 @@ export function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
   if (!items.length) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className={`flex items-center text-xs text-muted ${className}`}>
-      <ol className="flex items-center gap-1.5 flex-wrap">
+    <nav
+      aria-label="Breadcrumb"
+      className={`flex min-w-0 items-center text-sm text-muted ${className}`}
+    >
+      {/* Single line: long labels truncate instead of wrapping */}
+      <ol className="flex min-w-0 items-center gap-1">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
 
           return (
-            <li key={index} className="flex items-center gap-1.5">
+            <li key={index} className={`flex min-w-0 items-center gap-1 ${isLast ? "" : "shrink"}`}>
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="flex items-center gap-1 hover:text-ink transition-colors"
+                  className="flex min-w-0 items-center gap-1.5 rounded-codex-sm px-1.5 py-0.5 hover:bg-surface-secondary hover:text-ink transition-colors"
                 >
                   {item.icon && <span className="shrink-0">{item.icon}</span>}
-                  <span>{item.label}</span>
+                  <span className="max-w-40 truncate">{item.label}</span>
                 </Link>
               ) : (
                 <span
-                  className={`flex items-center gap-1 ${
-                    isLast ? "font-medium text-ink" : "text-muted"
+                  className={`flex min-w-0 items-center gap-1.5 px-1.5 py-0.5 ${
+                    isLast ? "text-ink" : "text-muted"
                   }`}
                   aria-current={isLast ? "page" : undefined}
                 >
                   {item.icon && <span className="shrink-0">{item.icon}</span>}
-                  <span>{item.label}</span>
+                  <span className="truncate">{item.label}</span>
                 </span>
               )}
 
-              {!isLast && <ChevronRightIcon size={12} className="text-muted/60" />}
+              {!isLast && <ChevronRightIcon size={12} className="shrink-0 text-muted/60" />}
             </li>
           );
         })}

@@ -114,16 +114,13 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
   return (
     <div className="select-none">
       <div
-        className={`group flex items-center justify-between py-1 px-2 rounded-codex-md text-sm transition-colors cursor-pointer relative ${
+        className={`group flex items-center justify-between py-0.5 px-2 rounded-codex-md text-sm transition-colors duration-150 cursor-pointer relative ${
           isActive
-            ? "bg-codex-accent/10 text-codex-accent font-medium"
-            : "text-codex-muted hover:bg-codex-surface hover:text-codex-foreground"
+            ? "bg-codex-border/60 text-codex-foreground font-medium"
+            : "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground"
         }`}
         style={{ paddingLeft: `${Math.max(level * 14 + 8, 8)}px` }}
       >
-        {isActive && (
-          <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-codex-accent rounded-r-full" />
-        )}
         <div className="flex items-center gap-1 min-w-0 flex-1">
           {/* Chevron or placeholder */}
           <button
@@ -133,7 +130,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
               e.stopPropagation();
               toggleExpand(page.id);
             }}
-            className={`w-4 h-4 flex items-center justify-center rounded hover:bg-codex-surface transition-transform duration-150 shrink-0 ${
+            className={`w-4 h-4 flex items-center justify-center rounded-codex-sm hover:bg-codex-border/60 transition-transform duration-150 shrink-0 ${
               hasChildren
                 ? "opacity-70 group-hover:opacity-100"
                 : "opacity-0 group-hover:opacity-40"
@@ -191,7 +188,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             <button
               type="button"
               onClick={handleAddSubpage}
-              className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-surface transition-colors"
+              className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-border/60 transition-colors"
               title="Add a page inside"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -206,7 +203,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                   e.stopPropagation();
                   setIsMenuOpen(!isMenuOpen);
                 }}
-                className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-surface transition-colors"
+                className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-border/60 transition-colors"
                 title="Page options"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />

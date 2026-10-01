@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
 import { Sidebar } from "@/app/workspace/_components/sidebar";
+import { CommandPalette } from "@/app/workspace/_components/command-palette";
 import { Plus, Sparkles } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import WorkspaceLoading from "./loading";
@@ -168,6 +169,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   return (
     <div className="h-screen w-full flex overflow-hidden bg-codex-background">
       <Sidebar />
+      <CommandPalette />
       <main className="flex-1 h-screen overflow-y-auto flex flex-col relative z-10 bg-codex-background">
         {children}
       </main>

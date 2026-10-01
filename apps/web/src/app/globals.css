@@ -1,4 +1,14 @@
 @import "tailwindcss";
+/* Enter/exit animation utilities (animate-in, fade-in, zoom-in-95, slide-in-from-*) */
+@import "tw-animate-css";
+
+/* Respect the OS "reduce motion" setting for all enter/exit animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-out {
+    animation: none !important;
+  }
+}
 
 @custom-variant dark (&:where(.dark, .dark *));
 :root {
@@ -302,7 +312,8 @@ button:disabled,
 .tiptap :not(pre) > code {
   background: rgba(135, 131, 120, 0.15);
   color: #eb5757;
-  font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", var(--font-mono), monospace;
+  font-family:
+    "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", var(--font-mono), monospace;
   font-size: 85%;
   padding: 0.2em 0.4em;
   border-radius: 3px;
