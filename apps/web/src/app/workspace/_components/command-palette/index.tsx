@@ -214,12 +214,12 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
       aria-label="Search pages and commands"
     >
       <div
-        className="fixed inset-0 bg-ink/20 animate-in fade-in-0 duration-150"
+        className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm animate-in fade-in-0 duration-150"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      <div className="relative z-10 flex flex-col w-full max-w-xl max-h-96 self-start overflow-hidden rounded-codex-lg border border-codex-border bg-codex-background text-codex-foreground animate-in fade-in-0 zoom-in-98 slide-in-from-top-2 duration-150 ease-out">
+      <div className="glass-surface relative z-10 flex flex-col w-full max-w-xl max-h-96 self-start overflow-hidden rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10 animate-in fade-in-0 zoom-in-98 slide-in-from-top-2 duration-150 ease-out">
         {/* Search input */}
         <div className="flex items-center gap-2 px-4 border-b border-codex-border">
           <Search className="w-4 h-4 shrink-0 text-codex-muted" />

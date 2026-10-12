@@ -64,11 +64,11 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
 
       <Modal.Content className="p-4 max-h-[60vh] overflow-y-auto">
         {loading ? (
-          <p className="text-sm text-muted text-center py-8">Loading...</p>
+          <p className="text-sm text-muted text-center py-8">Loading…</p>
         ) : archivedPages.length === 0 ? (
           <div className="text-center py-10 px-4 text-muted">
             <Trash2 className="w-8 h-8 mx-auto mb-3 opacity-20" />
-            <p className="text-sm">Tidak ada page di trash</p>
+            <p className="text-sm">Trash is empty</p>
           </div>
         ) : (
           <div className="space-y-2">

@@ -77,16 +77,17 @@ function Modal({
       >
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-ink/40 backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm transition-opacity"
           onClick={disableBackdropClick ? undefined : onClose}
           aria-hidden="true"
         />
 
         {/* Paper Container */}
         <div
-          className={`relative z-10 flex flex-col w-full rounded-xl border border-border bg-surface shadow-xl text-ink transition-all ${
+          className={`glass-surface relative z-10 flex flex-col w-full rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10 animate-slide-up-fade transition-all ${
             fullWidth ? "w-full" : ""
           } ${widthClass} ${scroll === "paper" ? "max-h-[calc(100vh-4rem)]" : ""} ${className}`}
+          style={{ animationDuration: "250ms" }}
         >
           {children}
         </div>
