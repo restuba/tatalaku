@@ -31,19 +31,108 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
   const activePageId = params?.["pageId"] as string | undefined;
   const isActive = activePageId === page.id;
 
-  const { pages, expandedPageIds, toggleExpand, createPage, updatePage, archivePage } =
-    usePageStore();
+  const {
+    pages,
+    expandedPageIds,
+    toggleExpand,
+    setExpanded,
+    createPage,
+    updatePage,
+    archivePage,
+    reorderPages,
+  } = usePageStore();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(page.title);
+  // Where a dragged page would land relative to this row
+  const [dropZone, setDropZone] = useState<"before" | "after" | "inside" | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isExpanded = expandedPageIds.includes(page.id);
-  const childPages = pages.filter((p) => p.parentPageId === page.id && !p.isArchived);
+  const childPages = pages
+    .filter((p) => p.parentPageId === page.id && !p.isArchived)
+    .sort((a, b) => a.order - b.order);
   const hasChildren = childPages.length > 0;
+
+  const isDescendantOf = (candidateAncestorId: string, nodeId: string): boolean => {
+    let current = pages.find((p) => p.id === nodeId);
+    const seen = new Set<string>();
+    while (current?.parentPageId && !seen.has(current.parentPageId)) {
+      if (current.parentPageId === candidateAncestorId) return true;
+      seen.add(current.parentPageId);
+      current = pages.find((p) => p.id === current?.parentPageId);
+    }
+    return false;
+  };
+
+  function handleDragStart(e: React.DragEvent) {
+    e.stopPropagation();
+    e.dataTransfer.setData("application/x-tatalaku-page", page.id);
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    if (!e.dataTransfer.types.includes("application/x-tatalaku-page")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offset = e.clientY - rect.top;
+    const third = rect.height / 3;
+    setDropZone(offset < third ? "before" : offset > third * 2 ? "after" : "inside");
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    // Ignore when moving between children of this row
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setDropZone(null);
+  }
+
+  async function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedId = e.dataTransfer.getData("application/x-tatalaku-page");
+    const zone = dropZone;
+    setDropZone(null);
+
+    if (!draggedId || !zone || draggedId === page.id) return;
+    // Can't drop a page into itself or one of its own descendants
+    if (isDescendantOf(draggedId, page.id)) return;
+
+    if (zone === "inside") {
+      // Append as last child of this page
+      const siblings = pages
+        .filter((p) => p.parentPageId === page.id && !p.isArchived && p.id !== draggedId)
+        .sort((a, b) => a.order - b.order)
+        .map((p) => p.id);
+      setExpanded(page.id, true);
+      try {
+        await reorderPages(page.workspaceId, page.id, [...siblings, draggedId]);
+      } catch {
+        // Error handled by store (rollback)
+      }
+      return;
+    }
+
+    // before/after: insert into this row's sibling list at the right index
+    const targetParentId = page.parentPageId ?? null;
+    const siblings = pages
+      .filter((p) => p.parentPageId === targetParentId && !p.isArchived && p.id !== draggedId)
+      .sort((a, b) => a.order - b.order)
+      .map((p) => p.id);
+    const targetIndex = siblings.indexOf(page.id);
+    const insertAt = zone === "before" ? targetIndex : targetIndex + 1;
+    const nextOrder = [...siblings.slice(0, insertAt), draggedId, ...siblings.slice(insertAt)];
+
+    try {
+      await reorderPages(page.workspaceId, targetParentId, nextOrder);
+    } catch {
+      // Error handled by store (rollback)
+    }
+  }
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -131,13 +220,25 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
   return (
     <div className="select-none">
       <div
+        draggable={!isEditing}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         className={`group flex items-center justify-between py-0.5 px-2 rounded-codex-md text-sm transition-colors duration-150 cursor-pointer relative ${
           isActive
             ? "bg-codex-border/60 text-codex-foreground font-medium"
             : "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground"
-        }`}
+        } ${dropZone === "inside" ? "ring-1 ring-inset ring-codex-accent bg-codex-accent/5" : ""}`}
         style={{ paddingLeft: `${Math.max(level * 14 + 8, 8)}px` }}
       >
+        {/* Drop indicators for sibling placement */}
+        {dropZone === "before" && (
+          <div className="absolute left-2 right-2 top-0 h-0.5 bg-codex-accent rounded-full" />
+        )}
+        {dropZone === "after" && (
+          <div className="absolute left-2 right-2 bottom-0 h-0.5 bg-codex-accent rounded-full" />
+        )}
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {/* Icon ⇄ Chevron: a single slot that shows the page icon at rest and
               swaps to an expand/collapse chevron on hover. Every page can be

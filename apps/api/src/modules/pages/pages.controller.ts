@@ -23,6 +23,15 @@ export class PagesController {
     }
   }
 
+  async reorder(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await pagesService.reorder(req.user!.id, req.body);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async getChildren(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const pageId = req.params["pageId"] as string;

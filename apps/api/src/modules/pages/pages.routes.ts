@@ -8,6 +8,7 @@ import {
   pageParamsSchema,
   listPagesQuerySchema,
   searchPagesSchema,
+  reorderPagesSchema,
 } from "./pages.validation.js";
 
 export const pagesRouter = Router();
@@ -29,6 +30,12 @@ pagesRouter.post("/", validate(createPageSchema, "body"), (req, res, next) =>
 // Registered before "/:pageId" so it isn't captured as a page id
 pagesRouter.get("/search", validate(searchPagesSchema, "query"), (req, res, next) =>
   pagesController.search(req, res, next),
+);
+
+// PATCH /api/pages/reorder - Reorder (and optionally reparent) sibling pages
+// Registered before "/:pageId" so "reorder" isn't captured as a page id
+pagesRouter.patch("/reorder", validate(reorderPagesSchema, "body"), (req, res, next) =>
+  pagesController.reorder(req, res, next),
 );
 
 // GET /api/pages/:pageId/children - Get subpages of a page

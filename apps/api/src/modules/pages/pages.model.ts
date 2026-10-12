@@ -22,6 +22,7 @@ const pageSchema = new Schema<PageDocument>(
     icon: { type: String, default: null },
     coverImage: { type: String, default: null },
     content: { type: String, default: null },
+    order: { type: Number, default: 0 },
     createdBy: {
       type: String,
       required: true,
@@ -50,6 +51,9 @@ const pageSchema = new Schema<PageDocument>(
 
 // Compound index: most page list queries filter by workspaceId + isArchived
 pageSchema.index({ workspaceId: 1, isArchived: 1 });
+
+// Index for ordered tree reads (siblings under a parent, sorted by order)
+pageSchema.index({ workspaceId: 1, parentPageId: 1, order: 1 });
 
 // Text index for full-text search across title + content. Title is weighted
 // higher so matches in the heading rank above matches deep in the body.

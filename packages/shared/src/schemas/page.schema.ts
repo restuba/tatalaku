@@ -9,6 +9,7 @@ export const PageSchema = z.object({
   coverImage: z.string().url().nullable(),
   content: z.string().nullable(),
   createdBy: z.string(),
+  order: z.number().default(0),
   isArchived: z.boolean().default(false),
   isFavorite: z.boolean().default(false),
   isFullWidth: z.boolean().default(false),

@@ -72,6 +72,13 @@ describe("PagesService", () => {
         memberIds: [],
       } as never);
 
+      // create() looks up the last sibling to compute the next order value
+      vi.mocked(PageModel.findOne).mockReturnValueOnce({
+        sort: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue({ order: 2 }) }),
+        }),
+      } as never);
+
       vi.mocked(PageModel.create).mockResolvedValueOnce({
         _id: "new-page",
         workspaceId: mockWorkspaceId,
@@ -89,6 +96,8 @@ describe("PagesService", () => {
         expect.objectContaining({
           title: "Test Page",
           workspaceId: mockWorkspaceId,
+          // appended after the last sibling (order 2) -> 3
+          order: 3,
         }),
       );
     });
@@ -181,6 +190,62 @@ describe("PagesService", () => {
           isArchived: false,
         }),
       );
+    });
+  });
+
+  describe("reorder", () => {
+    it("should throw ForbiddenError if user lacks workspace access", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: "other-user",
+        memberIds: [],
+      } as never);
+
+      await expect(
+        pagesService.reorder(mockUserId, {
+          workspaceId: mockWorkspaceId,
+          orderedIds: ["a", "b"],
+        }),
+      ).rejects.toThrow(ForbiddenError);
+      expect(PageModel.bulkWrite).not.toHaveBeenCalled();
+    });
+
+    it("should throw ValidationError if some ids are not in the workspace", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: mockUserId,
+        memberIds: [],
+      } as never);
+      // Only one of the two requested ids is found
+      const lean = vi.fn().mockResolvedValueOnce([{ _id: "a" }]);
+      vi.mocked(PageModel.find).mockReturnValueOnce({ lean } as never);
+
+      await expect(
+        pagesService.reorder(mockUserId, {
+          workspaceId: mockWorkspaceId,
+          orderedIds: ["a", "b"],
+        }),
+      ).rejects.toThrow(ValidationError);
+      expect(PageModel.bulkWrite).not.toHaveBeenCalled();
+    });
+
+    it("should set order by index and apply the parent via bulkWrite", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: mockUserId,
+        memberIds: [],
+      } as never);
+      const lean = vi.fn().mockResolvedValueOnce([{ _id: "a" }, { _id: "b" }]);
+      vi.mocked(PageModel.find).mockReturnValueOnce({ lean } as never);
+      vi.mocked(PageModel.bulkWrite).mockResolvedValueOnce({} as never);
+
+      await pagesService.reorder(mockUserId, {
+        workspaceId: mockWorkspaceId,
+        parentPageId: null,
+        orderedIds: ["a", "b"],
+      });
+
+      expect(PageModel.bulkWrite).toHaveBeenCalledWith([
+        { updateOne: { filter: { _id: "a" }, update: { $set: { order: 0, parentPageId: null } } } },
+        { updateOne: { filter: { _id: "b" }, update: { $set: { order: 1, parentPageId: null } } } },
+      ]);
     });
   });
 

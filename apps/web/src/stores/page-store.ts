@@ -8,6 +8,7 @@ import { updatePage } from "@/services/page/update-page";
 import { archivePage } from "@/services/page/archive-page";
 import { restorePage } from "@/services/page/restore-page";
 import { deletePagePermanently } from "@/services/page/delete-page";
+import { reorderPages } from "@/services/page/reorder-pages";
 import type { JSONContent } from "@tiptap/core";
 
 interface PageState {
@@ -49,6 +50,12 @@ interface PageActions {
   restorePage: (id: string) => Promise<void>;
   /** Permanently removes an archived page from Trash. Irreversible. */
   deletePagePermanently: (id: string) => Promise<void>;
+  /** Reorders (and optionally reparents) a set of sibling pages. */
+  reorderPages: (
+    workspaceId: string,
+    parentPageId: string | null,
+    orderedIds: string[],
+  ) => Promise<void>;
   toggleExpand: (pageId: string) => void;
   setExpanded: (pageId: string, expanded: boolean) => void;
   fetchArchivedPages: (workspaceId: string) => Promise<Page[]>;
@@ -110,6 +117,7 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
       coverImage: null,
       content: null,
       createdBy: "current-user",
+      order: Number.MAX_SAFE_INTEGER, // optimistically append to the end
       isArchived: false,
       isFavorite: false,
       isFullWidth: false,
@@ -235,6 +243,25 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     } catch (err) {
       // Rollback
       set({ pages: previousPages, archivedPages: previousArchived });
+      throw err;
+    }
+  },
+
+  reorderPages: async (workspaceId, parentPageId, orderedIds) => {
+    const previousPages = get().pages;
+
+    // Optimistically apply the new order + parent to the affected pages
+    const orderById = new Map(orderedIds.map((id, index) => [id, index]));
+    set((state) => ({
+      pages: state.pages.map((p) =>
+        orderById.has(p.id) ? { ...p, parentPageId, order: orderById.get(p.id)! } : p,
+      ),
+    }));
+
+    try {
+      await reorderPages({ workspaceId, parentPageId, orderedIds });
+    } catch (err) {
+      set({ pages: previousPages });
       throw err;
     }
   },

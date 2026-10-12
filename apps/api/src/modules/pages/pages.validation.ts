@@ -29,6 +29,11 @@ export const searchPagesSchema = z.object({
   q: z.string().min(1).max(200),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
+export const reorderPagesSchema = z.object({
+  workspaceId: z.string().min(1),
+  parentPageId: z.string().nullable().optional(),
+  orderedIds: z.array(z.string().min(1)).min(1).max(500),
+});
 export const listPagesQuerySchema = z
   .object({
     workspaceId: z.string().min(1),
@@ -45,3 +50,4 @@ export type UpdatePageInput = z.infer<typeof updatePageSchema>;
 export type ListPagesQuery = z.infer<typeof listPagesQuerySchema>;
 export type GetChildrenQuery = z.infer<typeof getChildrenQuerySchema>;
 export type SearchPagesQuery = z.infer<typeof searchPagesSchema>;
+export type ReorderPagesInput = z.infer<typeof reorderPagesSchema>;

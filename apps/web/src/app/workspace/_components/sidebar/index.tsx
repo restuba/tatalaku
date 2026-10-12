@@ -113,9 +113,9 @@ export function Sidebar() {
     }
   }, [pathname, setSidebarOpen]);
 
-  const rootPages = pages.filter(
-    (p) => (p.parentPageId === null || p.parentPageId === undefined) && !p.isArchived,
-  );
+  const rootPages = pages
+    .filter((p) => (p.parentPageId === null || p.parentPageId === undefined) && !p.isArchived)
+    .sort((a, b) => a.order - b.order);
   const favoritePages = pages.filter((p) => p.isFavorite && !p.isArchived);
 
   async function handleCreateTopLevelPage() {

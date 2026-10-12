@@ -9,6 +9,7 @@ import type {
   ListPagesQuery,
   GetChildrenQuery,
   SearchPagesQuery,
+  ReorderPagesInput,
 } from "./pages.validation.js";
 
 export interface PageSearchResult extends Page {
@@ -62,6 +63,7 @@ function toPageResponse(doc: PageDocument): Page {
     coverImage: doc.coverImage ?? null,
     content: doc.content ?? null,
     createdBy: doc.createdBy,
+    order: doc.order ?? 0,
     isArchived: doc.isArchived,
     isFavorite: doc.isFavorite ?? false,
     isFullWidth: doc.isFullWidth ?? false,
@@ -104,7 +106,7 @@ export class PagesService {
     const skip = (query.page - 1) * query.limit;
 
     const [docs, total] = await Promise.all([
-      PageModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(query.limit),
+      PageModel.find(filter).sort({ order: 1, createdAt: 1 }).skip(skip).limit(query.limit),
       PageModel.countDocuments(filter),
     ]);
 
@@ -187,7 +189,7 @@ export class PagesService {
     }
 
     const docs = await PageModel.find(filter)
-      .sort({ createdAt: 1, _id: 1 })
+      .sort({ order: 1, createdAt: 1, _id: 1 })
       .limit(query.limit + 1);
 
     const hasMore = docs.length > query.limit;
@@ -228,6 +230,16 @@ export class PagesService {
       }
     }
 
+    // Append after the last sibling so new pages land at the bottom of the list
+    const lastSibling = await PageModel.findOne({
+      workspaceId: input.workspaceId,
+      parentPageId: input.parentPageId ?? null,
+    })
+      .sort({ order: -1 })
+      .select("order")
+      .lean();
+    const nextOrder = (lastSibling?.order ?? -1) + 1;
+
     const doc = await PageModel.create({
       workspaceId: input.workspaceId,
       parentPageId: input.parentPageId ?? null,
@@ -236,12 +248,63 @@ export class PagesService {
       coverImage: null,
       content: null,
       createdBy: userId,
+      order: nextOrder,
       isArchived: false,
       isFavorite: false,
       isFullWidth: false,
     });
 
     return toPageResponse(doc);
+  }
+
+  /**
+   * Reorder sibling pages (and optionally reparent them). `orderedIds` is the
+   * full desired order of the pages that should live under `parentPageId`;
+   * each page's `order` is set to its index, and its parent is updated to
+   * `parentPageId`. All pages must belong to the workspace.
+   */
+  async reorder(userId: string, input: ReorderPagesInput): Promise<void> {
+    await this.assertWorkspaceAccess(input.workspaceId, userId);
+
+    if (input.orderedIds.length === 0) return;
+
+    // Validate every page belongs to this workspace and isn't archived
+    const docs = await PageModel.find(
+      { _id: { $in: input.orderedIds }, workspaceId: input.workspaceId, isArchived: false },
+      { _id: 1 },
+    ).lean();
+
+    if (docs.length !== input.orderedIds.length) {
+      throw new ValidationError("All pages must belong to the same workspace");
+    }
+
+    // Guard against moving a page into one of its own descendants
+    if (input.parentPageId) {
+      if (input.orderedIds.includes(input.parentPageId)) {
+        throw new ValidationError("A page cannot be its own parent");
+      }
+      let currentParentId: string | null = input.parentPageId;
+      const movingSet = new Set(input.orderedIds);
+      while (currentParentId) {
+        if (movingSet.has(currentParentId)) {
+          throw new ValidationError("Cannot move a page into one of its subpages");
+        }
+        const next: { parentPageId?: string | null } | null = await PageModel.findById(
+          currentParentId,
+          { parentPageId: 1 },
+        ).lean();
+        currentParentId = next?.parentPageId ?? null;
+      }
+    }
+
+    await PageModel.bulkWrite(
+      input.orderedIds.map((id, index) => ({
+        updateOne: {
+          filter: { _id: id },
+          update: { $set: { order: index, parentPageId: input.parentPageId ?? null } },
+        },
+      })),
+    );
   }
 
   /**
