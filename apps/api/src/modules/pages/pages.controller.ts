@@ -72,6 +72,16 @@ export class PagesController {
       next(err);
     }
   }
+
+  async permanentDelete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const pageId = req.params["pageId"] as string;
+      await pagesService.permanentDelete(pageId, req.user!.id);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const pagesController = new PagesController();

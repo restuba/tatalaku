@@ -14,7 +14,15 @@ import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import { getPage } from "@/services/page/get-page";
 import { pageToMarkdown, downloadMarkdown, markdownFileName } from "@/lib/markdown-export";
 import { TopBar } from "../_components/top-bar";
-import { FileText, Plus, Smile, ArrowLeft, MoreHorizontal, Download } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  Smile,
+  ArrowLeft,
+  MoreHorizontal,
+  Download,
+  Image as ImageIcon,
+} from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
 
@@ -32,6 +40,7 @@ function PageDetail({ page }: { page: Page }) {
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
+  const [coverImage, setCoverImage] = useState(page.coverImage);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -139,6 +148,32 @@ function PageDetail({ page }: { page: Page }) {
     }
   }
 
+  async function handleSetCover(nextCover: string | null) {
+    const previous = coverImage;
+    setCoverImage(nextCover);
+    handleSaveStatusChange("saving");
+    try {
+      const updated = await updatePage(page.id, { coverImage: nextCover });
+      handleSaveStatusChange("saved");
+      if (updated?.updatedAt) setLocalEditedAt(updated.updatedAt);
+    } catch {
+      setCoverImage(previous);
+      handleSaveStatusChange("error");
+    }
+  }
+
+  function handleAddCover() {
+    setIsOptionsOpen(false);
+    const url = window.prompt("Paste an image URL for the cover");
+    const trimmed = url?.trim();
+    if (!trimmed) return;
+    if (!/^https?:\/\//i.test(trimmed)) {
+      window.alert("Please enter a valid http(s) image URL.");
+      return;
+    }
+    void handleSetCover(trimmed);
+  }
+
   async function handleExportMarkdown() {
     setIsOptionsOpen(false);
     setIsExporting(true);
@@ -237,13 +272,49 @@ function PageDetail({ page }: { page: Page }) {
     <div className="flex-1 flex flex-col relative w-full">
       <TopBar items={breadcrumbItems} actions={topBarActions} />
 
+      {/* Cover image banner */}
+      {coverImage && (
+        <div className="group/cover relative w-full h-40 sm:h-56 shrink-0 overflow-hidden bg-codex-surface-secondary">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={coverImage} alt="" className="w-full h-full object-cover" />
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/cover:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={handleAddCover}
+              className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
+            >
+              Change cover
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSetCover(null)}
+              className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
-        className={`flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-all duration-200 ${
-          isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"
-        }`}
+        className={`flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pb-24 transition-all duration-200 ${
+          coverImage ? "pt-6" : "pt-12 sm:pt-20"
+        } ${isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"}`}
       >
         {/* Page Header: Icon & Title */}
         <div className="group/title mb-2">
+          {/* Add cover affordance: only when the page has no cover yet */}
+          {!coverImage && (
+            <button
+              type="button"
+              onClick={handleAddCover}
+              className="inline-flex items-center gap-1.5 mb-2 px-1.5 py-1 -ml-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-all duration-150 opacity-0 group-hover/title:opacity-100 focus-visible:opacity-100"
+            >
+              <ImageIcon className="w-4 h-4" />
+              <span>Add cover</span>
+            </button>
+          )}
+
           <div className="relative" ref={emojiPickerRef}>
             {icon ? (
               <button

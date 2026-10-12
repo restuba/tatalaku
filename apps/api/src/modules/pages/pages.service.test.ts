@@ -112,4 +112,56 @@ describe("PagesService", () => {
       ).rejects.toThrow(ValidationError);
     });
   });
+
+  describe("permanentDelete", () => {
+    it("should throw NotFoundError if page does not exist", async () => {
+      vi.mocked(PageModel.findById).mockResolvedValueOnce(null);
+
+      await expect(pagesService.permanentDelete("missing", mockUserId)).rejects.toThrow(
+        NotFoundError,
+      );
+      expect(PageModel.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it("should throw ForbiddenError if user lacks workspace access", async () => {
+      vi.mocked(PageModel.findById).mockResolvedValueOnce({
+        _id: "page-1",
+        workspaceId: mockWorkspaceId,
+      } as never);
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: "other-user",
+        memberIds: [],
+      } as never);
+
+      await expect(pagesService.permanentDelete("page-1", mockUserId)).rejects.toThrow(
+        ForbiddenError,
+      );
+      expect(PageModel.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it("should hard-delete the page together with all descendants", async () => {
+      vi.mocked(PageModel.findById).mockResolvedValueOnce({
+        _id: "page-1",
+        workspaceId: mockWorkspaceId,
+      } as never);
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: mockUserId,
+        memberIds: [],
+      } as never);
+
+      // First BFS batch returns one child, second batch returns none
+      const leanChild = vi.fn().mockResolvedValueOnce([{ _id: "child-1" }]);
+      const leanEmpty = vi.fn().mockResolvedValueOnce([]);
+      vi.mocked(PageModel.find)
+        .mockReturnValueOnce({ lean: leanChild } as never)
+        .mockReturnValueOnce({ lean: leanEmpty } as never);
+      vi.mocked(PageModel.deleteMany).mockResolvedValueOnce({ deletedCount: 2 } as never);
+
+      await pagesService.permanentDelete("page-1", mockUserId);
+
+      expect(PageModel.deleteMany).toHaveBeenCalledWith({
+        _id: { $in: ["page-1", "child-1"] },
+      });
+    });
+  });
 });

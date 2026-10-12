@@ -51,3 +51,8 @@ pagesRouter.delete("/:pageId", validate(pageParamsSchema, "params"), (req, res, 
 pagesRouter.post("/:pageId/restore", validate(pageParamsSchema, "params"), (req, res, next) =>
   pagesController.restore(req, res, next),
 );
+
+// DELETE /api/pages/:pageId/permanent - Permanently delete a page and its descendants
+pagesRouter.delete("/:pageId/permanent", validate(pageParamsSchema, "params"), (req, res, next) =>
+  pagesController.permanentDelete(req, res, next),
+);

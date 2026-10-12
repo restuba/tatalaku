@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { RefreshCcw, FileText, Trash2 } from "lucide-react";
+import { RefreshCcw, FileText, Trash2, X, Check } from "lucide-react";
 import { Modal } from "@/components/reusable/modal";
 import { Button } from "@/components/reusable/button";
 
@@ -18,8 +18,29 @@ export interface TrashModalProps {
 
 export function TrashModal({ isOpen, onClose }: TrashModalProps) {
   const { activeWorkspace } = useWorkspaceStore();
-  const { archivedPages, fetchArchivedPages, restorePage } = usePageStore();
+  const { archivedPages, fetchArchivedPages, restorePage, deletePagePermanently } = usePageStore();
   const [loading, setLoading] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  // Reset any pending delete confirmation when the modal transitions closed
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) setConfirmingId(null);
+  }
+
+  async function handlePermanentDelete(id: string) {
+    setDeletingId(id);
+    try {
+      await deletePagePermanently(id);
+    } catch {
+      // Error handled by store (rollback)
+    } finally {
+      setDeletingId(null);
+      setConfirmingId(null);
+    }
+  }
 
   useEffect(() => {
     if (isOpen && activeWorkspace) {
@@ -51,25 +72,65 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
           </div>
         ) : (
           <div className="space-y-2">
-            {archivedPages.map((page) => (
-              <div
-                key={page.id}
-                className="flex items-center justify-between p-3 hover:bg-surface-secondary/50 rounded-codex-md group transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <FileText className="w-4 h-4 text-muted shrink-0" />
-                  <span className="text-sm truncate text-ink">{page.title || "Untitled"}</span>
+            {archivedPages.map((page) => {
+              const isConfirming = confirmingId === page.id;
+              const isDeleting = deletingId === page.id;
+
+              return (
+                <div
+                  key={page.id}
+                  className="flex items-center justify-between p-3 hover:bg-surface-secondary/50 rounded-codex-md group transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FileText className="w-4 h-4 text-muted shrink-0" />
+                    <span className="text-sm truncate text-ink">{page.title || "Untitled"}</span>
+                  </div>
+
+                  {isConfirming ? (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-muted">Delete forever?</span>
+                      <Button
+                        variant="text"
+                        size="small"
+                        loading={isDeleting}
+                        onClick={() => handlePermanentDelete(page.id)}
+                        className="text-danger hover:text-danger"
+                        title="Confirm permanent delete"
+                        icon={<Check className="w-4 h-4" />}
+                      />
+                      <Button
+                        variant="text"
+                        size="small"
+                        disabled={isDeleting}
+                        onClick={() => setConfirmingId(null)}
+                        className="text-muted hover:text-ink"
+                        title="Cancel"
+                        icon={<X className="w-4 h-4" />}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => restorePage(page.id)}
+                        className="text-muted hover:text-success"
+                        title="Restore"
+                        icon={<RefreshCcw className="w-4 h-4" />}
+                      />
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => setConfirmingId(page.id)}
+                        className="text-muted hover:text-danger"
+                        title="Delete permanently"
+                        icon={<Trash2 className="w-4 h-4" />}
+                      />
+                    </div>
+                  )}
                 </div>
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={() => restorePage(page.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted hover:text-success"
-                  title="Restore"
-                  icon={<RefreshCcw className="w-4 h-4" />}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Modal.Content>

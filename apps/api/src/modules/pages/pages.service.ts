@@ -309,6 +309,49 @@ export class PagesService {
   }
 
   /**
+   * Permanently delete a page and all its descendants (hard delete, irreversible)
+   */
+  async permanentDelete(pageId: string, userId: string): Promise<void> {
+    const doc = await PageModel.findById(pageId);
+    if (!doc) {
+      throw new NotFoundError("Page");
+    }
+
+    await this.assertWorkspaceAccess(doc.workspaceId, userId);
+
+    // Collect this page + all descendants, then delete in one bulk op
+    const idsToDelete = [pageId, ...(await this.collectDescendantIds(pageId, doc.workspaceId))];
+    await PageModel.deleteMany({ _id: { $in: idsToDelete } });
+  }
+
+  /**
+   * Helper: collect all descendant page IDs (BFS, no N+1). Includes archived
+   * descendants so a permanent delete leaves nothing orphaned behind.
+   */
+  private async collectDescendantIds(parentId: string, workspaceId: string): Promise<string[]> {
+    const queue = [parentId];
+    const descendantIds: string[] = [];
+
+    while (queue.length > 0) {
+      const currentBatch = [...queue];
+      queue.length = 0;
+
+      const children = await PageModel.find(
+        { parentPageId: { $in: currentBatch }, workspaceId },
+        { _id: 1 },
+      ).lean();
+
+      for (const child of children) {
+        const childId = child._id.toString();
+        descendantIds.push(childId);
+        queue.push(childId);
+      }
+    }
+
+    return descendantIds;
+  }
+
+  /**
    * Restore an archived page
    */
   async restore(pageId: string, userId: string): Promise<Page> {

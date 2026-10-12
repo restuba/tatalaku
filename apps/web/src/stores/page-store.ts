@@ -7,6 +7,7 @@ import { createPage } from "@/services/page/create-page";
 import { updatePage } from "@/services/page/update-page";
 import { archivePage } from "@/services/page/archive-page";
 import { restorePage } from "@/services/page/restore-page";
+import { deletePagePermanently } from "@/services/page/delete-page";
 import type { JSONContent } from "@tiptap/core";
 
 interface PageState {
@@ -46,6 +47,8 @@ interface PageActions {
   }) => Promise<Page>;
   archivePage: (id: string) => Promise<void>;
   restorePage: (id: string) => Promise<void>;
+  /** Permanently removes an archived page from Trash. Irreversible. */
+  deletePagePermanently: (id: string) => Promise<void>;
   toggleExpand: (pageId: string) => void;
   setExpanded: (pageId: string, expanded: boolean) => void;
   fetchArchivedPages: (workspaceId: string) => Promise<Page[]>;
@@ -232,6 +235,32 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     } catch (err) {
       // Rollback
       set({ pages: previousPages, archivedPages: previousArchived });
+      throw err;
+    }
+  },
+
+  deletePagePermanently: async (id: string) => {
+    const previousArchived = get().archivedPages;
+
+    // Optimistically remove the page (and any archived descendants) from Trash
+    const descendantIds = new Set<string>();
+    const collect = (parentId: string) => {
+      descendantIds.add(parentId);
+      previousArchived
+        .filter((p) => p.parentPageId === parentId)
+        .forEach((child) => collect(child.id));
+    };
+    collect(id);
+
+    set((state) => ({
+      archivedPages: state.archivedPages.filter((p) => !descendantIds.has(p.id)),
+    }));
+
+    try {
+      await deletePagePermanently(id);
+    } catch (err) {
+      // Rollback
+      set({ archivedPages: previousArchived });
       throw err;
     }
   },
