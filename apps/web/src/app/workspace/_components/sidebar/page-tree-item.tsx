@@ -16,6 +16,10 @@ import {
   PinOff,
 } from "lucide-react";
 
+// Matches `w-48`; height is an estimate of the 3-item menu, used for flipping
+const MENU_WIDTH = 192;
+const MENU_HEIGHT_ESTIMATE = 110;
+
 interface PageTreeItemProps {
   page: Page;
   level?: number;
@@ -31,6 +35,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     usePageStore();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(page.title);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -57,6 +62,18 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Fixed menu would drift away from its trigger on scroll/resize, so close it
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const close = () => setIsMenuOpen(false);
+    window.addEventListener("resize", close);
+    document.addEventListener("scroll", close, true);
+    return () => {
+      window.removeEventListener("resize", close);
+      document.removeEventListener("scroll", close, true);
+    };
+  }, [isMenuOpen]);
 
   async function handleAddSubpage(e: React.MouseEvent) {
     e.preventDefault();
@@ -201,6 +218,13 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  // Flip upward when there isn't enough room below the trigger
+                  const top =
+                    rect.bottom + MENU_HEIGHT_ESTIMATE > window.innerHeight
+                      ? rect.top - MENU_HEIGHT_ESTIMATE - 4
+                      : rect.bottom + 4;
+                  setMenuPos({ top, left: Math.max(8, rect.right - MENU_WIDTH) });
                   setIsMenuOpen(!isMenuOpen);
                 }}
                 className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-border/60 transition-colors"
@@ -209,8 +233,11 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </button>
 
-              {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 glass-surface border border-codex-border rounded-codex-md p-1 min-w-[140px] text-xs animate-in fade-in-0 zoom-in-95 duration-100">
+              {isMenuOpen && menuPos && (
+                <div
+                  style={{ top: menuPos.top, left: menuPos.left }}
+                  className="fixed z-50 glass-surface border border-codex-border rounded-codex-md p-1 w-48 text-xs animate-in fade-in-0 zoom-in-95 duration-100"
+                >
                   <button
                     type="button"
                     onClick={(e) => {

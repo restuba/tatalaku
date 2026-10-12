@@ -9,7 +9,7 @@ import { Sidebar } from "@/app/workspace/_components/sidebar";
 import { CommandPalette } from "@/app/workspace/_components/command-palette";
 import { Plus, Sparkles } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
-import WorkspaceLoading from "./loading";
+import { WorkspaceShellSkeleton } from "./_components/workspace-skeleton";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -68,7 +68,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
   // Loading state
   if (!isAuthInit || (!isWsInit && user)) {
-    return <WorkspaceLoading />;
+    return <WorkspaceShellSkeleton />;
   }
 
   // If auth has an error (e.g. backend down), show the error UI

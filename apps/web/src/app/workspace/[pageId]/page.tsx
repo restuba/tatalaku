@@ -227,8 +227,8 @@ function PageDetail({ page }: { page: Page }) {
       <TopBar items={breadcrumbItems} actions={topBarActions} />
 
       <div
-        className={`flex-1 flex flex-col w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-all duration-200 ${
-          page.isFullWidth ? "max-w-none" : "max-w-3xl"
+        className={`flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-all duration-200 ${
+          page.isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"
         }`}
       >
         {/* Page Header: Icon & Title */}

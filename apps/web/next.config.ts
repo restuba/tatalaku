@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 // Where the web server proxies /api requests to (the backend service).
-// Server-side only; falls back to localhost for local development.
-const API_PROXY_TARGET = process.env.API_PROXY_TARGET;
+// Server-side only. Falls back to localhost so builds without the env set
+// (e.g. CI) still produce a valid rewrite destination instead of "undefined".
+const API_PROXY_TARGET = process.env.API_PROXY_TARGET ?? "http://localhost:5000";
 
 const nextConfig: NextConfig = {
   output: "standalone",

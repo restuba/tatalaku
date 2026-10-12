@@ -278,7 +278,7 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
 
   return (
     <div
-      className="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-40 flex items-center select-none"
+      className="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex items-center select-none"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

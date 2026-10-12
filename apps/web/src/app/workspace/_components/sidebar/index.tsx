@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
@@ -89,7 +89,14 @@ export function Sidebar() {
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
   const [isPagesOpen, setIsPagesOpen] = useState(true);
 
-  const { isSidebarOpen, toggleSidebar, setCommandPaletteOpen } = useUIStore();
+  const { isSidebarOpen, toggleSidebar, setSidebarOpen, setCommandPaletteOpen } = useUIStore();
+
+  // On small screens the sidebar is an overlay: close it after navigating
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      setSidebarOpen(false);
+    }
+  }, [pathname, setSidebarOpen]);
 
   const rootPages = pages.filter(
     (p) => (p.parentPageId === null || p.parentPageId === undefined) && !p.isArchived,
@@ -111,9 +118,17 @@ export function Sidebar() {
 
   return (
     <>
+      {/* Mobile backdrop: sidebar overlays the content instead of squeezing it */}
+      {isSidebarOpen && (
+        <div
+          aria-hidden
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-ink/20 md:hidden animate-in fade-in-0 duration-150"
+        />
+      )}
       <aside
-        className={`h-screen bg-codex-sidebar flex flex-col select-none shrink-0 transition-all duration-200 ease-out relative group/sidebar z-20 ${
-          isSidebarOpen ? "w-60" : "w-0 overflow-hidden"
+        className={`h-screen bg-codex-sidebar flex flex-col select-none shrink-0 transition-all duration-200 ease-out group/sidebar fixed inset-y-0 left-0 z-40 md:relative md:z-20 ${
+          isSidebarOpen ? "w-60 shadow-xl md:shadow-none" : "w-0 overflow-hidden"
         }`}
       >
         <div

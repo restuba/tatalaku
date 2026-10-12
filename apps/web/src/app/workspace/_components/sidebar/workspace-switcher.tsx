@@ -89,7 +89,7 @@ export function WorkspaceSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 glass-surface border border-codex-border rounded-codex-xl p-1.5 min-w-[240px] shadow-lg animate-in fade-in-0 zoom-in-95 duration-100">
+        <div className="absolute top-full left-0 mt-1.5 z-50 glass-surface border border-codex-border rounded-codex-xl p-1.5 w-56 shadow-lg animate-in fade-in-0 zoom-in-95 duration-100">
           {/* User Profile Section */}
           <div className="flex items-center gap-2.5 px-2 py-2 mb-1.5 border-b border-codex-border/50">
             <div className="w-8 h-8 rounded-full bg-codex-background border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-bold shrink-0">
