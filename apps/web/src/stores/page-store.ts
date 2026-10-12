@@ -7,6 +7,7 @@ import { createPage } from "@/services/page/create-page";
 import { updatePage } from "@/services/page/update-page";
 import { archivePage } from "@/services/page/archive-page";
 import { restorePage } from "@/services/page/restore-page";
+import type { JSONContent } from "@tiptap/core";
 
 interface PageState {
   pages: Page[];
@@ -36,6 +37,13 @@ interface PageActions {
       isFullWidth?: boolean;
     },
   ) => Promise<Page>;
+  /** Creates a page pre-filled with editor content (e.g. from a Markdown import). */
+  importPage: (input: {
+    workspaceId: string;
+    parentPageId?: string | null;
+    title: string;
+    content: JSONContent;
+  }) => Promise<Page>;
   archivePage: (id: string) => Promise<void>;
   restorePage: (id: string) => Promise<void>;
   toggleExpand: (pageId: string) => void;
@@ -129,6 +137,24 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
       set((state) => ({
         pages: state.pages.filter((p) => p.id !== tempId),
       }));
+      throw err;
+    }
+  },
+
+  importPage: async ({ content, ...createInput }) => {
+    const created = await get().createPage(createInput);
+
+    try {
+      const res = await updatePage(created.id, { content: JSON.stringify(content) });
+      const importedPage = res.data;
+      set((state) => ({
+        pages: state.pages.map((p) => (p.id === created.id ? importedPage : p)),
+      }));
+      return importedPage;
+    } catch (err) {
+      // Don't leave an empty page behind: soft-delete it and drop it from the tree
+      set((state) => ({ pages: state.pages.filter((p) => p.id !== created.id) }));
+      await archivePage(created.id).catch(() => undefined);
       throw err;
     }
   },

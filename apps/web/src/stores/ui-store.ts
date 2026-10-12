@@ -8,6 +8,8 @@ interface UIState {
   isOutlineOpen: boolean;
   /** Transient: never persisted, so a reload always starts closed */
   isCommandPaletteOpen: boolean;
+  /** Transient: never persisted */
+  isImportMarkdownOpen: boolean;
   /** Used by the Home "Getting started" checklist */
   hasUsedCommandPalette: boolean;
   isOnboardingDismissed: boolean;
@@ -20,6 +22,7 @@ interface UIActions {
   setOutlineOpen: (isOpen: boolean) => void;
   setCommandPaletteOpen: (isOpen: boolean) => void;
   toggleCommandPalette: () => void;
+  setImportMarkdownOpen: (isOpen: boolean) => void;
   dismissOnboarding: () => void;
 }
 
@@ -29,6 +32,7 @@ export const useUIStore = create<UIState & UIActions>()(
       isSidebarOpen: true,
       isOutlineOpen: false,
       isCommandPaletteOpen: false,
+      isImportMarkdownOpen: false,
       hasUsedCommandPalette: false,
       isOnboardingDismissed: false,
 
@@ -64,6 +68,10 @@ export const useUIStore = create<UIState & UIActions>()(
           isCommandPaletteOpen: !state.isCommandPaletteOpen,
           hasUsedCommandPalette: true,
         }));
+      },
+
+      setImportMarkdownOpen: (isOpen) => {
+        set({ isImportMarkdownOpen: isOpen });
       },
 
       dismissOnboarding: () => {

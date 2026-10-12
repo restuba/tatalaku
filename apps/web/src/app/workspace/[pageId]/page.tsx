@@ -10,8 +10,10 @@ import { BlockEditor, type SaveStatus } from "@/components/editor/block-editor";
 import { PageHeaderSkeleton, PageContentSkeleton } from "@/components/ui/skeleton";
 import type { BreadcrumbItem } from "@/components/shared/breadcrumb";
 import { formatTimeAgo, formatFullDate } from "@/lib/date";
+import { getPage } from "@/services/page/get-page";
+import { pageToMarkdown, downloadMarkdown, markdownFileName } from "@/lib/markdown-export";
 import { TopBar } from "../_components/top-bar";
-import { FileText, Plus, Smile, ArrowLeft, MoreHorizontal } from "lucide-react";
+import { FileText, Plus, Smile, ArrowLeft, MoreHorizontal, Download } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
 
@@ -30,6 +32,7 @@ function PageDetail({ page }: { page: Page }) {
   const [icon, setIcon] = useState(page.icon);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [localEditedAt, setLocalEditedAt] = useState<Date | string | null>(null);
   const lastEditedAt = localEditedAt || page.updatedAt || null;
@@ -134,6 +137,21 @@ function PageDetail({ page }: { page: Page }) {
     }
   }
 
+  async function handleExportMarkdown() {
+    setIsOptionsOpen(false);
+    setIsExporting(true);
+    try {
+      // Fetch the latest content so unsaved debounced edits aren't missed
+      const res = await getPage(page.id);
+      downloadMarkdown(markdownFileName(res.data.title), pageToMarkdown(res.data));
+    } catch {
+      // Fall back to the content already in the store
+      downloadMarkdown(markdownFileName(page.title), pageToMarkdown(page));
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   async function handleAddSubpage() {
     if (!activeWorkspace) return;
     setIsOptionsOpen(false);
@@ -207,6 +225,16 @@ function PageDetail({ page }: { page: Page }) {
             >
               <Plus className="w-4 h-4 text-codex-muted" />
               <span>Add subpage</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportMarkdown}
+              disabled={isExporting}
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4 text-codex-muted" />
+              <span>{isExporting ? "Exporting…" : "Export to Markdown"}</span>
             </button>
 
             {/* Page metadata lives here instead of cluttering the canvas */}

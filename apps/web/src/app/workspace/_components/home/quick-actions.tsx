@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Upload } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 
 interface QuickActionsProps {
@@ -37,7 +37,7 @@ function ActionChip({
 }
 
 export function QuickActions({ onCreatePage, disabled }: QuickActionsProps) {
-  const { setCommandPaletteOpen } = useUIStore();
+  const { setCommandPaletteOpen, setImportMarkdownOpen } = useUIStore();
 
   return (
     <div className="flex flex-wrap items-center gap-2 mt-6">
@@ -45,6 +45,12 @@ export function QuickActions({ onCreatePage, disabled }: QuickActionsProps) {
         icon={<Plus className="w-4 h-4" />}
         label="New page"
         onClick={onCreatePage}
+        disabled={disabled}
+      />
+      <ActionChip
+        icon={<Upload className="w-4 h-4" />}
+        label="Import Markdown"
+        onClick={() => setImportMarkdownOpen(true)}
         disabled={disabled}
       />
       <ActionChip

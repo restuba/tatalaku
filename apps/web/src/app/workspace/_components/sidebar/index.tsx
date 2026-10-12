@@ -7,7 +7,16 @@ import { usePageStore } from "@/stores/page-store";
 import { useUIStore } from "@/stores/ui-store";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { PageTreeItem } from "./page-tree-item";
-import { Search, Settings, Home, Plus, Trash2, ChevronsLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Settings,
+  Home,
+  Plus,
+  Trash2,
+  ChevronsLeft,
+  ChevronRight,
+  Upload,
+} from "lucide-react";
 import { TrashModal } from "./trash-modal";
 import { SettingsModal, type SettingsTab } from "./settings-modal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,7 +98,13 @@ export function Sidebar() {
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
   const [isPagesOpen, setIsPagesOpen] = useState(true);
 
-  const { isSidebarOpen, toggleSidebar, setSidebarOpen, setCommandPaletteOpen } = useUIStore();
+  const {
+    isSidebarOpen,
+    toggleSidebar,
+    setSidebarOpen,
+    setCommandPaletteOpen,
+    setImportMarkdownOpen,
+  } = useUIStore();
 
   // On small screens the sidebar is an overlay: close it after navigating
   useEffect(() => {
@@ -232,6 +247,12 @@ export function Sidebar() {
                 setSettingsInitialTab("account");
                 setIsSettingsOpen(true);
               }}
+            />
+            <NavItem
+              icon={<Upload className="w-4 h-4" />}
+              label="Import Markdown"
+              onClick={() => setImportMarkdownOpen(true)}
+              disabled={!activeWorkspace}
             />
             <NavItem
               icon={<Trash2 className="w-4 h-4" />}

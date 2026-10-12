@@ -2,31 +2,17 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import { Table } from "@tiptap/extension-table";
-import { TableRow } from "@tiptap/extension-table-row";
-import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Focus from "@tiptap/extension-focus";
-import { TextStyle, Color, BackgroundColor } from "@tiptap/extension-text-style";
-import { all, createLowlight } from "lowlight";
-import { CodeBlock } from "./extensions/code-block";
-
-const lowlight = createLowlight(all);
-
-import { Toggle } from "./extensions/toggle";
+import { createContentExtensions } from "./extensions";
 import { SlashCommands } from "./extensions/slash-command";
-import { GlobalId } from "./extensions/global-id";
-import { Mermaid } from "./extensions/mermaid";
 import { BlockSelection } from "./extensions/block-selection";
 import { BlockDragDrop } from "./extensions/drag-drop-block";
 import { getPage } from "@/services/page/get-page";
 import { updatePage } from "@/services/page/update-page";
 import { BlockMenu } from "./block-menu";
 import { EditorBubbleMenu } from "./editor-bubble-menu";
-import { TableControls, ColorTableCell, ColorTableHeader } from "./table";
+import { TableControls } from "./table";
 import { TableOfContents, scrollToTargetNode } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
 import { Logo } from "@/components/ui/logo";
@@ -76,30 +62,7 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
   const editor = useEditor({
     immediatelyRender: true,
     extensions: [
-      GlobalId,
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-        codeBlock: false,
-      }),
-      CodeBlock.configure({
-        lowlight,
-      }),
-      TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      ColorTableHeader,
-      ColorTableCell,
-      Image.configure({
-        inline: false,
-        allowBase64: true,
-      }),
+      ...createContentExtensions(),
       Placeholder.configure({
         placeholder: "Type '/' for commands, or just start writing...",
       }),
@@ -110,13 +73,6 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
         className: "has-focus",
         mode: "deepest",
       }),
-      // Text color + background color marks for the bubble menu. TextStyle is the
-      // shared <span> container; Color and BackgroundColor add their attributes.
-      TextStyle,
-      Color,
-      BackgroundColor,
-      Toggle,
-      Mermaid,
       SlashCommands,
       BlockSelection,
       BlockDragDrop,
