@@ -7,6 +7,7 @@ import {
   updatePageSchema,
   pageParamsSchema,
   listPagesQuerySchema,
+  searchPagesSchema,
 } from "./pages.validation.js";
 
 export const pagesRouter = Router();
@@ -22,6 +23,12 @@ pagesRouter.get("/", validate(listPagesQuerySchema, "query"), (req, res, next) =
 // POST /api/pages - Create a new page
 pagesRouter.post("/", validate(createPageSchema, "body"), (req, res, next) =>
   pagesController.create(req, res, next),
+);
+
+// GET /api/pages/search - Full-text search pages in a workspace
+// Registered before "/:pageId" so it isn't captured as a page id
+pagesRouter.get("/search", validate(searchPagesSchema, "query"), (req, res, next) =>
+  pagesController.search(req, res, next),
 );
 
 // GET /api/pages/:pageId/children - Get subpages of a page

@@ -8,7 +8,49 @@ import type {
   UpdatePageInput,
   ListPagesQuery,
   GetChildrenQuery,
+  SearchPagesQuery,
 } from "./pages.validation.js";
+
+export interface PageSearchResult extends Page {
+  /** Short plaintext excerpt of the content around the match, if any */
+  snippet: string | null;
+}
+
+/**
+ * Extracts readable plaintext from a stored Tiptap JSON document so we can
+ * build a human-friendly snippet. Falls back to the raw string on parse error.
+ */
+function contentToPlainText(content: string | null): string {
+  if (!content) return "";
+  try {
+    const doc = JSON.parse(content);
+    const parts: string[] = [];
+    const walk = (node: unknown): void => {
+      if (!node || typeof node !== "object") return;
+      const n = node as { text?: unknown; content?: unknown };
+      if (typeof n.text === "string") parts.push(n.text);
+      if (Array.isArray(n.content)) n.content.forEach(walk);
+    };
+    walk(doc);
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  } catch {
+    return content.replace(/\s+/g, " ").trim();
+  }
+}
+
+/** Builds a ~160 char excerpt centered on the first match of `query`. */
+function buildSnippet(plain: string, query: string): string | null {
+  if (!plain) return null;
+  const idx = plain.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) {
+    return plain.length > 160 ? `${plain.slice(0, 160)}…` : plain;
+  }
+  const start = Math.max(0, idx - 60);
+  const end = Math.min(plain.length, idx + query.length + 100);
+  const prefix = start > 0 ? "…" : "";
+  const suffix = end < plain.length ? "…" : "";
+  return `${prefix}${plain.slice(start, end)}${suffix}`;
+}
 
 function toPageResponse(doc: PageDocument): Page {
   return {
@@ -75,6 +117,39 @@ export class PagesService {
         totalPages: Math.ceil(total / query.limit),
       },
     };
+  }
+
+  /**
+   * Full-text search over non-archived pages in a workspace. Matches titles
+   * and content; short queries (< 3 chars) fall back to a title prefix regex
+   * since MongoDB text search ignores very short / stop-word terms.
+   */
+  async search(userId: string, query: SearchPagesQuery): Promise<PageSearchResult[]> {
+    await this.assertWorkspaceAccess(query.workspaceId, userId);
+
+    const q = query.q.trim();
+    const base = { workspaceId: query.workspaceId, isArchived: false };
+
+    let docs: PageDocument[];
+    if (q.length < 3) {
+      // Text index skips short terms, so do a case-insensitive title match
+      const safe = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      docs = await PageModel.find({ ...base, title: { $regex: safe, $options: "i" } }).limit(
+        query.limit,
+      );
+    } else {
+      docs = await PageModel.find(
+        { ...base, $text: { $search: q } },
+        { score: { $meta: "textScore" } },
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .limit(query.limit);
+    }
+
+    return docs.map((doc) => {
+      const plain = contentToPlainText(doc.content ?? null);
+      return { ...toPageResponse(doc), snippet: buildSnippet(plain, q) };
+    });
   }
 
   /**

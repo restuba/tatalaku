@@ -113,6 +113,77 @@ describe("PagesService", () => {
     });
   });
 
+  describe("search", () => {
+    it("should throw ForbiddenError if user lacks workspace access", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: "other-user",
+        memberIds: [],
+      } as never);
+
+      await expect(
+        pagesService.search(mockUserId, { workspaceId: mockWorkspaceId, q: "hello", limit: 20 }),
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    it("should use text search for queries of 3+ chars and return snippets", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: mockUserId,
+        memberIds: [],
+      } as never);
+
+      const limit = vi.fn().mockResolvedValueOnce([
+        {
+          _id: "page-1",
+          workspaceId: mockWorkspaceId,
+          title: "Meeting notes",
+          content: JSON.stringify({
+            type: "doc",
+            content: [
+              { type: "paragraph", content: [{ type: "text", text: "Discuss the roadmap today" }] },
+            ],
+          }),
+        },
+      ]);
+      const sort = vi.fn().mockReturnValue({ limit });
+      const find = vi.fn().mockReturnValue({ sort });
+      vi.mocked(PageModel.find).mockImplementation(find as never);
+
+      const results = await pagesService.search(mockUserId, {
+        workspaceId: mockWorkspaceId,
+        q: "roadmap",
+        limit: 20,
+      });
+
+      // Text query path: $text + textScore sort
+      expect(find).toHaveBeenCalledWith(
+        expect.objectContaining({ $text: { $search: "roadmap" }, isArchived: false }),
+        expect.objectContaining({ score: expect.anything() }),
+      );
+      expect(results).toHaveLength(1);
+      expect(results[0]?.snippet).toContain("roadmap");
+    });
+
+    it("should fall back to a title regex for short queries", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: mockUserId,
+        memberIds: [],
+      } as never);
+
+      const limit = vi.fn().mockResolvedValueOnce([]);
+      const find = vi.fn().mockReturnValue({ limit });
+      vi.mocked(PageModel.find).mockImplementation(find as never);
+
+      await pagesService.search(mockUserId, { workspaceId: mockWorkspaceId, q: "hi", limit: 20 });
+
+      expect(find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: { $regex: "hi", $options: "i" },
+          isArchived: false,
+        }),
+      );
+    });
+  });
+
   describe("permanentDelete", () => {
     it("should throw NotFoundError if page does not exist", async () => {
       vi.mocked(PageModel.findById).mockResolvedValueOnce(null);

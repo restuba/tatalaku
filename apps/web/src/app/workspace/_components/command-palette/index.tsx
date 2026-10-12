@@ -4,11 +4,13 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "rea
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { FileText, Home, Plus, Search } from "lucide-react";
+import type { Page } from "@tatalaku/shared";
 import { useUIStore } from "@/stores/ui-store";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { formatTimeAgo } from "@/lib/date";
+import { searchPages, type PageSearchResult } from "@/services/page/search-pages";
 import { filterPages, getParentPath } from "./filter-pages";
 
 const RESULT_LIMIT = 20;
@@ -59,6 +61,12 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
 
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  // Server results are tagged with the query they belong to, so stale results
+  // from a previous keystroke are ignored during render without a reset effect.
+  const [serverSearch, setServerSearch] = useState<{ q: string; results: PageSearchResult[] }>({
+    q: "",
+    results: [],
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const listboxId = useId();
@@ -70,16 +78,40 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     return () => previouslyFocused?.focus?.();
   }, []);
 
+  // Server-side full-text search (title + content), debounced. Local filtering
+  // still runs for instant feedback; server results add content matches and
+  // pages that may not be loaded in the store.
+  const workspaceId = activeWorkspace?.id;
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed || !workspaceId) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      searchPages({ workspaceId, q: trimmed, limit: RESULT_LIMIT })
+        .then((res) => {
+          if (!cancelled) setServerSearch({ q: trimmed, results: res.data });
+        })
+        .catch(() => {
+          if (!cancelled) setServerSearch({ q: trimmed, results: [] });
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, workspaceId]);
+
   const pagesById = useMemo(() => new Map(pages.map((p) => [p.id, p])), [pages]);
 
   const items = useMemo<PaletteItem[]>(() => {
-    const isSearching = query.trim().length > 0;
+    const trimmed = query.trim();
+    const isSearching = trimmed.length > 0;
 
-    const pageItems: PaletteItem[] = filterPages(pages, query, RESULT_LIMIT).map((page) => ({
+    const toPageItem = (page: Page, snippet?: string | null): PaletteItem => ({
       id: `page-${page.id}`,
       group: isSearching ? "Pages" : "Recent",
       label: page.title || "Untitled",
-      hint: getParentPath(page, pagesById) || undefined,
+      hint: snippet || getParentPath(page, pagesById) || undefined,
       meta: formatTimeAgo(page.updatedAt || page.createdAt),
       icon: page.icon ? (
         <span className="leading-none">{page.icon}</span>
@@ -87,9 +119,23 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
         <FileText className="w-4 h-4" />
       ),
       onSelect: () => router.push(`/workspace/${page.id}`),
-    }));
+    });
 
-    const trimmed = query.trim();
+    // Local title matches first (instant), then server matches that add new
+    // hits (content matches or pages not in the store), deduped by id.
+    const localPages = filterPages(pages, query, RESULT_LIMIT);
+    const seen = new Set(localPages.map((p) => p.id));
+    // Only trust server results that match the current query (ignore stale ones)
+    const freshServer = serverSearch.q === trimmed ? serverSearch.results : [];
+    const pageItems: PaletteItem[] = [
+      ...localPages.map((p) => toPageItem(p)),
+      ...(isSearching
+        ? freshServer
+            .filter((p) => !seen.has(p.id))
+            .slice(0, RESULT_LIMIT)
+            .map((p) => toPageItem(p, p.snippet))
+        : []),
+    ];
     const actionItems: PaletteItem[] = [
       {
         id: "action-new-page",
@@ -127,7 +173,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
       : actionItems;
 
     return [...pageItems, ...visibleActions];
-  }, [query, pages, pagesById, activeWorkspace, createPage, router]);
+  }, [query, pages, pagesById, serverSearch, activeWorkspace, createPage, router]);
 
   // Keep the highlighted row in bounds and in view
   const safeIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
