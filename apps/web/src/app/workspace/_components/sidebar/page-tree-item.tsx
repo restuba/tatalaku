@@ -138,8 +138,10 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         }`}
         style={{ paddingLeft: `${Math.max(level * 14 + 8, 8)}px` }}
       >
-        <div className="flex items-center gap-1 min-w-0 flex-1">
-          {/* Chevron or placeholder */}
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          {/* Icon ⇄ Chevron: a single slot that shows the page icon at rest and
+              swaps to an expand/collapse chevron on hover. Every page can be
+              expanded; empty ones reveal a "No pages inside" placeholder. */}
           <button
             type="button"
             onClick={(e) => {
@@ -147,27 +149,29 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
               e.stopPropagation();
               toggleExpand(page.id);
             }}
-            className={`w-4 h-4 flex items-center justify-center rounded-codex-sm hover:bg-codex-border/60 transition-transform duration-150 shrink-0 ${
-              hasChildren
-                ? "opacity-70 group-hover:opacity-100"
-                : "opacity-0 group-hover:opacity-40"
-            }`}
+            aria-label={isExpanded ? "Collapse" : "Expand"}
+            aria-expanded={isExpanded}
+            className="relative w-4 h-4 shrink-0 flex items-center justify-center rounded-codex-sm text-codex-muted hover:bg-codex-border/60"
           >
+            {/* Icon: visible at rest, hidden on hover (or while expanded) */}
+            <span
+              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ${
+                isExpanded ? "opacity-0" : "opacity-100 group-hover:opacity-0"
+              }`}
+            >
+              {page.icon ? (
+                <span className="text-sm leading-none">{page.icon}</span>
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+            </span>
+            {/* Chevron: hidden at rest, revealed on hover (or while expanded) */}
             <ChevronRight
-              className={`w-3.5 h-3.5 transition-transform duration-150 ${
-                isExpanded ? "rotate-90" : ""
+              className={`absolute inset-0 m-auto w-3.5 h-3.5 transition-all duration-150 ${
+                isExpanded ? "opacity-100 rotate-90" : "opacity-0 group-hover:opacity-100 rotate-0"
               }`}
             />
           </button>
-
-          {/* Icon */}
-          <span className="shrink-0 text-codex-muted">
-            {page.icon ? (
-              <span className="text-sm leading-none">{page.icon}</span>
-            ) : (
-              <FileText className="w-4 h-4" />
-            )}
-          </span>
 
           {/* Title or Inline Edit */}
           {isEditing ? (
@@ -285,13 +289,21 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
       </div>
 
       {/* Recursive Subpages */}
-      {hasChildren && isExpanded && (
-        <div className="space-y-0.5 mt-0.5">
-          {childPages.map((child) => (
-            <PageTreeItem key={child.id} page={child} level={level + 1} />
-          ))}
-        </div>
-      )}
+      {isExpanded &&
+        (hasChildren ? (
+          <div className="space-y-0.5 mt-0.5">
+            {childPages.map((child) => (
+              <PageTreeItem key={child.id} page={child} level={level + 1} />
+            ))}
+          </div>
+        ) : (
+          <p
+            className="mt-0.5 py-0.5 text-xs italic text-codex-muted/70 select-none"
+            style={{ paddingLeft: `${Math.max((level + 1) * 14 + 8, 8)}px` }}
+          >
+            No pages inside
+          </p>
+        ))}
     </div>
   );
 }
