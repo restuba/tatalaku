@@ -7,6 +7,7 @@ import type { Page } from "@tatalaku/shared";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
+import { useHydratedFullWidth } from "@/stores/ui-store";
 import { WorkspaceHomeSkeleton } from "@/components/ui/skeleton";
 import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import { TopBar } from "./_components/top-bar";
@@ -31,6 +32,7 @@ export default function WorkspaceHomePage() {
   const { user } = useAuthStore();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, createPage, updatePage, isInitialized } = usePageStore();
+  const isFullWidth = useHydratedFullWidth();
 
   const activePages = useMemo(
     () => pages.filter((p) => !p.isArchived).sort((a, b) => getLastTouched(b) - getLastTouched(a)),
@@ -77,7 +79,11 @@ export default function WorkspaceHomePage() {
     <div className="flex-1 flex flex-col relative w-full">
       <TopBar items={[{ label: "Home" }]} />
 
-      <div className="flex-1 max-w-3xl w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24">
+      <div
+        className={`flex-1 w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-all duration-200 ${
+          isFullWidth ? "max-w-none" : "max-w-3xl"
+        }`}
+      >
         {/* Greeting */}
         <p className="text-sm text-codex-muted">{today}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-codex-foreground">

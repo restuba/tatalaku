@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useThemeStore } from "@/stores/theme-store";
+import { useUIStore } from "@/stores/ui-store";
 import { presets } from "@/lib/themes";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ import { useEffect, useState } from "react";
 export function AppearanceTab() {
   const { theme, setTheme } = useTheme();
   const { activeConfig, setCodeThemeId } = useThemeStore();
+  const { isFullWidth, setFullWidth } = useUIStore();
   const [mounted, setMounted] = useState(false);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -112,6 +114,37 @@ export function AppearanceTab() {
             );
           })}
         </div>
+      </div>
+
+      {/* Layout */}
+      <div className="space-y-3">
+        <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
+          Layout
+        </label>
+        <label className="flex items-center justify-between gap-4 p-3 rounded-codex-xl border border-codex-border/30 bg-codex-surface-secondary/20 cursor-pointer">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-codex-foreground">Full width pages</p>
+            <p className="text-xs text-codex-muted mt-0.5">
+              Use the entire window width for page content on this device.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isFullWidth}
+            aria-label="Full width pages"
+            onClick={() => setFullWidth(!isFullWidth)}
+            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+              isFullWidth ? "bg-codex-accent" : "bg-codex-border"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-codex-background transition-transform duration-150 ${
+                isFullWidth ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </label>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
+import { useHydratedFullWidth } from "@/stores/ui-store";
 import { BlockEditor, type SaveStatus } from "@/components/editor/block-editor";
 import { PageHeaderSkeleton, PageContentSkeleton } from "@/components/ui/skeleton";
 import type { BreadcrumbItem } from "@/components/shared/breadcrumb";
@@ -27,6 +28,7 @@ function PageDetail({ page }: { page: Page }) {
   const router = useRouter();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, updatePage, createPage } = usePageStore();
+  const isFullWidth = useHydratedFullWidth();
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
@@ -199,25 +201,6 @@ function PageDetail({ page }: { page: Page }) {
 
         {isOptionsOpen && (
           <div className="absolute top-full right-0 mt-1 w-60 glass-surface border border-codex-border rounded-codex-lg p-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-            <label className="flex items-center justify-between px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary cursor-pointer transition-colors">
-              <span>Full width</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={page.isFullWidth}
-                onClick={() => updatePage(page.id, { isFullWidth: !page.isFullWidth })}
-                className={`relative inline-flex h-4 w-7 items-center rounded-full p-0.5 transition-colors ${
-                  page.isFullWidth ? "bg-codex-accent" : "bg-codex-border"
-                }`}
-              >
-                <span
-                  className={`inline-block h-3 w-3 rounded-full bg-codex-background transition-transform duration-150 ${
-                    page.isFullWidth ? "translate-x-3" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </label>
-
             <button
               type="button"
               onClick={handleAddSubpage}
@@ -256,7 +239,7 @@ function PageDetail({ page }: { page: Page }) {
 
       <div
         className={`flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-all duration-200 ${
-          page.isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"
+          isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"
         }`}
       >
         {/* Page Header: Icon & Title */}

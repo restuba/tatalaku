@@ -1,11 +1,14 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface UIState {
   isSidebarOpen: boolean;
   isOutlineOpen: boolean;
+  /** Render page content full width across the whole app (device preference) */
+  isFullWidth: boolean;
   /** Transient: never persisted, so a reload always starts closed */
   isCommandPaletteOpen: boolean;
   /** Transient: never persisted */
@@ -20,6 +23,8 @@ interface UIActions {
   setSidebarOpen: (isOpen: boolean) => void;
   toggleOutline: () => void;
   setOutlineOpen: (isOpen: boolean) => void;
+  toggleFullWidth: () => void;
+  setFullWidth: (isFullWidth: boolean) => void;
   setCommandPaletteOpen: (isOpen: boolean) => void;
   toggleCommandPalette: () => void;
   setImportMarkdownOpen: (isOpen: boolean) => void;
@@ -31,6 +36,7 @@ export const useUIStore = create<UIState & UIActions>()(
     (set) => ({
       isSidebarOpen: true,
       isOutlineOpen: false,
+      isFullWidth: false,
       isCommandPaletteOpen: false,
       isImportMarkdownOpen: false,
       hasUsedCommandPalette: false,
@@ -54,6 +60,14 @@ export const useUIStore = create<UIState & UIActions>()(
 
       setOutlineOpen: (isOpen) => {
         set({ isOutlineOpen: isOpen });
+      },
+
+      toggleFullWidth: () => {
+        set((state) => ({ isFullWidth: !state.isFullWidth }));
+      },
+
+      setFullWidth: (isFullWidth) => {
+        set({ isFullWidth });
       },
 
       setCommandPaletteOpen: (isOpen) => {
@@ -84,9 +98,27 @@ export const useUIStore = create<UIState & UIActions>()(
       partialize: (state) => ({
         isSidebarOpen: state.isSidebarOpen,
         isOutlineOpen: state.isOutlineOpen,
+        isFullWidth: state.isFullWidth,
         hasUsedCommandPalette: state.hasUsedCommandPalette,
         isOnboardingDismissed: state.isOnboardingDismissed,
       }),
     },
   ),
 );
+
+const noopSubscribe = () => () => {};
+
+/**
+ * Reads the persisted full-width preference, but returns the default (false)
+ * until the client has mounted. This keeps SSR and the first client render in
+ * sync and avoids a hydration mismatch from persisted zustand state.
+ */
+export function useHydratedFullWidth(): boolean {
+  const isMounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+  const isFullWidth = useUIStore((s) => s.isFullWidth);
+  return isMounted ? isFullWidth : false;
+}
