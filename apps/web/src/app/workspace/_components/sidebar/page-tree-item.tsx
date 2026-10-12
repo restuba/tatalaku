@@ -14,6 +14,7 @@ import {
   Edit2,
   Pin,
   PinOff,
+  GripVertical,
 } from "lucide-react";
 
 // Matches `w-48`; height is an estimate of the 3-item menu, used for flipping
@@ -48,8 +49,11 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
   const [editTitle, setEditTitle] = useState(page.title);
   // Where a dragged page would land relative to this row
   const [dropZone, setDropZone] = useState<"before" | "after" | "inside" | null>(null);
+  // Whether this row is the one currently being dragged
+  const [isDragging, setIsDragging] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
 
   const isExpanded = expandedPageIds.includes(page.id);
   const childPages = pages
@@ -72,6 +76,42 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     e.stopPropagation();
     e.dataTransfer.setData("application/x-tatalaku-page", page.id);
     e.dataTransfer.effectAllowed = "move";
+
+    // Replace the browser's default drag image (which, because the title is an
+    // <a>, renders an ugly "title + URL" box) with a clean icon + title chip.
+    // Use a clone of the actual sidebar row as the drag image so the lifted
+    // object matches the page row exactly (icon, spacing, font, size).
+    const row = rowRef.current;
+    if (row) {
+      const rect = row.getBoundingClientRect();
+      const ghost = row.cloneNode(true) as HTMLElement;
+
+      // Strip hover-only affordances (grip, actions) and left indent so the
+      // floating chip reads as a clean, self-contained page row.
+      ghost
+        .querySelectorAll<HTMLElement>("[data-drag-grip], [data-drag-actions], [data-drop-line]")
+        .forEach((el) => el.remove());
+
+      ghost.className =
+        "glass-surface flex items-center gap-1.5 pl-2 pr-3 py-1 rounded-codex-md " +
+        "border border-codex-border text-sm text-codex-foreground pointer-events-none";
+      ghost.style.cssText =
+        `position:fixed;top:-9999px;left:0;width:${Math.round(rect.width)}px;` +
+        "transform:rotate(-1.5deg);box-shadow:0 12px 28px rgba(0,0,0,0.28);";
+
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, 16, Math.round(rect.height / 2));
+      window.setTimeout(() => ghost.remove(), 0);
+    }
+
+    setIsDragging(true);
+    // Collapse while dragging so a deep subtree doesn't clutter the drop targets
+    if (isExpanded) setExpanded(page.id, false);
+  }
+
+  function handleDragEnd() {
+    setIsDragging(false);
+    setDropZone(null);
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -220,25 +260,53 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
   return (
     <div className="select-none">
       <div
+        ref={rowRef}
         draggable={!isEditing}
         onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`group flex items-center justify-between py-0.5 px-2 rounded-codex-md text-sm transition-colors duration-150 cursor-pointer relative ${
+        className={`group flex items-center justify-between py-0.5 pr-2 rounded-codex-md text-sm transition-all duration-150 relative ${
+          isDragging ? "opacity-40 cursor-grabbing" : "cursor-grab"
+        } ${
           isActive
             ? "bg-codex-border/60 text-codex-foreground font-medium"
             : "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground"
-        } ${dropZone === "inside" ? "ring-1 ring-inset ring-codex-accent bg-codex-accent/5" : ""}`}
-        style={{ paddingLeft: `${Math.max(level * 14 + 8, 8)}px` }}
+        } ${
+          dropZone === "inside" ? "ring-2 ring-inset ring-codex-accent/70 bg-codex-accent/10" : ""
+        }`}
+        style={{ paddingLeft: `${Math.max(level * 14 + 2, 2)}px` }}
       >
-        {/* Drop indicators for sibling placement */}
+        {/* Sibling drop indicators: a line with a leading dot */}
         {dropZone === "before" && (
-          <div className="absolute left-2 right-2 top-0 h-0.5 bg-codex-accent rounded-full" />
+          <div
+            data-drop-line
+            className="absolute left-2 right-2 -top-px flex items-center pointer-events-none"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-codex-accent -ml-0.5" />
+            <span className="flex-1 h-0.5 bg-codex-accent rounded-full" />
+          </div>
         )}
         {dropZone === "after" && (
-          <div className="absolute left-2 right-2 bottom-0 h-0.5 bg-codex-accent rounded-full" />
+          <div
+            data-drop-line
+            className="absolute left-2 right-2 -bottom-px flex items-center pointer-events-none"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-codex-accent -ml-0.5" />
+            <span className="flex-1 h-0.5 bg-codex-accent rounded-full" />
+          </div>
         )}
+
+        {/* Drag handle: appears on hover, hints the row is draggable */}
+        <span
+          data-drag-grip
+          aria-hidden="true"
+          className="w-3 shrink-0 flex items-center justify-center text-codex-muted/60 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <GripVertical className="w-3 h-3" />
+        </span>
+
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {/* Icon ⇄ Chevron: a single slot that shows the page icon at rest and
               swaps to an expand/collapse chevron on hover. Every page can be
@@ -305,7 +373,10 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
 
         {/* Hover Actions */}
         {!isEditing && (
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1">
+          <div
+            data-drag-actions
+            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1"
+          >
             {/* Quick Add Subpage */}
             <button
               type="button"
