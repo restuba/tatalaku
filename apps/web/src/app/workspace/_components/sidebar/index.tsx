@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { usePathname, useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
-import { useUIStore } from "@/stores/ui-store";
+import { SIDEBAR_DRAWER_QUERY as MOBILE_QUERY, useUIStore } from "@/stores/ui-store";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { PageTreeItem } from "./page-tree-item";
 import {
@@ -23,13 +23,12 @@ import { EASE_OUT, SPRING } from "@/components/motion";
 import { SIDEBAR_ACTIVE_LAYOUT_ID } from "./constants";
 import { TrashModal } from "./trash-modal";
 import { SettingsModal, type SettingsTab } from "./settings-modal";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PageTreeSkeleton } from "@/components/ui/skeleton";
 
 // Shared look for every clickable row in the sidebar
 const NAV_ITEM_BASE =
   "w-full flex items-center gap-2 px-2 py-1 pointer-coarse:py-2 rounded-codex-md text-sm transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed";
 
-const MOBILE_QUERY = "(max-width: 767px)";
 /** Horizontal drag (px) past which releasing a swipe closes the drawer */
 const SWIPE_CLOSE_THRESHOLD = 64;
 
@@ -370,14 +369,7 @@ export function Sidebar() {
               }
             >
               {isPagesLoading ? (
-                <div className="space-y-1 py-1">
-                  {["w-28", "w-20", "w-24", "w-32"].map((width, i) => (
-                    <div key={i} className="flex items-center gap-2 px-2 py-1">
-                      <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
-                      <Skeleton className={`${width} h-3.5 rounded-codex-sm`} />
-                    </div>
-                  ))}
-                </div>
+                <PageTreeSkeleton />
               ) : rootPages.length > 0 ? (
                 rootPages.map((page) => <PageTreeItem key={page.id} page={page} level={0} />)
               ) : (

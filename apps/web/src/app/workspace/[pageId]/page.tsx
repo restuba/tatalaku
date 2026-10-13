@@ -471,7 +471,9 @@ function PageDetail({ page }: { page: Page }) {
                 titleInputRef.current?.blur();
               }
             }}
-            className="w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
+            // block: an inline textarea sits on the text baseline and leaves a
+            // descender gap below it, which the page skeleton can't predict
+            className="block w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
           />
         </div>
 

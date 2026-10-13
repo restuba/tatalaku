@@ -2,17 +2,17 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { ApiRequestError } from "@/helpers/api-error";
+import { toSameOriginPath } from "@/lib/url";
 import { Eye, EyeOff } from "lucide-react";
-
-import { Suspense } from "react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 
-function LoginContent() {
+const DEFAULT_REDIRECT = "/workspace";
+
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const login = useAuthStore((s: ReturnType<typeof useAuthStore.getState>) => s.login);
   const isLoading = useAuthStore((s: ReturnType<typeof useAuthStore.getState>) => s.isLoading);
 
@@ -21,15 +21,17 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const from = searchParams.get("from") ?? "/workspace";
-
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
 
     try {
       await login({ email, password });
-      router.push(from);
+      // `?from=` is read at submit time (not via useSearchParams) so the page
+      // prerenders the full form instead of a Suspense fallback, and only
+      // same-origin paths are honored (no open redirect).
+      const from = new URLSearchParams(window.location.search).get("from");
+      router.push(toSameOriginPath(from, window.location.origin, DEFAULT_REDIRECT));
     } catch (err: unknown) {
       if (err instanceof ApiRequestError) {
         setError(err.message);
@@ -140,13 +142,5 @@ function LoginContent() {
         </Link>
       </p>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="text-center p-8">Loading...</div>}>
-      <LoginContent />
-    </Suspense>
   );
 }

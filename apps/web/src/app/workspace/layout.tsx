@@ -32,6 +32,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   const [initialWorkspaceName, setInitialWorkspaceName] = useState("");
   const [isCreatingFirstWs, setIsCreatingFirstWs] = useState(false);
 
+  // The route transition only plays between pages. On first load the content
+  // replaces a skeleton that is already on screen, so fading it in would blink.
+  const [landingPathname] = useState(pathname);
+  const [hasNavigated, setHasNavigated] = useState(false);
+  if (!hasNavigated && pathname !== landingPathname) {
+    setHasNavigated(true);
+  }
+
   // Initialize auth & workspaces
   useEffect(() => {
     fetchMe();
@@ -185,7 +193,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         <m.div
           key={pathname}
           className="flex-1 flex flex-col"
-          initial={{ opacity: 0, y: 12 }}
+          initial={hasNavigated ? { opacity: 0, y: 12 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.42, ease: EASE_OUT }}
         >

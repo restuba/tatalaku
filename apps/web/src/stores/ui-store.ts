@@ -15,6 +15,9 @@ export const UI_STORE_KEY = "tatalaku-ui-v1";
 
 export type SidebarPeek = "hidden" | "shown" | "leaving";
 
+/** Below this width the sidebar is an overlay drawer instead of a docked column */
+export const SIDEBAR_DRAWER_QUERY = "(max-width: 767px)";
+
 /** Where the sidebar peek is available: wide layouts with a hovering pointer */
 const PEEK_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
 /** Pointer may leave the peek this long before it starts closing (no flicker) */
@@ -176,6 +179,18 @@ export const useUIStore = create<UIState & UIActions>()(
         hasUsedCommandPalette: state.hasUsedCommandPalette,
         isOnboardingDismissed: state.isOnboardingDismissed,
       }),
+      // The drawer always starts closed on small screens. Done at rehydration
+      // (before the first render) so an "open" preference saved on a wide
+      // screen never flashes the drawer open on load.
+      onRehydrateStorage: () => (state) => {
+        if (
+          state?.isSidebarOpen &&
+          typeof window !== "undefined" &&
+          window.matchMedia(SIDEBAR_DRAWER_QUERY).matches
+        ) {
+          state.setSidebarOpen(false);
+        }
+      },
     },
   ),
 );
@@ -183,16 +198,24 @@ export const useUIStore = create<UIState & UIActions>()(
 const noopSubscribe = () => () => {};
 
 /**
- * Reads the persisted full-width preference, but returns the default (false)
- * until the client has mounted. This keeps SSR and the first client render in
- * sync and avoids a hydration mismatch from persisted zustand state.
+ * Reads persisted UI state, but returns `fallback` (the store default) until
+ * the client has mounted. This keeps SSR and the first client render in sync
+ * and avoids a hydration mismatch from persisted zustand state.
  */
-export function useHydratedFullWidth(): boolean {
+export function useHydratedUIValue<T>(selector: (state: UIState) => T, fallback: T): T {
   const isMounted = useSyncExternalStore(
     noopSubscribe,
     () => true,
     () => false,
   );
-  const isFullWidth = useUIStore((s) => s.isFullWidth);
-  return isMounted ? isFullWidth : false;
+  const value = useUIStore(selector);
+  return isMounted ? value : fallback;
+}
+
+export function useHydratedFullWidth(): boolean {
+  return useHydratedUIValue((s) => s.isFullWidth, false);
+}
+
+export function useHydratedSidebarOpen(): boolean {
+  return useHydratedUIValue((s) => s.isSidebarOpen, true);
 }

@@ -6,8 +6,8 @@ import {
   PageHeaderSkeleton,
   PageContentSkeleton,
   WorkspaceHomeSkeleton,
-  useHydratedSidebarOpen,
 } from "@/components/ui/skeleton";
+import { useHydratedSidebarOpen } from "@/stores/ui-store";
 
 /**
  * Skeleton for the main content area only — mirrors the route that is loading.
