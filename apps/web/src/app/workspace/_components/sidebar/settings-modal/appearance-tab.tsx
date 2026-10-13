@@ -2,15 +2,22 @@
 
 import { useTheme } from "next-themes";
 import { useThemeStore } from "@/stores/theme-store";
-import { useUIStore } from "@/stores/ui-store";
+import { useUIStore, type MotionPreference } from "@/stores/ui-store";
 import { presets } from "@/lib/themes";
-import { Monitor, Sun, Moon } from "lucide-react";
+import { Monitor, Sun, Moon, Sparkles, CircleSlash, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+
+const MOTION_OPTIONS: ReadonlyArray<{ value: MotionPreference; label: string; icon: LucideIcon }> =
+  [
+    { value: "system", label: "System", icon: Monitor },
+    { value: "on", label: "On", icon: Sparkles },
+    { value: "off", label: "Off", icon: CircleSlash },
+  ];
 
 export function AppearanceTab() {
   const { theme, setTheme } = useTheme();
   const { activeConfig, setCodeThemeId } = useThemeStore();
-  const { isFullWidth, setFullWidth } = useUIStore();
+  const { isFullWidth, setFullWidth, motion, setMotion } = useUIStore();
   const [mounted, setMounted] = useState(false);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -146,6 +153,43 @@ export function AppearanceTab() {
           </button>
         </label>
       </div>
+
+      {/* Motion */}
+      <fieldset className="space-y-3">
+        <legend className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
+          Motion
+        </legend>
+        <p className="text-xs text-codex-muted -mt-1">
+          Transitions and animations across the app. System follows your device&apos;s &ldquo;reduce
+          motion&rdquo; setting.
+        </p>
+        <div
+          role="radiogroup"
+          aria-label="Motion"
+          className="grid grid-cols-3 gap-1 p-1 bg-codex-surface-secondary/50 rounded-codex-lg border border-codex-border/50"
+        >
+          {MOTION_OPTIONS.map((option) => {
+            const isActive = motion === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={isActive}
+                onClick={() => setMotion(option.value)}
+                className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-codex-md text-xs font-medium transition-colors pointer-coarse:py-3.5 ${
+                  isActive
+                    ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
+                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
+                }`}
+              >
+                <option.icon className="w-4 h-4" aria-hidden="true" />
+                <span>{option.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { ArrowRight, FileText, Blocks, Search, Download } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+import { AuroraBackground } from "@/components/shared/aurora-canvas";
 import { SESSION_FLAG_COOKIE } from "@/helpers/session-flag";
 
 const FEATURES = [
@@ -36,19 +37,25 @@ export default async function LandingPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-codex-surface">
-      {/* Soft organic orbs (shared visual language with the auth screens) */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-codex-accent opacity-50 dark:opacity-30 blur-[120px] animate-pulse"
-          style={{ animationDuration: "12s" }}
-        />
-        <div className="absolute top-[20%] -right-[15%] w-[70%] h-[70%] rounded-full bg-codex-info opacity-40 dark:opacity-25 blur-[130px]" />
-        <div
-          className="absolute -bottom-[15%] left-[15%] w-[55%] h-[55%] rounded-full bg-codex-skill opacity-40 dark:opacity-25 blur-[100px] animate-pulse"
-          style={{ animationDuration: "18s" }}
-        />
-      </div>
-      <div className="absolute inset-0 backdrop-blur-[80px] bg-codex-surface/30 dark:bg-codex-surface/50 pointer-events-none" />
+      {/* Ambient aurora (WebGL); the CSS orbs are the fallback / pre-load state */}
+      <AuroraBackground
+        fallback={
+          <>
+            <div className="absolute inset-0">
+              <div
+                className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-codex-accent opacity-50 dark:opacity-30 blur-[120px] animate-pulse"
+                style={{ animationDuration: "12s" }}
+              />
+              <div className="absolute top-[20%] -right-[15%] w-[70%] h-[70%] rounded-full bg-codex-info opacity-40 dark:opacity-25 blur-[130px]" />
+              <div
+                className="absolute -bottom-[15%] left-[15%] w-[55%] h-[55%] rounded-full bg-codex-skill opacity-40 dark:opacity-25 blur-[100px] animate-pulse"
+                style={{ animationDuration: "18s" }}
+              />
+            </div>
+            <div className="absolute inset-0 backdrop-blur-[80px] bg-codex-surface/30 dark:bg-codex-surface/50" />
+          </>
+        }
+      />
 
       {/* Top bar */}
       <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 py-6">

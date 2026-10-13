@@ -45,6 +45,7 @@ function Modal({
   elevated = false,
   className = "",
   children,
+  "aria-label": ariaLabel,
 }: ModalProps) {
   const mounted = useIsMounted();
   const modalId = useId();
@@ -87,6 +88,7 @@ function Modal({
         }`}
         role="dialog"
         aria-modal="true"
+        aria-label={ariaLabel}
       >
         {/* Backdrop */}
         <div

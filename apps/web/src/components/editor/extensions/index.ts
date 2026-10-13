@@ -6,14 +6,16 @@ import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import Image from "@tiptap/extension-image";
 import { TextStyle, Color, BackgroundColor } from "@tiptap/extension-text-style";
-import { all, createLowlight } from "lowlight";
+// `common` = 37 widely used languages (incl. plaintext). The full set (`all`,
+// 192 languages) roughly triples the highlighter's size for rarely used grammars.
+import { common, createLowlight } from "lowlight";
 import { CodeBlock } from "./code-block";
 import { Toggle } from "./toggle";
 import { GlobalId } from "./global-id";
 import { Mermaid } from "./mermaid";
 import { ColorTableCell, ColorTableHeader } from "../table/table-extensions";
 
-const lowlight = createLowlight(all);
+const lowlight = createLowlight(common);
 
 /** Heading levels supported by the editor. Anything deeper is clamped. */
 export const HEADING_LEVELS = [1, 2, 3] as const;

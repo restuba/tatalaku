@@ -231,12 +231,31 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     const pageToRestore = previousArchived.find((p) => p.id === id);
     if (!pageToRestore) return;
 
-    // Optimistically update
-    const updatedPage = { ...pageToRestore, isArchived: false };
+    // Mirror the server: the whole archived subtree comes back, and the root
+    // moves to the top level if its parent isn't an active page.
+    const subtreeIds = new Set<string>([id]);
+    let frontier = [id];
+    while (frontier.length > 0) {
+      const next = previousArchived
+        .filter((p) => p.parentPageId && frontier.includes(p.parentPageId) && !subtreeIds.has(p.id))
+        .map((p) => p.id);
+      next.forEach((childId) => subtreeIds.add(childId));
+      frontier = next;
+    }
+    const parentIsActive =
+      pageToRestore.parentPageId !== null &&
+      previousPages.some((p) => p.id === pageToRestore.parentPageId);
+    const restored = previousArchived
+      .filter((p) => subtreeIds.has(p.id))
+      .map((p) => ({
+        ...p,
+        isArchived: false,
+        ...(p.id === id && !parentIsActive ? { parentPageId: null } : {}),
+      }));
 
     set((state) => ({
-      archivedPages: state.archivedPages.filter((p) => p.id !== id),
-      pages: [...state.pages, updatedPage],
+      archivedPages: state.archivedPages.filter((p) => !subtreeIds.has(p.id)),
+      pages: [...state.pages, ...restored],
     }));
 
     try {

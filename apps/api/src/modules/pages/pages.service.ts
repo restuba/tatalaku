@@ -516,7 +516,9 @@ export class PagesService {
   }
 
   /**
-   * Restore an archived page
+   * Restore an archived page together with its subtree (archive cascades to
+   * descendants, so restore mirrors it). If the page's parent is itself
+   * archived or gone, the page is moved to the top level so it stays visible.
    */
   async restore(pageId: string, userId: string): Promise<Page> {
     const doc = await PageModel.findById(pageId);
@@ -526,8 +528,20 @@ export class PagesService {
 
     await this.assertWorkspaceAccess(doc.workspaceId, userId);
 
+    if (doc.parentPageId) {
+      const parent = await PageModel.findById(doc.parentPageId, { isArchived: 1 }).lean();
+      if (!parent || parent.isArchived) {
+        doc.parentPageId = null;
+      }
+    }
+
     doc.isArchived = false;
     await doc.save();
+
+    const descendantIds = await this.collectDescendantIds(pageId, doc.workspaceId);
+    if (descendantIds.length > 0) {
+      await PageModel.updateMany({ _id: { $in: descendantIds } }, { $set: { isArchived: false } });
+    }
 
     return toPageResponse(doc);
   }

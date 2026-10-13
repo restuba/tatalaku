@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { Editor } from "@tiptap/react";
 import { ListTree, Hash, Sparkles } from "lucide-react";
+import { scrollBehavior } from "@/lib/motion";
 
 export interface ToCItem {
   id: string;
@@ -123,10 +124,10 @@ export function scrollToTargetNode(targetDom: HTMLElement | null) {
 
     mainContainer.scrollTo({
       top: Math.max(0, Math.round(targetTop)),
-      behavior: "smooth",
+      behavior: scrollBehavior(),
     });
   } else {
-    targetDom.scrollIntoView({ behavior: "smooth", block: "start" });
+    targetDom.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
   }
 
   // Trigger flash highlight animation
@@ -173,7 +174,7 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
   useEffect(() => {
     if (activeItemRef.current) {
       activeItemRef.current.scrollIntoView({
-        behavior: "smooth",
+        behavior: scrollBehavior(),
         block: "nearest",
       });
     }

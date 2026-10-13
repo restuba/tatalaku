@@ -8,12 +8,7 @@ import { Button } from "@/components/reusable/button";
 import { useUIStore } from "@/stores/ui-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
-import {
-  parseMarkdownFile,
-  isMarkdownFile,
-  MarkdownImportError,
-  MAX_MARKDOWN_FILE_SIZE,
-} from "@/lib/markdown-import";
+import { isMarkdownFile, MarkdownImportError, MAX_MARKDOWN_FILE_SIZE } from "@/lib/markdown-file";
 
 type ItemStatus = "pending" | "importing" | "done" | "error";
 
@@ -107,6 +102,8 @@ export function ImportMarkdownModal() {
       );
 
       try {
+        // Parser (marked + schema) is only downloaded when an import runs
+        const { parseMarkdownFile } = await import("@/lib/markdown-import");
         const { title, content } = await parseMarkdownFile(current.file);
         const page = await importPage({
           workspaceId: activeWorkspace.id,

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/ui/logo";
+import { AuroraBackground } from "@/components/shared/aurora-canvas";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -19,26 +20,25 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
       {/* Right side: Zen Canvas Visuals (Hidden on mobile) */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center bg-codex-surface/10">
-        {/* Soft Organic Orbs */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Orb 1: Accent */}
-          <div
-            className="absolute -top-[5%] -left-[10%] w-[70%] h-[70%] rounded-full bg-codex-accent opacity-60 dark:opacity-40 blur-[120px] animate-pulse"
-            style={{ animationDuration: "12s" }}
-          />
-
-          {/* Orb 2: Info */}
-          <div className="absolute top-[30%] -right-[15%] w-[80%] h-[80%] rounded-full bg-codex-info opacity-50 dark:opacity-30 blur-[130px]" />
-
-          {/* Orb 3: Skill */}
-          <div
-            className="absolute -bottom-[10%] left-[10%] w-[60%] h-[60%] rounded-full bg-codex-skill opacity-50 dark:opacity-30 blur-[100px] animate-pulse"
-            style={{ animationDuration: "18s" }}
-          />
-        </div>
-
-        {/* Frosted Glass Overlay */}
-        <div className="absolute inset-0 backdrop-blur-[80px] bg-codex-surface/30 dark:bg-codex-surface/50 pointer-events-none" />
+        {/* Ambient aurora (WebGL); soft CSS orbs + frosted glass as the fallback */}
+        <AuroraBackground
+          fallback={
+            <>
+              <div className="absolute inset-0">
+                <div
+                  className="absolute -top-[5%] -left-[10%] w-[70%] h-[70%] rounded-full bg-codex-accent opacity-60 dark:opacity-40 blur-[120px] animate-pulse"
+                  style={{ animationDuration: "12s" }}
+                />
+                <div className="absolute top-[30%] -right-[15%] w-[80%] h-[80%] rounded-full bg-codex-info opacity-50 dark:opacity-30 blur-[130px]" />
+                <div
+                  className="absolute -bottom-[10%] left-[10%] w-[60%] h-[60%] rounded-full bg-codex-skill opacity-50 dark:opacity-30 blur-[100px] animate-pulse"
+                  style={{ animationDuration: "18s" }}
+                />
+              </div>
+              <div className="absolute inset-0 backdrop-blur-[80px] bg-codex-surface/30 dark:bg-codex-surface/50" />
+            </>
+          }
+        />
 
         {/* Large Faint Logo Floating in Zen Space */}
         <div className="relative z-10 flex flex-col items-center opacity-10 dark:opacity-20 pointer-events-none transform scale-[2] translate-x-12">

@@ -147,7 +147,7 @@ export function WorkspaceSwitcher() {
                             setIsOpen(false);
                             setIsMembersModalOpen(true);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-codex-info rounded transition-all"
+                          className="opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 p-1 hover:text-codex-info rounded transition-all"
                           title="View members"
                         >
                           <Users className="w-3.5 h-3.5" />
@@ -160,7 +160,7 @@ export function WorkspaceSwitcher() {
                         setIsInviting(isInviting === ws.id ? null : ws.id);
                         setInviteEmail("");
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-codex-info rounded transition-all"
+                      className="opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 p-1 hover:text-codex-info rounded transition-all"
                       title="Invite member"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
@@ -168,7 +168,7 @@ export function WorkspaceSwitcher() {
                     {workspaces.length > 1 && (
                       <button
                         onClick={(e) => handleDeleteWorkspace(ws.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-codex-danger rounded transition-all"
+                        className="opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 p-1 hover:text-codex-danger rounded transition-all"
                         title="Delete workspace"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

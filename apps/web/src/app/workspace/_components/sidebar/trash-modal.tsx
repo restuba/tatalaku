@@ -111,7 +111,7 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
                       />
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
                       <Button
                         variant="text"
                         size="small"

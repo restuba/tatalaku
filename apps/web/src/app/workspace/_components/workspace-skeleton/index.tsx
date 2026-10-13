@@ -37,7 +37,7 @@ export function WorkspaceShellSkeleton() {
   const isSidebarOpen = useHydratedSidebarOpen();
 
   return (
-    <div className="h-screen w-full flex overflow-hidden bg-codex-background">
+    <div className="h-dvh w-full flex overflow-hidden bg-codex-background">
       {/* On mobile the real sidebar is a closed overlay */}
       {isSidebarOpen && (
         <div className="hidden md:block">
@@ -45,7 +45,7 @@ export function WorkspaceShellSkeleton() {
         </div>
       )}
 
-      <div className="flex-1 h-screen overflow-y-auto flex flex-col relative z-10 bg-codex-background">
+      <div className="flex-1 h-dvh overflow-y-auto flex flex-col relative z-10 bg-codex-background">
         <WorkspaceContentSkeleton />
       </div>
     </div>

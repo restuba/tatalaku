@@ -113,7 +113,7 @@ export function PageContentSkeleton() {
  */
 export function SidebarSkeleton() {
   return (
-    <aside className="w-60 h-screen bg-codex-sidebar flex flex-col select-none shrink-0 p-2 space-y-4">
+    <aside className="w-60 h-dvh bg-codex-sidebar flex flex-col select-none shrink-0 p-2 space-y-4">
       {/* Workspace Switcher Skeleton */}
       <div className="flex items-center gap-2 px-2 py-1.5">
         <Skeleton className="w-5 h-5 rounded-codex-sm shrink-0" />

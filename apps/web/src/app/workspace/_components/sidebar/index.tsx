@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
@@ -23,7 +23,74 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Shared look for every clickable row in the sidebar
 const NAV_ITEM_BASE =
-  "w-full flex items-center gap-2 px-2 py-1 rounded-codex-md text-sm transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed";
+  "w-full flex items-center gap-2 px-2 py-1 pointer-coarse:py-2 rounded-codex-md text-sm transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed";
+
+const MOBILE_QUERY = "(max-width: 767px)";
+/** Horizontal drag (px) past which releasing a swipe closes the drawer */
+const SWIPE_CLOSE_THRESHOLD = 64;
+
+/**
+ * Swipe-left-to-close for the mobile sidebar drawer. Moves the panel with the
+ * finger via a direct style write (no React re-render per touchmove) and
+ * either closes or springs back on release. Vertical scrolls are left alone.
+ */
+function useSwipeToClose(
+  panelRef: React.RefObject<HTMLElement | null>,
+  isOpen: boolean,
+  onClose: () => void,
+) {
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel || !isOpen) return undefined;
+
+    let startX = 0;
+    let startY = 0;
+    let dx = 0;
+    let tracking: "undecided" | "horizontal" | "vertical" = "undecided";
+
+    const onStart = (e: TouchEvent) => {
+      if (!window.matchMedia(MOBILE_QUERY).matches || e.touches.length !== 1) return;
+      const touch = e.touches[0]!;
+      startX = touch.clientX;
+      startY = touch.clientY;
+      dx = 0;
+      tracking = "undecided";
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!window.matchMedia(MOBILE_QUERY).matches || e.touches.length !== 1) return;
+      const touch = e.touches[0]!;
+      const moveX = touch.clientX - startX;
+      const moveY = touch.clientY - startY;
+      if (tracking === "undecided" && Math.abs(moveX) + Math.abs(moveY) > 8) {
+        tracking = Math.abs(moveX) > Math.abs(moveY) ? "horizontal" : "vertical";
+      }
+      if (tracking !== "horizontal") return;
+      dx = Math.min(0, moveX);
+      panel.style.transition = "none";
+      panel.style.transform = `translateX(${dx}px)`;
+    };
+    const onEnd = () => {
+      if (tracking !== "horizontal") return;
+      panel.style.transition = "";
+      panel.style.transform = "";
+      if (dx < -SWIPE_CLOSE_THRESHOLD) onClose();
+      tracking = "undecided";
+    };
+
+    panel.addEventListener("touchstart", onStart, { passive: true });
+    panel.addEventListener("touchmove", onMove, { passive: true });
+    panel.addEventListener("touchend", onEnd);
+    panel.addEventListener("touchcancel", onEnd);
+    return () => {
+      panel.removeEventListener("touchstart", onStart);
+      panel.removeEventListener("touchmove", onMove);
+      panel.removeEventListener("touchend", onEnd);
+      panel.removeEventListener("touchcancel", onEnd);
+      panel.style.transition = "";
+      panel.style.transform = "";
+    };
+  }, [panelRef, isOpen, onClose]);
+}
 const NAV_ITEM_IDLE = "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground";
 const NAV_ITEM_ACTIVE = "bg-codex-border/60 text-codex-foreground font-medium";
 
@@ -108,10 +175,24 @@ export function Sidebar() {
 
   // On small screens the sidebar is an overlay: close it after navigating
   useEffect(() => {
-    if (window.matchMedia("(max-width: 767px)").matches) {
+    if (window.matchMedia(MOBILE_QUERY).matches) {
       setSidebarOpen(false);
     }
   }, [pathname, setSidebarOpen]);
+
+  const asideRef = useRef<HTMLElement>(null);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), [setSidebarOpen]);
+  useSwipeToClose(asideRef, isSidebarOpen, closeSidebar);
+
+  // Escape closes the overlay drawer on small screens
+  useEffect(() => {
+    if (!isSidebarOpen) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && window.matchMedia(MOBILE_QUERY).matches) closeSidebar();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isSidebarOpen, closeSidebar]);
 
   const rootPages = pages
     .filter((p) => (p.parentPageId === null || p.parentPageId === undefined) && !p.isArchived)
@@ -142,12 +223,14 @@ export function Sidebar() {
         />
       )}
       <aside
-        className={`h-screen bg-codex-sidebar flex flex-col select-none shrink-0 transition-all duration-200 ease-out group/sidebar fixed inset-y-0 left-0 z-40 md:relative md:z-20 ${
-          isSidebarOpen ? "w-60 shadow-xl md:shadow-none" : "w-0 overflow-hidden"
+        ref={asideRef}
+        aria-label="Workspace navigation"
+        className={`h-dvh bg-codex-sidebar flex flex-col select-none shrink-0 transition-all duration-200 ease-out group/sidebar fixed inset-y-0 left-0 z-40 md:relative md:z-20 ${
+          isSidebarOpen ? "w-72 md:w-60 shadow-xl md:shadow-none" : "w-0 overflow-hidden"
         }`}
       >
         <div
-          className={`w-60 flex flex-col h-full overflow-hidden transition-opacity duration-150 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          className={`w-72 md:w-60 flex flex-col h-full overflow-hidden transition-opacity duration-150 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         >
           {/* Top: Workspace Selector + collapse */}
           <div className="flex items-center gap-1 px-2 pt-2 pb-1">
@@ -157,7 +240,7 @@ export function Sidebar() {
             <button
               type="button"
               onClick={toggleSidebar}
-              className="shrink-0 p-1.5 rounded-codex-md text-codex-muted opacity-0 group-hover/sidebar:opacity-100 focus-visible:opacity-100 hover:bg-codex-border/40 hover:text-codex-foreground transition-all duration-150"
+              className="shrink-0 p-1.5 rounded-codex-md text-codex-muted opacity-0 group-hover/sidebar:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100 hover:bg-codex-border/40 hover:text-codex-foreground transition-all duration-150"
               aria-label="Close sidebar"
               title="Close sidebar"
             >
@@ -208,7 +291,7 @@ export function Sidebar() {
                   type="button"
                   onClick={handleCreateTopLevelPage}
                   disabled={!activeWorkspace}
-                  className="p-0.5 rounded-codex-sm text-codex-muted opacity-0 group-hover:opacity-100 hover:bg-codex-border/40 hover:text-codex-foreground transition-all disabled:cursor-not-allowed"
+                  className="p-0.5 rounded-codex-sm text-codex-muted opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 hover:bg-codex-border/40 hover:text-codex-foreground transition-all disabled:cursor-not-allowed"
                   aria-label="Create page"
                   title="Create page"
                 >

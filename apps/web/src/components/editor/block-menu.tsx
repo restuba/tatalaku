@@ -112,10 +112,17 @@ export function BlockMenu({ editor }: BlockMenuProps) {
       setHoveredPos(nodeStart);
     };
 
+    // Touch/pen have no hover: show the handle for the block that was tapped
+    const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") handleMouseMove(e);
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [editor, isOpen]);
 

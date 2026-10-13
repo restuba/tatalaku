@@ -9,6 +9,7 @@ import { Sidebar } from "@/app/workspace/_components/sidebar";
 import { CommandPalette } from "@/app/workspace/_components/command-palette";
 import { ImportMarkdownModal } from "@/app/workspace/_components/import-markdown";
 import { DialogHost } from "@/components/shared/dialog-host";
+import { KeyboardShortcuts } from "@/app/workspace/_components/keyboard-shortcuts";
 import { Plus, Sparkles } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { WorkspaceShellSkeleton } from "./_components/workspace-skeleton";
@@ -76,7 +77,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   // If auth has an error (e.g. backend down), show the error UI
   if (isAuthInit && error) {
     return (
-      <div className="h-screen w-full flex items-center justify-center p-4">
+      <div className="h-dvh w-full flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-codex-surface border border-codex-border rounded-codex-2xl p-8 text-center">
           <h1 className="text-xl font-bold text-codex-danger mb-2">Connection Error</h1>
           <p className="text-sm text-codex-muted mb-6">{error}</p>
@@ -98,7 +99,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   // If user has no workspaces at all, show friendly Onboarding screen
   if (isWsInit && workspaces.length === 0) {
     return (
-      <div className="relative min-h-screen w-full flex items-center justify-center p-4 bg-codex-surface/10 overflow-hidden">
+      <div className="relative min-h-dvh w-full flex items-center justify-center p-4 bg-codex-surface/10 overflow-hidden">
         {/* Soft Organic Orbs (Zen Canvas) */}
         <div className="absolute inset-0 pointer-events-none">
           <div
@@ -169,12 +170,13 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="h-screen w-full flex overflow-hidden bg-codex-background">
+    <div className="h-dvh w-full flex overflow-hidden bg-codex-background">
       <Sidebar />
       <CommandPalette />
       <ImportMarkdownModal />
+      <KeyboardShortcuts />
       <DialogHost />
-      <main className="flex-1 h-screen overflow-y-auto flex flex-col relative z-10 bg-codex-background">
+      <main className="flex-1 h-dvh overflow-y-auto flex flex-col relative z-10 bg-codex-background">
         {children}
       </main>
     </div>

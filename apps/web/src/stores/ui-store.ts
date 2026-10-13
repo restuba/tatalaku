@@ -4,7 +4,17 @@ import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+/**
+ * Animation preference. `system` follows the OS "reduce motion" setting;
+ * `on`/`off` override it. Applied as `data-motion` on <html> (see MotionSync).
+ */
+export type MotionPreference = "system" | "on" | "off";
+
+/** localStorage key of the persisted UI store (also read by the pre-paint script) */
+export const UI_STORE_KEY = "tatalaku-ui-v1";
+
 interface UIState {
+  motion: MotionPreference;
   isSidebarOpen: boolean;
   isOutlineOpen: boolean;
   /** Render page content full width across the whole app (device preference) */
@@ -13,12 +23,15 @@ interface UIState {
   isCommandPaletteOpen: boolean;
   /** Transient: never persisted */
   isImportMarkdownOpen: boolean;
+  /** Transient: keyboard shortcuts sheet (⌘/) */
+  isShortcutsOpen: boolean;
   /** Used by the Home "Getting started" checklist */
   hasUsedCommandPalette: boolean;
   isOnboardingDismissed: boolean;
 }
 
 interface UIActions {
+  setMotion: (motion: MotionPreference) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (isOpen: boolean) => void;
   toggleOutline: () => void;
@@ -28,19 +41,26 @@ interface UIActions {
   setCommandPaletteOpen: (isOpen: boolean) => void;
   toggleCommandPalette: () => void;
   setImportMarkdownOpen: (isOpen: boolean) => void;
+  setShortcutsOpen: (isOpen: boolean) => void;
   dismissOnboarding: () => void;
 }
 
 export const useUIStore = create<UIState & UIActions>()(
   persist(
     (set) => ({
+      motion: "system",
       isSidebarOpen: true,
       isOutlineOpen: false,
       isFullWidth: false,
       isCommandPaletteOpen: false,
       isImportMarkdownOpen: false,
+      isShortcutsOpen: false,
       hasUsedCommandPalette: false,
       isOnboardingDismissed: false,
+
+      setMotion: (motion) => {
+        set({ motion });
+      },
 
       toggleSidebar: () => {
         set((state) => ({
@@ -88,14 +108,19 @@ export const useUIStore = create<UIState & UIActions>()(
         set({ isImportMarkdownOpen: isOpen });
       },
 
+      setShortcutsOpen: (isOpen) => {
+        set({ isShortcutsOpen: isOpen });
+      },
+
       dismissOnboarding: () => {
         set({ isOnboardingDismissed: true });
       },
     }),
     {
-      name: "tatalaku-ui-v1",
+      name: UI_STORE_KEY,
       // Only persist layout preferences, not transient overlays
       partialize: (state) => ({
+        motion: state.motion,
         isSidebarOpen: state.isSidebarOpen,
         isOutlineOpen: state.isOutlineOpen,
         isFullWidth: state.isFullWidth,

@@ -122,7 +122,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const effectiveShape = isIconOnly ? "circle" : shape;
 
     const classes = [
-      "inline-flex items-center justify-center font-medium cursor-pointer select-none transition-all duration-150",
+      // active:scale gives a tactile "press" (instant when motion is off)
+      "inline-flex items-center justify-center font-medium cursor-pointer select-none transition-all duration-150 active:scale-[0.97]",
       "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-codex-accent",
       getSizeClasses(size, effectiveShape),
       getShapeClasses(effectiveShape),

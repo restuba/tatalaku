@@ -43,7 +43,7 @@ export function TopBar({ items, actions }: TopBarProps) {
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="shrink-0 p-1.5 rounded-codex-md text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
+              className="shrink-0 p-1.5 pointer-coarse:p-2.5 rounded-codex-md text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
               aria-label="Open sidebar"
               title="Open sidebar"
             >

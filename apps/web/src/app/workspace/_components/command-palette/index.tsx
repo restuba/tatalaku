@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { FileText, Home, Plus, Search } from "lucide-react";
+import { FileText, Home, Keyboard, Plus, Search, Upload } from "lucide-react";
 import type { Page } from "@tatalaku/shared";
 import { useUIStore } from "@/stores/ui-store";
 import { usePageStore } from "@/stores/page-store";
@@ -161,6 +161,20 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
         label: "Go to Home",
         icon: <Home className="w-4 h-4" />,
         onSelect: () => router.push("/workspace"),
+      },
+      {
+        id: "action-import",
+        group: "Actions",
+        label: "Import Markdown",
+        icon: <Upload className="w-4 h-4" />,
+        onSelect: () => useUIStore.getState().setImportMarkdownOpen(true),
+      },
+      {
+        id: "action-shortcuts",
+        group: "Actions",
+        label: "Keyboard shortcuts",
+        icon: <Keyboard className="w-4 h-4" />,
+        onSelect: () => useUIStore.getState().setShortcutsOpen(true),
       },
     ];
 

@@ -32,7 +32,7 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
         onPointerUp={stopPropagation}
         onKeyDown={stopPropagation}
         onKeyUp={stopPropagation}
-        className="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-codex-surface/80 hover:bg-codex-surface text-codex-foreground text-xs rounded-codex-md border border-codex-border px-2 py-1 outline-none cursor-pointer backdrop-blur-sm shadow-sm"
+        className="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity duration-200 bg-codex-surface/80 hover:bg-codex-surface text-codex-foreground text-xs rounded-codex-md border border-codex-border px-2 py-1 outline-none cursor-pointer backdrop-blur-sm shadow-sm"
       >
         <option value="null">auto</option>
         <option disabled>—</option>

@@ -2,11 +2,33 @@
 /* Enter/exit animation utilities (animate-in, fade-in, zoom-in-95, slide-in-from-*) */
 @import "tw-animate-css";
 
-/* Respect the OS "reduce motion" setting for all enter/exit animations */
+/* Motion preference (Settings → Appearance → Motion). `data-motion` on <html>
+   is set before first paint (MOTION_PREPAINT_SCRIPT) and kept in sync by
+   MotionSync. Animations are collapsed to ~0ms instead of removed, so
+   elements that start at opacity-0 still land on their final state. The
+   media query covers the brief moment before the attribute exists, unless the
+   user explicitly turned motion on. */
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] *::before,
+html[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-in,
-  .animate-out {
-    animation: none !important;
+  html:not([data-motion="full"]) *,
+  html:not([data-motion="full"]) *::before,
+  html:not([data-motion="full"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

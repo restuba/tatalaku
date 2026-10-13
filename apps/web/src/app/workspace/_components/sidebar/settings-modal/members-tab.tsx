@@ -200,7 +200,7 @@ export function MembersTab() {
                       icon={<UserMinus className="w-3.5 h-3.5" />}
                       aria-label={`Remove ${member.name || member.email}`}
                       title="Remove member"
-                      className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                      className="opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100"
                     />
                   )}
                 </div>

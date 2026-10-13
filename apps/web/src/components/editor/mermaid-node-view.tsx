@@ -1,27 +1,37 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import mermaid from "mermaid";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 
-function initMermaid() {
-  const isDark = document.documentElement.classList.contains("dark");
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: isDark ? "dark" : "default",
-    securityLevel: "loose",
-    fontFamily: "Space Grotesk, system-ui, sans-serif",
-  });
+type MermaidApi = (typeof import("mermaid"))["default"];
+
+// Mermaid (+ d3/dagre) is ~0.5 MB gzipped, so it's only fetched the first time
+// a diagram actually renders — pages without diagrams never download it.
+let mermaidModule: Promise<MermaidApi> | null = null;
+let initializedTheme: "dark" | "default" | null = null;
+
+async function getMermaid(): Promise<MermaidApi> {
+  mermaidModule ??= import("mermaid").then((m) => m.default);
+  const mermaid = await mermaidModule;
+  const theme = document.documentElement.classList.contains("dark") ? "dark" : "default";
+  if (initializedTheme !== theme) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme,
+      // Diagrams are authored by any workspace member and injected as SVG:
+      // "strict" sanitizes labels and disables click handlers (no stored XSS).
+      securityLevel: "strict",
+      fontFamily: "Space Grotesk, system-ui, sans-serif",
+    });
+    initializedTheme = theme;
+  }
+  return mermaid;
 }
 
 function MermaidPreview({ code }: { code: string }) {
   const [svg, setSvg] = useState("");
   const [error, setError] = useState("");
   const renderIdRef = useRef(0);
-
-  useEffect(() => {
-    initMermaid();
-  }, []);
 
   useEffect(() => {
     const trimmed = code.trim();
@@ -31,6 +41,7 @@ function MermaidPreview({ code }: { code: string }) {
     const render = async () => {
       try {
         const id = `mermaid-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const mermaid = await getMermaid();
         const result = await mermaid.render(id, trimmed);
         if (currentRender === renderIdRef.current) {
           setSvg(result.svg);

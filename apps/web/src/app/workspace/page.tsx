@@ -76,7 +76,8 @@ export default function WorkspaceHomePage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col relative w-full">
+    // Opacity-only enter: transforms here would re-anchor fixed-position menus
+    <div className="flex-1 flex flex-col relative w-full animate-in fade-in-0 duration-300">
       <TopBar items={[{ label: "Home" }]} />
 
       <div

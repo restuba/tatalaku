@@ -14,7 +14,6 @@ import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import { getPage } from "@/services/page/get-page";
 import { promptDialog } from "@/stores/dialog-store";
 import { validateImageUrl } from "@/lib/url";
-import { pageToMarkdown, downloadMarkdown, markdownFileName } from "@/lib/markdown-export";
 import { TopBar } from "../_components/top-bar";
 import {
   FileText,
@@ -184,7 +183,11 @@ function PageDetail({ page }: { page: Page }) {
     setIsExporting(true);
     try {
       // Fetch the latest content so unsaved debounced edits aren't missed
-      const res = await getPage(page.id);
+      // Serializer (marked) is only downloaded when someone actually exports
+      const [res, { pageToMarkdown, downloadMarkdown, markdownFileName }] = await Promise.all([
+        getPage(page.id),
+        import("@/lib/markdown-export"),
+      ]);
       downloadMarkdown(markdownFileName(res.data.title), pageToMarkdown(res.data));
     } catch {
       // The store only holds page metadata (no content), so there is nothing
@@ -238,7 +241,7 @@ function PageDetail({ page }: { page: Page }) {
         <button
           type="button"
           onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-          className={`p-1.5 rounded-codex-md transition-colors ${
+          className={`p-1.5 pointer-coarse:p-2.5 rounded-codex-md transition-colors ${
             isOptionsOpen
               ? "bg-codex-surface-secondary text-codex-foreground"
               : "text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground"
@@ -285,7 +288,8 @@ function PageDetail({ page }: { page: Page }) {
   );
 
   return (
-    <div className="flex-1 flex flex-col relative w-full">
+    // Opacity-only enter: transforms here would re-anchor fixed-position menus
+    <div className="flex-1 flex flex-col relative w-full animate-in fade-in-0 duration-300">
       <TopBar items={breadcrumbItems} actions={topBarActions} />
 
       {/* Cover image banner */}
@@ -293,7 +297,7 @@ function PageDetail({ page }: { page: Page }) {
         <div className="group/cover relative w-full h-40 sm:h-56 shrink-0 overflow-hidden bg-codex-surface-secondary">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={coverImage} alt="" className="w-full h-full object-cover" />
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/cover:opacity-100 transition-opacity">
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/cover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
             <button
               type="button"
               onClick={handleAddCover}
@@ -324,7 +328,7 @@ function PageDetail({ page }: { page: Page }) {
             <button
               type="button"
               onClick={handleAddCover}
-              className="inline-flex items-center gap-1.5 mb-2 px-1.5 py-1 -ml-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-all duration-150 opacity-0 group-hover/title:opacity-100 focus-visible:opacity-100"
+              className="inline-flex items-center gap-1.5 mb-2 px-1.5 py-1 -ml-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-all duration-150 opacity-0 group-hover/title:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100"
             >
               <ImageIcon className="w-4 h-4" />
               <span>Add cover</span>
@@ -348,7 +352,9 @@ function PageDetail({ page }: { page: Page }) {
                 type="button"
                 onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
                 className={`inline-flex items-center gap-1.5 mb-2 px-1.5 py-1 -ml-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-all duration-150 focus-visible:opacity-100 ${
-                  isEmojiPickerOpen ? "opacity-100" : "opacity-0 group-hover/title:opacity-100"
+                  isEmojiPickerOpen
+                    ? "opacity-100"
+                    : "opacity-0 group-hover/title:opacity-100 pointer-coarse:opacity-100"
                 }`}
               >
                 <Smile className="w-4 h-4" />

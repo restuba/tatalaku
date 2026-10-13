@@ -326,6 +326,75 @@ describe("PagesService", () => {
     });
   });
 
+  describe("restore", () => {
+    const ownerWorkspace = { ownerId: mockUserId, memberIds: [] };
+
+    it("should throw ForbiddenError if user lacks workspace access", async () => {
+      vi.mocked(PageModel.findById).mockResolvedValueOnce({
+        _id: "page-1",
+        workspaceId: mockWorkspaceId,
+      } as never);
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: "other-user",
+        memberIds: [],
+      } as never);
+
+      await expect(pagesService.restore("page-1", mockUserId)).rejects.toThrow(ForbiddenError);
+      expect(PageModel.updateMany).not.toHaveBeenCalled();
+    });
+
+    it("should restore the page and its whole archived subtree", async () => {
+      const doc = {
+        _id: "page-1",
+        workspaceId: mockWorkspaceId,
+        parentPageId: null as string | null,
+        isArchived: true,
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.mocked(PageModel.findById).mockResolvedValueOnce(doc as never);
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce(ownerWorkspace as never);
+      // BFS: one child, then none
+      vi.mocked(PageModel.find)
+        .mockReturnValueOnce({ lean: vi.fn().mockResolvedValueOnce([{ _id: "child-1" }]) } as never)
+        .mockReturnValueOnce({ lean: vi.fn().mockResolvedValueOnce([]) } as never);
+      vi.mocked(PageModel.updateMany).mockResolvedValueOnce({} as never);
+
+      await pagesService.restore("page-1", mockUserId);
+
+      expect(doc.isArchived).toBe(false);
+      expect(doc.save).toHaveBeenCalled();
+      expect(PageModel.updateMany).toHaveBeenCalledWith(
+        { _id: { $in: ["child-1"] } },
+        { $set: { isArchived: false } },
+      );
+    });
+
+    it("should move the page to the top level when its parent is still archived", async () => {
+      const doc = {
+        _id: "page-1",
+        workspaceId: mockWorkspaceId,
+        parentPageId: "parent-1" as string | null,
+        isArchived: true,
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.mocked(PageModel.findById)
+        .mockResolvedValueOnce(doc as never)
+        .mockReturnValueOnce({
+          lean: vi.fn().mockResolvedValueOnce({ isArchived: true }),
+        } as never);
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce(ownerWorkspace as never);
+      vi.mocked(PageModel.find).mockReturnValueOnce({
+        lean: vi.fn().mockResolvedValueOnce([]),
+      } as never);
+
+      await pagesService.restore("page-1", mockUserId);
+
+      expect(doc.parentPageId).toBeNull();
+      expect(doc.isArchived).toBe(false);
+      expect(PageModel.updateMany).not.toHaveBeenCalled();
+    });
+  });
+
   describe("permanentDelete", () => {
     it("should throw NotFoundError if page does not exist", async () => {
       vi.mocked(PageModel.findById).mockResolvedValueOnce(null);

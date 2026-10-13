@@ -199,7 +199,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                     color="danger"
                     onClick={() => handleRemoveMember(member.id)}
                     disabled={isRemoving === member.id}
-                    className="opacity-0 group-hover:opacity-100 transition-all"
+                    className="opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-all"
                     title="Remove member"
                     icon={<UserMinus className="w-3.5 h-3.5" />}
                   />

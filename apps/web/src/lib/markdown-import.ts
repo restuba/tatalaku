@@ -1,13 +1,20 @@
 import { getSchema, type JSONContent } from "@tiptap/core";
 import { MarkdownManager } from "@tiptap/markdown";
 import { createContentExtensions, HEADING_LEVELS } from "@/components/editor/extensions";
+import {
+  MAX_MARKDOWN_FILE_SIZE,
+  MarkdownImportError,
+  isMarkdownFile,
+  titleFromFileName,
+} from "./markdown-file";
 
-/**
- * Max size of a single Markdown file. The converted Tiptap JSON is usually
- * 2–3x larger than the source and the API caps request bodies at 1 MB.
- */
-export const MAX_MARKDOWN_FILE_SIZE = 300 * 1024;
-export const MARKDOWN_FILE_EXTENSIONS = [".md", ".markdown"] as const;
+export {
+  MAX_MARKDOWN_FILE_SIZE,
+  MARKDOWN_FILE_EXTENSIONS,
+  MarkdownImportError,
+  isMarkdownFile,
+  titleFromFileName,
+} from "./markdown-file";
 
 const MAX_TITLE_LENGTH = 500;
 const MAX_HEADING_LEVEL = Math.max(...HEADING_LEVELS);
@@ -18,13 +25,6 @@ const FRONTMATTER = /^---\r?\n[\s\S]*?\r?\n---\r?\n?/;
 export interface ParsedMarkdownPage {
   title: string;
   content: JSONContent;
-}
-
-export class MarkdownImportError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "MarkdownImportError";
-  }
 }
 
 // Built lazily: the extension list (lowlight, node views) is heavy and only
@@ -39,20 +39,6 @@ function getParser() {
     schema = getSchema(extensions);
   }
   return { manager, schema };
-}
-
-export function isMarkdownFile(file: File): boolean {
-  const name = file.name.toLowerCase();
-  return MARKDOWN_FILE_EXTENSIONS.some((ext) => name.endsWith(ext));
-}
-
-/** "my-notes_v2.md" -> "my notes v2" */
-export function titleFromFileName(fileName: string): string {
-  const base = fileName
-    .replace(/\.(md|markdown)$/i, "")
-    .replace(/[-_]+/g, " ")
-    .trim();
-  return base || "Untitled";
 }
 
 function getText(node: JSONContent): string {

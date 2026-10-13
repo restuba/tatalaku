@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page-store";
+import { useApp } from "@/components/app";
 import {
   ChevronRight,
   FileText,
@@ -40,8 +41,10 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     createPage,
     updatePage,
     archivePage,
+    restorePage,
     reorderPages,
   } = usePageStore();
+  const { message } = useApp();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
@@ -236,14 +239,40 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsMenuOpen(false);
+    const wasActive = isActive;
+    const pageId = page.id;
     try {
-      await archivePage(page.id);
-      if (isActive) {
+      await archivePage(pageId);
+      if (wasActive) {
         router.push("/workspace");
       }
     } catch {
-      // Error handled by store
+      message.error("Couldn't move the page to Trash");
+      return;
     }
+
+    // Deleting is one click, so make it just as easy to take back
+    const handleUndo = async () => {
+      try {
+        await restorePage(pageId);
+        if (wasActive) router.push(`/workspace/${pageId}`);
+      } catch {
+        message.error("Couldn't restore the page");
+      }
+    };
+    message.info(
+      <span className="flex items-center gap-3">
+        <span className="max-w-56 truncate">Moved “{page.title || "Untitled"}” to Trash</span>
+        <button
+          type="button"
+          onClick={() => void handleUndo()}
+          className="shrink-0 font-medium text-codex-accent hover:underline focus-visible:underline outline-none"
+        >
+          Undo
+        </button>
+      </span>,
+      6000,
+    );
   }
 
   async function handleToggleFavorite(e: React.MouseEvent) {
@@ -267,7 +296,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`group flex items-center justify-between py-0.5 pr-2 rounded-codex-md text-sm transition-all duration-150 relative ${
+        className={`group flex items-center justify-between py-0.5 pointer-coarse:py-1.5 pr-2 rounded-codex-md text-sm transition-all duration-150 relative ${
           isDragging ? "opacity-40 cursor-grabbing" : "cursor-grab"
         } ${
           isActive
@@ -302,7 +331,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         <span
           data-drag-grip
           aria-hidden="true"
-          className="w-3 shrink-0 flex items-center justify-center text-codex-muted/60 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="w-3 shrink-0 flex items-center justify-center text-codex-muted/60 opacity-0 group-hover:opacity-100 pointer-coarse:hidden transition-opacity"
         >
           <GripVertical className="w-3 h-3" />
         </span>
@@ -375,7 +404,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         {!isEditing && (
           <div
             data-drag-actions
-            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1"
+            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity shrink-0 ml-1"
           >
             {/* Quick Add Subpage */}
             <button
