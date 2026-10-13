@@ -18,6 +18,8 @@ import {
   Table as TableIcon,
   Workflow as WorkflowIcon,
 } from "lucide-react";
+import { promptDialog } from "@/stores/dialog-store";
+import { validateImageUrl } from "@/lib/url";
 
 export interface CommandItem {
   title: string;
@@ -128,12 +130,22 @@ export const SLASH_COMMANDS: CommandItem[] = [
     description: "Insert an image via URL.",
     icon: ImageIcon,
     command: ({ editor, range }) => {
-      const url = window.prompt("Enter image URL:");
-      if (url) {
-        editor.chain().focus().deleteRange(range).setImage({ src: url }).run();
-      } else {
-        editor.chain().focus().deleteRange(range).run();
-      }
+      // Remove the "/image" query first; the caret stays where the image goes
+      editor.chain().focus().deleteRange(range).run();
+      void promptDialog({
+        title: "Insert image",
+        label: "Image URL",
+        placeholder: "https://example.com/image.png",
+        inputType: "url",
+        confirmLabel: "Insert",
+        validate: validateImageUrl,
+      }).then((url) => {
+        if (!editor.isDestroyed) {
+          const chain = editor.chain().focus();
+          if (url) chain.setImage({ src: url });
+          chain.run();
+        }
+      });
     },
   },
   {

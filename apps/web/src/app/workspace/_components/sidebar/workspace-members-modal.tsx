@@ -8,6 +8,8 @@ import { Modal } from "@/components/reusable/modal";
 import { Button } from "@/components/reusable/button";
 import { Input } from "@/components/reusable/input";
 import { Badge } from "@/components/reusable/badge";
+import { useApp } from "@/components/app";
+import { confirmDialog } from "@/stores/dialog-store";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -27,6 +29,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
     inviteMember,
   } = useWorkspaceStore();
   const { user } = useAuthStore();
+  const { message } = useApp();
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
@@ -75,16 +78,24 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
 
   async function handleRemoveMember(userId: string) {
     if (!activeWorkspace) return;
-    if (confirm("Are you sure you want to remove this member from the workspace?")) {
-      setIsRemoving(userId);
-      try {
-        await removeMember(activeWorkspace.id, userId);
-        await fetchActiveWorkspaceMembers();
-      } catch (err) {
-        alert(err instanceof Error ? err.message : "Failed to remove member");
-      } finally {
-        setIsRemoving(null);
-      }
+    const member = activeWorkspaceMembers?.find((m) => m.id === userId);
+    const confirmed = await confirmDialog({
+      title: "Remove member?",
+      description: `${member?.name || member?.email || "This member"} will lose access to ${activeWorkspace.name}.`,
+      confirmLabel: "Remove",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
+    setIsRemoving(userId);
+    try {
+      await removeMember(activeWorkspace.id, userId);
+      await fetchActiveWorkspaceMembers();
+      message.success("Member removed");
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : "Failed to remove member");
+    } finally {
+      setIsRemoving(null);
     }
   }
 

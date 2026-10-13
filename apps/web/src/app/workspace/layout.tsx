@@ -8,6 +8,7 @@ import { usePageStore } from "@/stores/page-store";
 import { Sidebar } from "@/app/workspace/_components/sidebar";
 import { CommandPalette } from "@/app/workspace/_components/command-palette";
 import { ImportMarkdownModal } from "@/app/workspace/_components/import-markdown";
+import { DialogHost } from "@/components/shared/dialog-host";
 import { Plus, Sparkles } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { WorkspaceShellSkeleton } from "./_components/workspace-skeleton";
@@ -172,6 +173,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       <Sidebar />
       <CommandPalette />
       <ImportMarkdownModal />
+      <DialogHost />
       <main className="flex-1 h-screen overflow-y-auto flex flex-col relative z-10 bg-codex-background">
         {children}
       </main>

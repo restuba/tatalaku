@@ -22,6 +22,7 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   if (!activeWorkspace) {
     return (
@@ -65,6 +66,7 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
     if (deleteConfirmText !== activeWorkspace.name) return;
 
     setIsDeleting(true);
+    setDeleteError(null);
     try {
       await deleteWorkspace(activeWorkspace.id);
       setShowDeleteModal(false);
@@ -78,7 +80,8 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
         router.push("/workspace");
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete workspace");
+      // The confirmation modal is still open, so report the error inside it
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete workspace");
     } finally {
       setIsDeleting(false);
     }
@@ -223,6 +226,12 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
               className="w-full px-3 py-2 rounded-codex-md border border-codex-border bg-codex-background text-sm text-codex-foreground outline-none focus:border-codex-danger transition-colors"
             />
 
+            {deleteError && (
+              <p role="alert" className="text-xs text-codex-danger">
+                {deleteError}
+              </p>
+            )}
+
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button
                 size="small"
@@ -230,6 +239,7 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
                 onClick={() => {
                   setShowDeleteModal(false);
                   setDeleteConfirmText("");
+                  setDeleteError(null);
                 }}
               >
                 Cancel

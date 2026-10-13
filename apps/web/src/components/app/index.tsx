@@ -29,7 +29,13 @@ function MessageContainer() {
   if (!context || !context.messages.length) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none">
+    // Above every overlay (Settings z-60, elevated dialogs z-80) so feedback
+    // triggered from inside a modal is never hidden behind it
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed top-4 left-1/2 z-[90] -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
+    >
       {context.messages.map((item: MessageItem) => (
         <div
           key={item.id}

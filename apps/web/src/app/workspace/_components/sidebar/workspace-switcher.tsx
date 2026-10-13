@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { ChevronDown, Plus, Check, Briefcase, Trash2, UserPlus, Users, LogOut } from "lucide-react";
+import { useApp } from "@/components/app";
+import { confirmDialog } from "@/stores/dialog-store";
 import { WorkspaceMembersModal } from "./workspace-members-modal";
 
 export function WorkspaceSwitcher() {
   const { user, logout } = useAuthStore();
+  const { message } = useApp();
   const { workspaces, activeWorkspace, setActiveWorkspace, createWorkspace, deleteWorkspace } =
     useWorkspaceStore();
   const router = useRouter();
@@ -48,15 +51,24 @@ export function WorkspaceSwitcher() {
 
   async function handleDeleteWorkspace(id: string, e: React.MouseEvent) {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this workspace and all its pages?")) {
-      try {
-        await deleteWorkspace(id);
-        if (activeWorkspace?.id === id) {
-          router.push("/workspace");
-        }
-      } catch {
-        // Error handled by store
+    const ws = workspaces.find((w) => w.id === id);
+    setIsOpen(false);
+    const confirmed = await confirmDialog({
+      title: "Delete workspace?",
+      description: `${ws?.name ?? "This workspace"} and all of its pages will be deleted. This can't be undone.`,
+      confirmLabel: "Delete workspace",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
+    try {
+      await deleteWorkspace(id);
+      if (activeWorkspace?.id === id) {
+        router.push("/workspace");
       }
+      message.success("Workspace deleted");
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : "Failed to delete workspace");
     }
   }
 
@@ -67,9 +79,9 @@ export function WorkspaceSwitcher() {
       await useWorkspaceStore.getState().inviteMember(id, inviteEmail.trim());
       setInviteEmail("");
       setIsInviting(null);
-      alert("Invitation sent successfully!");
+      message.success("Invitation sent");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to send invitation");
+      message.error(err instanceof Error ? err.message : "Failed to send invitation");
     }
   }
 

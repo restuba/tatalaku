@@ -12,6 +12,8 @@ import { PageHeaderSkeleton, PageContentSkeleton } from "@/components/ui/skeleto
 import type { BreadcrumbItem } from "@/components/shared/breadcrumb";
 import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import { getPage } from "@/services/page/get-page";
+import { promptDialog } from "@/stores/dialog-store";
+import { validateImageUrl } from "@/lib/url";
 import { pageToMarkdown, downloadMarkdown, markdownFileName } from "@/lib/markdown-export";
 import { TopBar } from "../_components/top-bar";
 import {
@@ -163,16 +165,18 @@ function PageDetail({ page }: { page: Page }) {
     }
   }
 
-  function handleAddCover() {
+  async function handleAddCover() {
     setIsOptionsOpen(false);
-    const url = window.prompt("Paste an image URL for the cover");
-    const trimmed = url?.trim();
-    if (!trimmed) return;
-    if (!/^https?:\/\//i.test(trimmed)) {
-      window.alert("Please enter a valid http(s) image URL.");
-      return;
-    }
-    void handleSetCover(trimmed);
+    const url = await promptDialog({
+      title: coverImage ? "Change cover" : "Add cover",
+      label: "Image URL",
+      placeholder: "https://example.com/cover.jpg",
+      defaultValue: coverImage ?? "",
+      inputType: "url",
+      confirmLabel: coverImage ? "Change cover" : "Add cover",
+      validate: validateImageUrl,
+    });
+    if (url && url !== coverImage) void handleSetCover(url);
   }
 
   async function handleExportMarkdown() {

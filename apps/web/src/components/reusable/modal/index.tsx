@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { ModalAction } from "./modal-action";
@@ -27,6 +27,11 @@ const maxWidthClasses: Record<string, string> = {
   full: "max-w-full",
 };
 
+// ─── Open-modal stack ───────────────────────────────────────────────
+// Only the top-most open modal reacts to Escape, so a confirm dialog opened
+// over another modal closes on its own instead of taking the parent with it.
+const openModalStack: string[] = [];
+
 // ─── Main Modal Component ───────────────────────────────────────────
 
 function Modal({
@@ -37,32 +42,38 @@ function Modal({
   scroll = "paper",
   disableBackdropClick = false,
   disableEscapeKeyDown = false,
+  elevated = false,
   className = "",
   children,
 }: ModalProps) {
   const mounted = useIsMounted();
+  const modalId = useId();
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !disableEscapeKeyDown) {
-        onClose?.();
-      }
+      if (e.key !== "Escape" || openModalStack[openModalStack.length - 1] !== modalId) return;
+      // Keep window-level Escape handlers (e.g. Settings) from also closing
+      e.stopPropagation();
+      if (!disableEscapeKeyDown) onClose?.();
     },
-    [disableEscapeKeyDown, onClose],
+    [disableEscapeKeyDown, onClose, modalId],
   );
 
   useEffect(() => {
     if (!open) return undefined;
 
+    openModalStack.push(modalId);
     document.addEventListener("keydown", handleKeyDown);
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
+      const index = openModalStack.lastIndexOf(modalId);
+      if (index !== -1) openModalStack.splice(index, 1);
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [open, handleKeyDown]);
+  }, [open, handleKeyDown, modalId]);
 
   if (!mounted || !open) return null;
 
@@ -71,7 +82,9 @@ function Modal({
   const modalContent = (
     <ModalContext.Provider value={{ onClose, scroll }}>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+        className={`fixed inset-0 flex items-center justify-center p-4 overflow-y-auto ${
+          elevated ? "z-[80]" : "z-50"
+        }`}
         role="dialog"
         aria-modal="true"
       >

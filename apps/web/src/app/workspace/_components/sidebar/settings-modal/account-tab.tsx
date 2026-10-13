@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";
 import { LogOut, Mail, User as UserIcon } from "lucide-react";
 import { useState } from "react";
+import { confirmDialog } from "@/stores/dialog-store";
 
 export function AccountTab() {
   const router = useRouter();
@@ -13,16 +14,21 @@ export function AccountTab() {
   const initial = user?.name ? user.name.charAt(0).toUpperCase() : "U";
 
   async function handleLogout() {
-    if (confirm("Are you sure you want to log out?")) {
-      setIsLoggingOut(true);
-      try {
-        await logout();
-        router.push("/login");
-      } catch (err) {
-        console.error("Logout failed:", err);
-      } finally {
-        setIsLoggingOut(false);
-      }
+    const confirmed = await confirmDialog({
+      title: "Log out?",
+      description: "You'll need to sign in again to access your workspaces.",
+      confirmLabel: "Log out",
+    });
+    if (!confirmed) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setIsLoggingOut(false);
     }
   }
 
