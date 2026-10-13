@@ -9,6 +9,7 @@ import {
   listPagesQuerySchema,
   searchPagesSchema,
   reorderPagesSchema,
+  pageTreeQuerySchema,
 } from "./pages.validation.js";
 
 export const pagesRouter = Router();
@@ -30,6 +31,12 @@ pagesRouter.post("/", validate(createPageSchema, "body"), (req, res, next) =>
 // Registered before "/:pageId" so it isn't captured as a page id
 pagesRouter.get("/search", validate(searchPagesSchema, "query"), (req, res, next) =>
   pagesController.search(req, res, next),
+);
+
+// GET /api/pages/tree - All active (or archived) pages of a workspace, without content
+// Registered before "/:pageId" so "tree" isn't captured as a page id
+pagesRouter.get("/tree", validate(pageTreeQuerySchema, "query"), (req, res, next) =>
+  pagesController.tree(req, res, next),
 );
 
 // PATCH /api/pages/reorder - Reorder (and optionally reparent) sibling pages

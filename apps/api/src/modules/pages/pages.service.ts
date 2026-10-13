@@ -10,6 +10,7 @@ import type {
   GetChildrenQuery,
   SearchPagesQuery,
   ReorderPagesInput,
+  PageTreeQuery,
 } from "./pages.validation.js";
 
 export interface PageSearchResult extends Page {
@@ -18,10 +19,11 @@ export interface PageSearchResult extends Page {
 }
 
 /**
- * Extracts readable plaintext from a stored Tiptap JSON document so we can
- * build a human-friendly snippet. Falls back to the raw string on parse error.
+ * Extracts readable plaintext from a stored Tiptap JSON document. Used as the
+ * full-text search field and for snippets. Falls back to the raw string on
+ * parse error (legacy non-JSON content).
  */
-function contentToPlainText(content: string | null): string {
+export function contentToPlainText(content: string | null): string {
   if (!content) return "";
   try {
     const doc = JSON.parse(content);
@@ -132,26 +134,48 @@ export class PagesService {
     const q = query.q.trim();
     const base = { workspaceId: query.workspaceId, isArchived: false };
 
+    // Results only need the plaintext (for snippets), not the full JSON body
+    const projection = "-content +plainText";
+
     let docs: PageDocument[];
     if (q.length < 3) {
       // Text index skips short terms, so do a case-insensitive title match
       const safe = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      docs = await PageModel.find({ ...base, title: { $regex: safe, $options: "i" } }).limit(
-        query.limit,
-      );
+      docs = await PageModel.find({ ...base, title: { $regex: safe, $options: "i" } })
+        .select(projection)
+        .limit(query.limit);
     } else {
       docs = await PageModel.find(
         { ...base, $text: { $search: q } },
         { score: { $meta: "textScore" } },
       )
+        .select(projection)
         .sort({ score: { $meta: "textScore" } })
         .limit(query.limit);
     }
 
-    return docs.map((doc) => {
-      const plain = contentToPlainText(doc.content ?? null);
-      return { ...toPageResponse(doc), snippet: buildSnippet(plain, q) };
-    });
+    return docs.map((doc) => ({
+      ...toPageResponse(doc),
+      snippet: buildSnippet(doc.plainText ?? "", q),
+    }));
+  }
+
+  /**
+   * All pages of a workspace for the sidebar tree / trash, without pagination
+   * and without `content` (the editor loads content per page). Sorted by
+   * sibling order so the tree renders in the user's arrangement.
+   */
+  async tree(userId: string, query: PageTreeQuery): Promise<Page[]> {
+    await this.assertWorkspaceAccess(query.workspaceId, userId);
+
+    const docs = await PageModel.find({
+      workspaceId: query.workspaceId,
+      isArchived: query.archived,
+    })
+      .select("-content")
+      .sort({ order: 1, createdAt: 1 });
+
+    return docs.map(toPageResponse);
   }
 
   /**
@@ -374,6 +398,8 @@ export class PagesService {
 
     if (input.content !== undefined) {
       doc.content = input.content;
+      // Keep the search field in sync with the body
+      doc.plainText = contentToPlainText(input.content);
     }
 
     if (input.isArchived !== undefined) {

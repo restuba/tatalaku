@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { Page } from "@tatalaku/shared";
-import { getListPages } from "@/services/page/get-list-pages";
+import { getPageTree } from "@/services/page/get-page-tree";
 import { createPage } from "@/services/page/create-page";
 import { updatePage } from "@/services/page/update-page";
 import { archivePage } from "@/services/page/archive-page";
@@ -71,7 +71,8 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   fetchPages: async (workspaceId: string) => {
     set({ isLoading: true });
     try {
-      const res = await getListPages({ workspaceId });
+      // Whole tree, uncapped and without content (the editor fetches content per page)
+      const res = await getPageTree({ workspaceId });
       const pages = res.data;
       set({ pages, isLoading: false, isInitialized: true });
       return pages;
@@ -293,8 +294,9 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   },
 
   fetchArchivedPages: async (workspaceId: string) => {
-    const res = await getListPages({ workspaceId, includeArchived: true });
-    const archivedPages = res.data.filter((p) => p.isArchived);
+    // Server-side filter: only archived pages, uncapped
+    const res = await getPageTree({ workspaceId, archived: true });
+    const archivedPages = res.data;
     set({ archivedPages });
     return archivedPages;
   },

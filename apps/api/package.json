@@ -10,7 +10,8 @@
     "start": "node dist/server.js",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "migrate:page-search": "tsx src/scripts/migrate-page-search.ts"
   },
   "dependencies": {
     "@tatalaku/shared": "workspace:*",

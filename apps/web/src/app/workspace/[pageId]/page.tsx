@@ -44,6 +44,7 @@ function PageDetail({ page }: { page: Page }) {
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportFailed, setExportFailed] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [localEditedAt, setLocalEditedAt] = useState<Date | string | null>(null);
   const lastEditedAt = localEditedAt || page.updatedAt || null;
@@ -182,8 +183,10 @@ function PageDetail({ page }: { page: Page }) {
       const res = await getPage(page.id);
       downloadMarkdown(markdownFileName(res.data.title), pageToMarkdown(res.data));
     } catch {
-      // Fall back to the content already in the store
-      downloadMarkdown(markdownFileName(page.title), pageToMarkdown(page));
+      // The store only holds page metadata (no content), so there is nothing
+      // safe to fall back to; surface the failure instead of an empty file.
+      setExportFailed(true);
+      window.setTimeout(() => setExportFailed(false), 4000);
     } finally {
       setIsExporting(false);
     }
@@ -206,6 +209,15 @@ function PageDetail({ page }: { page: Page }) {
 
   const topBarActions = (
     <>
+      {exportFailed && (
+        <span
+          role="alert"
+          className="px-2 text-xs text-codex-danger animate-in fade-in duration-150"
+        >
+          Export failed
+        </span>
+      )}
+
       {/* Save status: only visible while something is happening */}
       {saveStatus !== "idle" && (
         <span

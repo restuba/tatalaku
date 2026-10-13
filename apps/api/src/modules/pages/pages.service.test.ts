@@ -145,16 +145,12 @@ describe("PagesService", () => {
           _id: "page-1",
           workspaceId: mockWorkspaceId,
           title: "Meeting notes",
-          content: JSON.stringify({
-            type: "doc",
-            content: [
-              { type: "paragraph", content: [{ type: "text", text: "Discuss the roadmap today" }] },
-            ],
-          }),
+          plainText: "Discuss the roadmap today",
         },
       ]);
       const sort = vi.fn().mockReturnValue({ limit });
-      const find = vi.fn().mockReturnValue({ sort });
+      const select = vi.fn().mockReturnValue({ sort });
+      const find = vi.fn().mockReturnValue({ select });
       vi.mocked(PageModel.find).mockImplementation(find as never);
 
       const results = await pagesService.search(mockUserId, {
@@ -168,8 +164,11 @@ describe("PagesService", () => {
         expect.objectContaining({ $text: { $search: "roadmap" }, isArchived: false }),
         expect.objectContaining({ score: expect.anything() }),
       );
+      // Ships the plaintext for snippets but not the full JSON body
+      expect(select).toHaveBeenCalledWith("-content +plainText");
       expect(results).toHaveLength(1);
       expect(results[0]?.snippet).toContain("roadmap");
+      expect(results[0]?.content).toBeNull();
     });
 
     it("should fall back to a title regex for short queries", async () => {
@@ -179,7 +178,8 @@ describe("PagesService", () => {
       } as never);
 
       const limit = vi.fn().mockResolvedValueOnce([]);
-      const find = vi.fn().mockReturnValue({ limit });
+      const select = vi.fn().mockReturnValue({ limit });
+      const find = vi.fn().mockReturnValue({ select });
       vi.mocked(PageModel.find).mockImplementation(find as never);
 
       await pagesService.search(mockUserId, { workspaceId: mockWorkspaceId, q: "hi", limit: 20 });
@@ -190,6 +190,83 @@ describe("PagesService", () => {
           isArchived: false,
         }),
       );
+    });
+  });
+
+  describe("tree", () => {
+    it("should throw ForbiddenError if user lacks workspace access", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: "other-user",
+        memberIds: [],
+      } as never);
+
+      await expect(
+        pagesService.tree(mockUserId, { workspaceId: mockWorkspaceId, archived: false }),
+      ).rejects.toThrow(ForbiddenError);
+      expect(PageModel.find).not.toHaveBeenCalled();
+    });
+
+    it("should return every page of the requested archive state, without content", async () => {
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: mockUserId,
+        memberIds: [],
+      } as never);
+
+      // More than the old default page size (50) to prove there is no cap
+      const docs = Array.from({ length: 75 }, (_, i) => ({
+        _id: `page-${i}`,
+        workspaceId: mockWorkspaceId,
+        title: `Page ${i}`,
+        order: i,
+        isArchived: true,
+      }));
+      const sort = vi.fn().mockResolvedValueOnce(docs);
+      const select = vi.fn().mockReturnValue({ sort });
+      const find = vi.fn().mockReturnValue({ select });
+      vi.mocked(PageModel.find).mockImplementation(find as never);
+
+      const result = await pagesService.tree(mockUserId, {
+        workspaceId: mockWorkspaceId,
+        archived: true,
+      });
+
+      expect(find).toHaveBeenCalledWith({ workspaceId: mockWorkspaceId, isArchived: true });
+      expect(select).toHaveBeenCalledWith("-content");
+      expect(sort).toHaveBeenCalledWith({ order: 1, createdAt: 1 });
+      expect(result).toHaveLength(75);
+      expect(result.every((p) => p.content === null)).toBe(true);
+    });
+  });
+
+  describe("update", () => {
+    it("should keep plainText in sync when content changes", async () => {
+      const doc = {
+        _id: "page-1",
+        workspaceId: mockWorkspaceId,
+        title: "Notes",
+        content: null as string | null,
+        plainText: "",
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.mocked(PageModel.findById).mockResolvedValueOnce(doc as never);
+      vi.mocked(WorkspaceModel.findById).mockResolvedValueOnce({
+        ownerId: mockUserId,
+        memberIds: [],
+      } as never);
+
+      const content = JSON.stringify({
+        type: "doc",
+        content: [
+          { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Roadmap" }] },
+          { type: "paragraph", content: [{ type: "text", text: "Ship search fix" }] },
+        ],
+      });
+      await pagesService.update("page-1", mockUserId, { content });
+
+      expect(doc.content).toBe(content);
+      // Only real text, never JSON structure like "paragraph" or "heading"
+      expect(doc.plainText).toBe("Roadmap Ship search fix");
+      expect(doc.save).toHaveBeenCalled();
     });
   });
 
