@@ -14,9 +14,13 @@ import {
   Plus,
   Trash2,
   ChevronsLeft,
+  ChevronsRight,
   ChevronRight,
   Upload,
 } from "lucide-react";
+import { AnimatePresence, LayoutGroup, m } from "motion/react";
+import { EASE_OUT, SPRING } from "@/components/motion";
+import { SIDEBAR_ACTIVE_LAYOUT_ID } from "./constants";
 import { TrashModal } from "./trash-modal";
 import { SettingsModal, type SettingsTab } from "./settings-modal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -92,7 +96,7 @@ function useSwipeToClose(
   }, [panelRef, isOpen, onClose]);
 }
 const NAV_ITEM_IDLE = "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground";
-const NAV_ITEM_ACTIVE = "bg-codex-border/60 text-codex-foreground font-medium";
+const NAV_ITEM_ACTIVE = "text-codex-foreground font-medium";
 
 interface NavItemProps {
   icon: ReactNode;
@@ -110,8 +114,16 @@ function NavItem({ icon, label, onClick, isActive = false, disabled, trailing }:
       onClick={onClick}
       disabled={disabled}
       aria-current={isActive ? "page" : undefined}
-      className={`group ${NAV_ITEM_BASE} ${isActive ? NAV_ITEM_ACTIVE : NAV_ITEM_IDLE}`}
+      className={`group relative isolate ${NAV_ITEM_BASE} ${isActive ? NAV_ITEM_ACTIVE : NAV_ITEM_IDLE}`}
     >
+      {isActive && (
+        <m.span
+          layoutId={SIDEBAR_ACTIVE_LAYOUT_ID}
+          className="absolute inset-0 -z-10 rounded-codex-md bg-codex-border/60"
+          transition={SPRING}
+          aria-hidden="true"
+        />
+      )}
       <span className="shrink-0 flex">{icon}</span>
       <span className="flex-1 truncate text-left">{label}</span>
       {trailing}
@@ -146,7 +158,20 @@ function SidebarSection({ label, isOpen, onToggle, action, children }: SectionPr
         </button>
         {action}
       </div>
-      {isOpen && <div className="space-y-px">{children}</div>}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <m.div
+            key="section"
+            className="overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: EASE_OUT }}
+          >
+            <div className="space-y-px">{children}</div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -171,7 +196,24 @@ export function Sidebar() {
     setSidebarOpen,
     setCommandPaletteOpen,
     setImportMarkdownOpen,
+    sidebarPeek,
+    peekSidebar,
+    unpeekSidebar,
   } = useUIStore();
+  // Collapsed sidebar can float in as a "peek" panel (desktop hover only)
+  const isPeekLayout = !isSidebarOpen && sidebarPeek !== "hidden";
+  const isPeekShown = !isSidebarOpen && sidebarPeek === "shown";
+
+  let panelStateClass: string;
+  if (isSidebarOpen) {
+    panelStateClass = "h-full opacity-100";
+  } else if (isPeekLayout) {
+    panelStateClass = `fixed top-14 bottom-14 left-0 z-50 rounded-r-codex-xl border border-l-0 border-codex-border bg-codex-sidebar ${
+      isPeekShown ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
+    }`;
+  } else {
+    panelStateClass = "h-full opacity-0 md:-translate-x-4 pointer-events-none";
+  }
 
   // On small screens the sidebar is an overlay: close it after navigating
   useEffect(() => {
@@ -215,11 +257,27 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile backdrop: sidebar overlays the content instead of squeezing it */}
-      {isSidebarOpen && (
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <m.div
+            key="sidebar-backdrop"
+            aria-hidden
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-30 bg-codex-background/60 backdrop-blur-sm md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
+      {/* Left-edge hot zone that peeks the collapsed sidebar (desktop hover) */}
+      {!isSidebarOpen && (
         <div
-          aria-hidden
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-codex-background/60 backdrop-blur-sm md:hidden animate-in fade-in-0 duration-150"
+          aria-hidden="true"
+          className="hidden md:block pointer-coarse:hidden fixed inset-y-0 left-0 z-30 w-3"
+          onMouseEnter={peekSidebar}
+          onMouseLeave={unpeekSidebar}
         />
       )}
       <aside
@@ -230,9 +288,13 @@ export function Sidebar() {
         }`}
       >
         <div
-          className={`w-72 md:w-60 flex flex-col h-full overflow-hidden transition-opacity duration-150 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          // Fixed descendants escape the collapsed (w-0, overflow-hidden) aside,
+          // so the peek floats over the page without changing the layout
+          className={`w-72 md:w-60 flex flex-col overflow-hidden transition-[opacity,translate] duration-200 ease-out ${panelStateClass}`}
+          onMouseEnter={isPeekLayout ? peekSidebar : undefined}
+          onMouseLeave={isPeekLayout ? unpeekSidebar : undefined}
         >
-          {/* Top: Workspace Selector + collapse */}
+          {/* Top: Workspace Selector + collapse / dock */}
           <div className="flex items-center gap-1 px-2 pt-2 pb-1">
             <div className="flex-1 min-w-0">
               <WorkspaceSwitcher />
@@ -241,10 +303,14 @@ export function Sidebar() {
               type="button"
               onClick={toggleSidebar}
               className="shrink-0 p-1.5 rounded-codex-md text-codex-muted opacity-0 group-hover/sidebar:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100 hover:bg-codex-border/40 hover:text-codex-foreground transition-all duration-150"
-              aria-label="Close sidebar"
-              title="Close sidebar"
+              aria-label={isPeekLayout ? "Keep sidebar open" : "Close sidebar"}
+              title={isPeekLayout ? "Keep sidebar open" : "Close sidebar"}
             >
-              <ChevronsLeft className="w-4 h-4" />
+              {isPeekLayout ? (
+                <ChevronsRight className="w-4 h-4" />
+              ) : (
+                <ChevronsLeft className="w-4 h-4" />
+              )}
             </button>
           </div>
 
@@ -276,9 +342,13 @@ export function Sidebar() {
                 isOpen={isFavoritesOpen}
                 onToggle={() => setIsFavoritesOpen(!isFavoritesOpen)}
               >
-                {favoritePages.map((page) => (
-                  <PageTreeItem key={`fav-${page.id}`} page={page} level={0} />
-                ))}
+                {/* Own layout scope: a favorited active page appears twice, and
+                    each copy should keep its own highlight pill */}
+                <LayoutGroup id="favorites">
+                  {favoritePages.map((page) => (
+                    <PageTreeItem key={`fav-${page.id}`} page={page} level={0} />
+                  ))}
+                </LayoutGroup>
               </SidebarSection>
             )}
 

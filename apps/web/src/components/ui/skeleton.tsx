@@ -188,20 +188,24 @@ export function WorkspaceHomeSkeleton() {
 
       {/* Main Content */}
       <div className="flex-1 max-w-3xl w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 animate-in fade-in duration-300">
-        {/* Date, greeting & quick actions (text-sm date, text-3xl heading) */}
-        <Skeleton className="w-40 h-5 rounded-codex-sm" />
-        <Skeleton className="mt-1 w-64 h-9 rounded-codex-lg" />
-        <div className="mt-6 flex gap-2">
-          <Skeleton className="w-28 h-8 rounded-codex-md" />
-          <Skeleton className="w-28 h-8 rounded-codex-md" />
+        {/* Hero: date line, greeting (text-4xl/5xl), stats row */}
+        <Skeleton className="w-48 h-4 rounded-codex-sm" />
+        <Skeleton className="mt-3 w-72 sm:w-96 h-10 sm:h-12 rounded-codex-lg" />
+        <Skeleton className="mt-5 w-64 h-7 rounded-codex-sm" />
+
+        {/* Quick action tiles */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-14 rounded-codex-xl" />
+          ))}
         </div>
 
         {/* Recently edited */}
         <div className="mt-12 space-y-3">
           <Skeleton className="w-24 h-3 rounded-codex-sm" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-32 rounded-codex-lg" />
+              <Skeleton key={i} className="h-40 rounded-codex-xl" />
             ))}
           </div>
         </div>

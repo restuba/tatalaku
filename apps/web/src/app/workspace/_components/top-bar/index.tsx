@@ -8,6 +8,8 @@ import { Breadcrumb, type BreadcrumbItem } from "@/components/shared/breadcrumb"
 interface TopBarProps {
   items: BreadcrumbItem[];
   actions?: ReactNode;
+  /** Thin accent line along the bottom edge that tracks reading progress */
+  showScrollProgress?: boolean;
 }
 
 /**
@@ -15,8 +17,8 @@ interface TopBarProps {
  * The bottom divider only appears once the content has been scrolled,
  * so the page feels borderless at rest.
  */
-export function TopBar({ items, actions }: TopBarProps) {
-  const { isSidebarOpen, setSidebarOpen } = useUIStore();
+export function TopBar({ items, actions, showScrollProgress = false }: TopBarProps) {
+  const { isSidebarOpen, setSidebarOpen, peekSidebar, unpeekSidebar } = useUIStore();
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -43,6 +45,9 @@ export function TopBar({ items, actions }: TopBarProps) {
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
+              // Hovering previews the sidebar as a floating peek (desktop only)
+              onMouseEnter={peekSidebar}
+              onMouseLeave={unpeekSidebar}
               className="shrink-0 p-1.5 pointer-coarse:p-2.5 rounded-codex-md text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
               aria-label="Open sidebar"
               title="Open sidebar"
@@ -54,6 +59,14 @@ export function TopBar({ items, actions }: TopBarProps) {
         </div>
 
         {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
+
+        {/* Scroll-driven in CSS (no listeners); hidden where unsupported */}
+        {showScrollProgress && (
+          <div
+            aria-hidden="true"
+            className="scroll-progress pointer-events-none absolute inset-x-0 -bottom-px h-0.5 bg-codex-accent"
+          />
+        )}
       </header>
     </>
   );

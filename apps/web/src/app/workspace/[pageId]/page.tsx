@@ -14,6 +14,9 @@ import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import { getPage } from "@/services/page/get-page";
 import { promptDialog } from "@/stores/dialog-store";
 import { validateImageUrl } from "@/lib/url";
+import { AnimatePresence, m, type Transition, type Variants } from "motion/react";
+import { EASE_OUT } from "@/components/motion";
+import { PopPanel } from "@/components/motion/pop-panel";
 import { TopBar } from "../_components/top-bar";
 import {
   FileText,
@@ -26,6 +29,19 @@ import {
 } from "lucide-react";
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
+
+/** Bouncy spring for the page icon and emoji picks */
+const ICON_POP: Transition = { type: "spring", stiffness: 520, damping: 16, mass: 0.7 };
+
+/** Emoji grid cascades in on open (the stagger lives on the parent only) */
+const EMOJI_GRID: Variants = {
+  hidden: {},
+  shown: { transition: { staggerChildren: 0.015 } },
+};
+const EMOJI_ITEM: Variants = {
+  hidden: { opacity: 0, scale: 0.5 },
+  shown: { opacity: 1, scale: 1 },
+};
 
 const SAVE_STATUS_LABEL: Record<Exclude<SaveStatus, "idle">, string> = {
   saving: "Saving…",
@@ -253,68 +269,93 @@ function PageDetail({ page }: { page: Page }) {
           <MoreHorizontal className="w-4 h-4" />
         </button>
 
-        {isOptionsOpen && (
-          <div className="absolute top-full right-0 mt-1 w-60 glass-surface border border-codex-border rounded-codex-lg p-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-            <button
-              type="button"
-              onClick={handleAddSubpage}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left"
-            >
-              <Plus className="w-4 h-4 text-codex-muted" />
-              <span>Add subpage</span>
-            </button>
+        <PopPanel
+          open={isOptionsOpen}
+          origin="top right"
+          className="absolute top-full right-0 mt-1 w-60 glass-surface border border-codex-border rounded-codex-lg p-1 z-50"
+        >
+          <button
+            type="button"
+            onClick={handleAddSubpage}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left"
+          >
+            <Plus className="w-4 h-4 text-codex-muted" />
+            <span>Add subpage</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={handleExportMarkdown}
-              disabled={isExporting}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className="w-4 h-4 text-codex-muted" />
-              <span>{isExporting ? "Exporting…" : "Export to Markdown"}</span>
-            </button>
+          <button
+            type="button"
+            onClick={handleExportMarkdown}
+            disabled={isExporting}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4 text-codex-muted" />
+            <span>{isExporting ? "Exporting…" : "Export to Markdown"}</span>
+          </button>
 
-            {/* Page metadata lives here instead of cluttering the canvas */}
-            <div className="mt-1 pt-2 pb-1 px-2 border-t border-codex-border space-y-0.5 text-xs text-codex-muted">
-              {lastEditedAt && (
-                <p title={formatFullDate(lastEditedAt)}>Edited {formatTimeAgo(lastEditedAt)}</p>
-              )}
-              {page.createdAt && <p>Created {formatFullDate(page.createdAt)}</p>}
-            </div>
+          {/* Page metadata lives here instead of cluttering the canvas */}
+          <div className="mt-1 pt-2 pb-1 px-2 border-t border-codex-border space-y-0.5 text-xs text-codex-muted">
+            {lastEditedAt && (
+              <p title={formatFullDate(lastEditedAt)}>Edited {formatTimeAgo(lastEditedAt)}</p>
+            )}
+            {page.createdAt && <p>Created {formatFullDate(page.createdAt)}</p>}
           </div>
-        )}
+        </PopPanel>
       </div>
     </>
   );
 
   return (
-    // Opacity-only enter: transforms here would re-anchor fixed-position menus
-    <div className="flex-1 flex flex-col relative w-full animate-in fade-in-0 duration-300">
-      <TopBar items={breadcrumbItems} actions={topBarActions} />
+    <div className="flex-1 flex flex-col relative w-full">
+      <TopBar items={breadcrumbItems} actions={topBarActions} showScrollProgress />
 
-      {/* Cover image banner */}
-      {coverImage && (
-        <div className="group/cover relative w-full h-40 sm:h-56 shrink-0 overflow-hidden bg-codex-surface-secondary">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={coverImage} alt="" className="w-full h-full object-cover" />
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/cover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
-            <button
-              type="button"
-              onClick={handleAddCover}
-              className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
-            >
-              Change cover
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSetCover(null)}
-              className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
-            >
-              Remove
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Cover image banner: unfolds when added, folds away when removed.
+          Mounting with the page (initial={false}) skips the unfold so the
+          editor doesn't jump on load — the image itself eases in instead. */}
+      <AnimatePresence initial={false}>
+        {coverImage && (
+          <m.div
+            key="cover"
+            className="shrink-0 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.45, ease: EASE_OUT }}
+          >
+            <div className="group/cover relative w-full h-40 sm:h-56 overflow-hidden bg-codex-surface-secondary">
+              {/* Parallax wrapper (scroll-driven CSS) — kept separate from the
+                  motion-driven <img> so the two transforms never collide */}
+              <div className="cover-parallax absolute inset-0">
+                <m.img
+                  key={coverImage}
+                  src={coverImage}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  initial={{ opacity: 0, scale: 1.08 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.9, ease: EASE_OUT }}
+                />
+              </div>
+              <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/cover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={handleAddCover}
+                  className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
+                >
+                  Change cover
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetCover(null)}
+                  className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
 
       <div
         className={`flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pb-24 transition-all duration-200 ${
@@ -337,15 +378,22 @@ function PageDetail({ page }: { page: Page }) {
 
           <div className="relative" ref={emojiPickerRef}>
             {icon ? (
-              <button
+              // key={icon}: every new icon pops in with its own little spring
+              <m.button
+                key={icon}
                 type="button"
                 onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
                 className="text-5xl leading-none p-1 -ml-1 mb-3 rounded-codex-md hover:bg-codex-surface-secondary transition-colors"
                 aria-label="Change icon"
                 title="Change icon"
+                initial={{ opacity: 0, scale: 0.4, rotate: -18 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={ICON_POP}
+                whileHover={{ scale: 1.06, rotate: -4 }}
+                whileTap={{ scale: 0.92 }}
               >
                 {icon}
-              </button>
+              </m.button>
             ) : (
               // Revealed on hover so an empty page stays visually quiet
               <button
@@ -362,31 +410,46 @@ function PageDetail({ page }: { page: Page }) {
               </button>
             )}
 
-            {isEmojiPickerOpen && (
-              <div className="absolute left-0 top-full z-50 glass-surface border border-codex-border rounded-codex-lg p-2 w-60 animate-in fade-in zoom-in-95 duration-100">
-                <div className="grid grid-cols-6 gap-1">
-                  {COMMON_EMOJIS.map((emoji) => (
-                    <button
-                      type="button"
-                      key={emoji}
-                      onClick={() => handleSelectIcon(emoji)}
-                      className="w-8 h-8 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-surface-secondary transition-colors"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-                {icon && (
-                  <button
+            <PopPanel
+              open={isEmojiPickerOpen}
+              origin="top left"
+              className="absolute left-0 top-full z-50 glass-surface border border-codex-border rounded-codex-lg p-2 w-60"
+            >
+              <m.div
+                className="grid grid-cols-6 gap-1"
+                variants={EMOJI_GRID}
+                initial="hidden"
+                animate="shown"
+              >
+                {COMMON_EMOJIS.map((emoji) => (
+                  <m.button
                     type="button"
-                    onClick={() => handleSelectIcon(null)}
-                    className="w-full mt-1 px-2 py-1.5 rounded-codex-md text-left text-xs text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
+                    key={emoji}
+                    onClick={() => handleSelectIcon(emoji)}
+                    className={`w-8 h-8 pointer-coarse:w-10 pointer-coarse:h-10 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-surface-secondary transition-colors ${
+                      emoji === icon ? "bg-codex-surface-secondary" : ""
+                    }`}
+                    aria-label={`Use ${emoji} as icon`}
+                    aria-pressed={emoji === icon}
+                    variants={EMOJI_ITEM}
+                    transition={ICON_POP}
+                    whileHover={{ scale: 1.25 }}
+                    whileTap={{ scale: 0.9 }}
                   >
-                    Remove icon
-                  </button>
-                )}
-              </div>
-            )}
+                    {emoji}
+                  </m.button>
+                ))}
+              </m.div>
+              {icon && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectIcon(null)}
+                  className="w-full mt-1 px-2 py-1.5 rounded-codex-md text-left text-xs text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
+                >
+                  Remove icon
+                </button>
+              )}
+            </PopPanel>
           </div>
 
           {/* Editable Title */}

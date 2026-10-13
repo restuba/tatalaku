@@ -2,6 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { AnimatePresence, m } from "motion/react";
+import { SPRING } from "@/components/motion";
+import { PopPanel } from "@/components/motion/pop-panel";
+import { SIDEBAR_ACTIVE_LAYOUT_ID } from "./constants";
 import { useParams, useRouter } from "next/navigation";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page-store";
@@ -296,17 +300,27 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`group flex items-center justify-between py-0.5 pointer-coarse:py-1.5 pr-2 rounded-codex-md text-sm transition-all duration-150 relative ${
+        className={`group isolate flex items-center justify-between py-0.5 pointer-coarse:py-1.5 pr-2 rounded-codex-md text-sm transition-colors duration-150 relative ${
           isDragging ? "opacity-40 cursor-grabbing" : "cursor-grab"
         } ${
           isActive
-            ? "bg-codex-border/60 text-codex-foreground font-medium"
+            ? "text-codex-foreground font-medium"
             : "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground"
         } ${
           dropZone === "inside" ? "ring-2 ring-inset ring-codex-accent/70 bg-codex-accent/10" : ""
         }`}
         style={{ paddingLeft: `${Math.max(level * 14 + 2, 2)}px` }}
       >
+        {/* Active-page pill shared with the nav items: glides to the new page */}
+        {isActive && (
+          <m.span
+            layoutId={SIDEBAR_ACTIVE_LAYOUT_ID}
+            data-drop-line
+            className="absolute inset-0 -z-10 rounded-codex-md bg-codex-border/60"
+            transition={SPRING}
+            aria-hidden="true"
+          />
+        )}
         {/* Sibling drop indicators: a line with a leading dot */}
         {dropZone === "before" && (
           <div
@@ -438,73 +452,85 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </button>
 
-              {isMenuOpen && menuPos && (
-                <div
-                  style={{ top: menuPos.top, left: menuPos.left }}
-                  className="fixed z-50 glass-surface border border-codex-border rounded-codex-md p-1 w-48 text-xs animate-in fade-in-0 zoom-in-95 duration-100"
+              <PopPanel
+                open={isMenuOpen && menuPos !== null}
+                origin="top right"
+                position={menuPos ?? undefined}
+                className="fixed z-50 glass-surface border border-codex-border rounded-codex-md p-1 w-48 text-xs"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    setEditTitle(page.title);
+                    setIsEditing(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
                 >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsMenuOpen(false);
-                      setEditTitle(page.title);
-                      setIsEditing(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    <span>Rename</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleToggleFavorite}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
-                  >
-                    {page.isFavorite ? (
-                      <>
-                        <PinOff className="w-3.5 h-3.5" />
-                        <span>Remove from Favorites</span>
-                      </>
-                    ) : (
-                      <>
-                        <Pin className="w-3.5 h-3.5" />
-                        <span>Add to Favorites</span>
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleArchive}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-danger-bg/10 text-codex-danger transition-colors text-left"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              )}
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Rename</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
+                >
+                  {page.isFavorite ? (
+                    <>
+                      <PinOff className="w-3.5 h-3.5" />
+                      <span>Remove from Favorites</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pin className="w-3.5 h-3.5" />
+                      <span>Add to Favorites</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleArchive}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-danger-bg/10 text-codex-danger transition-colors text-left"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
+              </PopPanel>
             </div>
           </div>
         )}
       </div>
 
-      {/* Recursive Subpages */}
-      {isExpanded &&
-        (hasChildren ? (
-          <div className="space-y-0.5 mt-0.5">
-            {childPages.map((child) => (
-              <PageTreeItem key={child.id} page={child} level={level + 1} />
-            ))}
-          </div>
-        ) : (
-          <p
-            className="mt-0.5 py-0.5 text-xs italic text-codex-muted/70 select-none"
-            style={{ paddingLeft: `${Math.max((level + 1) * 14 + 8, 8)}px` }}
+      {/* Recursive Subpages — height springs open/closed instead of popping */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <m.div
+            key="children"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={SPRING}
+            className="overflow-hidden"
           >
-            No pages inside
-          </p>
-        ))}
+            {hasChildren ? (
+              <div className="space-y-0.5 mt-0.5">
+                {childPages.map((child) => (
+                  <PageTreeItem key={child.id} page={child} level={level + 1} />
+                ))}
+              </div>
+            ) : (
+              <p
+                className="mt-0.5 py-0.5 text-xs italic text-codex-muted/70 select-none"
+                style={{ paddingLeft: `${Math.max((level + 1) * 14 + 8, 8)}px` }}
+              >
+                No pages inside
+              </p>
+            )}
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

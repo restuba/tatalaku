@@ -8,6 +8,7 @@ import "./globals.css";
 import Script from "next/script";
 import { AppProvider } from "@/components/app";
 import { ThemeProvider, MotionSync, MOTION_PREPAINT_SCRIPT } from "@/components/providers";
+import { MotionProvider } from "@/components/motion";
 
 export const metadata: Metadata = {
   title: "Tatalaku",
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <ThemeProvider>
           <MotionSync />
-          <AppProvider>{children}</AppProvider>
+          <MotionProvider>
+            <AppProvider>{children}</AppProvider>
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

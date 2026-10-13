@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { FileText, Home, Keyboard, Plus, Search, Upload } from "lucide-react";
 import type { Page } from "@tatalaku/shared";
+import { AnimatePresence, m, useIsPresent } from "motion/react";
+import { SPRING, SPRING_SOFT } from "@/components/motion";
 import { useUIStore } from "@/stores/ui-store";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -45,16 +47,22 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [toggleCommandPalette]);
 
-  if (!mounted || !isCommandPaletteOpen) return null;
+  if (!mounted) return null;
 
-  // Rendering the dialog only while open gives it fresh state on every open
+  // Rendering the dialog only while open gives it fresh state on every open;
+  // AnimatePresence keeps it around just long enough to animate out.
   return createPortal(
-    <PaletteDialog onClose={() => setCommandPaletteOpen(false)} />,
+    <AnimatePresence>
+      {isCommandPaletteOpen && (
+        <PaletteDialog key="palette" onClose={() => setCommandPaletteOpen(false)} />
+      )}
+    </AnimatePresence>,
     document.body,
   );
 }
 
 function PaletteDialog({ onClose }: { onClose: () => void }) {
+  const isPresent = useIsPresent();
   const router = useRouter();
   const { pages, createPage } = usePageStore();
   const { activeWorkspace } = useWorkspaceStore();
@@ -222,18 +230,31 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-center px-4 pt-24 sm:pt-32"
+      // While animating out, let clicks fall through to the page underneath
+      className={`fixed inset-0 z-50 flex justify-center px-4 pt-24 sm:pt-32 ${
+        isPresent ? "" : "pointer-events-none"
+      }`}
       role="dialog"
       aria-modal="true"
       aria-label="Search pages and commands"
     >
-      <div
-        className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm animate-in fade-in-0 duration-150"
+      <m.div
+        className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
       />
 
-      <div className="glass-surface relative z-10 flex flex-col w-full max-w-xl max-h-96 self-start overflow-hidden rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10 animate-in fade-in-0 zoom-in-98 slide-in-from-top-2 duration-150 ease-out">
+      <m.div
+        initial={{ opacity: 0, y: -10, scale: 0.97, filter: "blur(6px)" }}
+        animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.14 } }}
+        transition={SPRING_SOFT}
+        className="glass-surface relative z-10 flex flex-col w-full max-w-xl max-h-96 self-start overflow-hidden rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10"
+      >
         {/* Search input */}
         <div className="flex items-center gap-2 px-4 border-b border-codex-border">
           <Search className="w-4 h-4 shrink-0 text-codex-muted" />
@@ -276,19 +297,30 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                   data-index={index}
                   onMouseMove={() => setActiveIndex(index)}
                   onClick={() => runItem(item)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-codex-md text-sm cursor-pointer ${
-                    isActive ? "bg-codex-surface-secondary" : ""
-                  }`}
+                  className="relative flex items-center gap-3 px-3 py-2 pointer-coarse:py-3 rounded-codex-md text-sm cursor-pointer"
                 >
-                  <span className="w-5 flex justify-center shrink-0 text-codex-muted">
+                  {/* Shared highlight glides between rows instead of jumping */}
+                  {isActive && (
+                    <m.span
+                      layoutId={`${listboxId}-highlight`}
+                      className="absolute inset-0 rounded-codex-md bg-codex-surface-secondary"
+                      transition={SPRING}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span
+                    className={`relative w-5 flex justify-center shrink-0 transition-colors ${
+                      isActive ? "text-codex-accent" : "text-codex-muted"
+                    }`}
+                  >
                     {item.icon}
                   </span>
-                  <span className="flex-1 min-w-0 truncate">
+                  <span className="relative flex-1 min-w-0 truncate">
                     {item.label}
                     {item.hint && <span className="ml-2 text-codex-muted">{item.hint}</span>}
                   </span>
                   {item.meta && (
-                    <span className="shrink-0 text-xs text-codex-muted">{item.meta}</span>
+                    <span className="relative shrink-0 text-xs text-codex-muted">{item.meta}</span>
                   )}
                 </div>
               </li>
@@ -301,7 +333,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
           <span>↑↓ to navigate</span>
           <span>↵ to open</span>
         </div>
-      </div>
+      </m.div>
     </div>
   );
 }

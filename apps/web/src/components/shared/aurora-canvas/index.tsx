@@ -31,6 +31,8 @@ uniform vec3 u_c1;
 uniform vec3 u_c2;
 uniform vec3 u_c3;
 uniform vec3 u_bg;
+uniform vec2 u_mouse;     // pointer in aspect-corrected uv space
+uniform float u_mouseMix; // 0 = no pointer light, 1 = full
 
 float blob(vec2 uv, vec2 center, float radius) {
   float d = length(uv - center);
@@ -56,6 +58,10 @@ void main() {
   color = mix(color, u_c2, b2 * 0.38);
   color = mix(color, u_c3, b3 * 0.34);
 
+  // A softer light that trails the pointer and gently pushes the field
+  float bm = blob(uv, u_mouse, 0.55);
+  color = mix(color, mix(u_c1, u_c2, 0.5 + 0.5 * sin(t * 2.0)), bm * 0.34 * u_mouseMix);
+
   // Subtle grain hides 8-bit banding in the soft gradients
   float grain = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
   color += (grain - 0.5) * 0.02;
@@ -69,6 +75,10 @@ const RENDER_SCALE = 0.35;
 const FRAME_INTERVAL_MS = 1000 / 30;
 /** Shader time used for the still frame when motion is off (a balanced layout) */
 const STATIC_FRAME_TIME = 18;
+/** How quickly the pointer light catches up with the cursor (per frame, 0..1) */
+const POINTER_EASE = 0.08;
+/** How quickly the pointer light fades in/out (per frame, 0..1) */
+const POINTER_FADE = 0.05;
 
 type RGB = [number, number, number];
 
@@ -101,9 +111,15 @@ interface AuroraBackgroundProps {
   /** Static CSS version shown until (or instead of, if WebGL is unavailable) the shader */
   fallback: ReactNode;
   className?: string;
+  /** Adds a soft light that follows a mouse/pen pointer (ignored for touch) */
+  interactive?: boolean;
 }
 
-export function AuroraBackground({ fallback, className = "" }: AuroraBackgroundProps) {
+export function AuroraBackground({
+  fallback,
+  className = "",
+  interactive = false,
+}: AuroraBackgroundProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -146,6 +162,49 @@ export function AuroraBackground({ fallback, className = "" }: AuroraBackgroundP
     const uC2 = gl.getUniformLocation(program, "u_c2");
     const uC3 = gl.getUniformLocation(program, "u_c3");
     const uBg = gl.getUniformLocation(program, "u_bg");
+    const uMouse = gl.getUniformLocation(program, "u_mouse");
+    const uMouseMix = gl.getUniformLocation(program, "u_mouseMix");
+    gl.uniform1f(uMouseMix, 0);
+
+    // Pointer light state: client coords of the cursor, plus the eased light
+    // position (canvas uv) and intensity that the shader actually sees.
+    const pointer = { clientX: 0, clientY: 0, active: false };
+    const light = { x: 0, y: 0, mix: 0, placed: false };
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      pointer.clientX = e.clientX;
+      pointer.clientY = e.clientY;
+      pointer.active = true;
+    };
+    const onPointerOut = (e: PointerEvent) => {
+      // relatedTarget null → the pointer left the window
+      if (!e.relatedTarget) pointer.active = false;
+    };
+    if (interactive) {
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      document.addEventListener("pointerout", onPointerOut, { passive: true });
+    }
+
+    const updateLight = () => {
+      if (!interactive) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        const aspect = rect.width / rect.height;
+        const targetX = ((pointer.clientX - rect.left) / rect.width) * aspect;
+        const targetY = 1 - (pointer.clientY - rect.top) / rect.height;
+        if (!light.placed) {
+          // First sighting: start under the cursor instead of sweeping in from 0,0
+          light.x = targetX;
+          light.y = targetY;
+          light.placed = pointer.active;
+        }
+        light.x += (targetX - light.x) * POINTER_EASE;
+        light.y += (targetY - light.y) * POINTER_EASE;
+      }
+      light.mix += ((pointer.active ? 1 : 0) - light.mix) * POINTER_FADE;
+      gl.uniform2f(uMouse, light.x, light.y);
+      gl.uniform1f(uMouseMix, light.mix);
+    };
 
     const probe = document.createElement("span");
     probe.style.display = "none";
@@ -175,8 +234,12 @@ export function AuroraBackground({ fallback, className = "" }: AuroraBackgroundP
     const draw = (now: number) => {
       // Motion off: a fixed, deterministic frame (redraws on resize/theme
       // change must not visibly shift the blobs)
-      const seconds = isMotionReduced() ? STATIC_FRAME_TIME : (now - start) / 1000;
+      const isStill = isMotionReduced();
+      const seconds = isStill ? STATIC_FRAME_TIME : (now - start) / 1000;
       gl.uniform1f(uTime, seconds);
+      // The still frame never shows the pointer light (it can't follow anyway)
+      if (isStill) gl.uniform1f(uMouseMix, 0);
+      else updateLight();
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 
@@ -231,6 +294,8 @@ export function AuroraBackground({ fallback, className = "" }: AuroraBackgroundP
       intersection.disconnect();
       themeObserver.disconnect();
       document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerout", onPointerOut);
       probe.remove();
       gl.deleteBuffer(buffer);
       gl.deleteProgram(program);
@@ -241,7 +306,7 @@ export function AuroraBackground({ fallback, className = "" }: AuroraBackgroundP
       // remounts keep the element), and getContext() would then hand back the
       // lost context. The context is released with the canvas element.
     };
-  }, []);
+  }, [interactive]);
 
   return (
     <div

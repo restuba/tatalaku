@@ -594,6 +594,156 @@ button:disabled,
   animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Text rising out of a clipping parent (overflow-hidden). CSS-only so hero
+   copy shows up before hydration; `both` holds it below during the delay. */
+@keyframes riseIn {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-rise-in {
+  animation: riseIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Ambient decoration (theme-token driven, motion-setting aware) ───────── */
+
+/* Gradient text that slowly drifts between theme colors */
+@keyframes gradientDrift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+@utility text-gradient-accent {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-accent),
+    var(--color-info) 40%,
+    color-mix(in srgb, var(--color-accent) 55%, var(--color-ink)) 70%,
+    var(--color-accent)
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientDrift 7s ease-in-out infinite alternate;
+}
+
+/* Soft accent light behind the home greeting */
+@keyframes glowDrift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, 8%, 0) scale(1.12);
+  }
+}
+
+.home-hero-glow {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-accent) 22%, transparent),
+    color-mix(in srgb, var(--color-info) 8%, transparent) 55%,
+    transparent
+  );
+  animation: glowDrift 14s ease-in-out infinite alternate;
+}
+
+/* Dot-matrix texture, faded out toward the edges */
+.dot-grid {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-ink) 22%, transparent) 1px,
+    transparent 1.5px
+  );
+  background-size: 16px 16px;
+  /* Masks only read alpha; any opaque token works as the "visible" stop */
+  -webkit-mask-image: radial-gradient(ellipse at 30% 40%, var(--color-ink), transparent 70%);
+  mask-image: radial-gradient(ellipse at 30% 40%, var(--color-ink), transparent 70%);
+}
+
+/* Page cover: drifts slower than the content while the page scrolls.
+   Scroll-driven (no JS); browsers without support keep a static cover. */
+@keyframes coverParallax {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.06);
+  }
+  to {
+    transform: translate3d(0, 22%, 0) scale(1.06);
+  }
+}
+
+/* Landing ribbon: endless horizontal drift, faded at both ends */
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.marquee-track {
+  animation: marquee 48s linear infinite;
+}
+
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--color-ink) 12%,
+    var(--color-ink) 88%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--color-ink) 12%,
+    var(--color-ink) 88%,
+    transparent
+  );
+}
+
+/* Reading progress along the top bar's bottom edge (scroll-driven, no JS).
+   It tracks the scroll position rather than playing an animation, so it stays
+   on with motion off; unsupported browsers simply don't show it. */
+@keyframes scrollProgress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.scroll-progress {
+  display: none;
+  transform-origin: left center;
+  /* Base state when the timeline is inactive (content too short to scroll) */
+  transform: scaleX(0);
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    display: block;
+    animation: scrollProgress linear both;
+    animation-timeline: scroll(nearest block);
+  }
+
+  html:not([data-motion="reduce"]) .cover-parallax {
+    animation: coverParallax linear both;
+    animation-timeline: scroll(nearest block);
+    animation-range: 0 320px;
+  }
+}
+
 /* Block redirect flash highlight */
 @keyframes blockFlash {
   0% {

@@ -1,7 +1,9 @@
 "use client";
 
 import type { Page } from "@tatalaku/shared";
+import { AnimatePresence, m } from "motion/react";
 import { Check } from "lucide-react";
+import { SPRING_SOFT } from "@/components/motion";
 import { useUIStore } from "@/stores/ui-store";
 
 interface ChecklistItem {
@@ -110,15 +112,21 @@ export function GettingStarted({
         aria-valuenow={doneCount}
         aria-label="Getting started progress"
       >
-        <div
-          className="h-full rounded-full bg-codex-accent transition-all duration-300"
-          style={{ width: `${(doneCount / items.length) * 100}%` }}
+        <m.div
+          className="h-full origin-left rounded-full bg-codex-accent"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: doneCount / items.length }}
+          transition={{ ...SPRING_SOFT, delay: 0.4 }}
         />
       </div>
 
       <ul className="-mx-2">
-        {items.map((item) => (
-          <li key={item.id}>
+        {items.map((item, index) => (
+          <li
+            key={item.id}
+            className="opacity-0 animate-slide-up-fade"
+            style={{ animationDelay: `${420 + index * 50}ms` }}
+          >
             <button
               type="button"
               onClick={item.onAction}
@@ -133,7 +141,20 @@ export function GettingStarted({
                 }`}
                 aria-hidden="true"
               >
-                {item.isDone && <Check className="w-3 h-3" strokeWidth={3} />}
+                <AnimatePresence initial={false}>
+                  {item.isDone && (
+                    <m.span
+                      key="check"
+                      className="flex"
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0 }}
+                      transition={{ type: "spring", stiffness: 600, damping: 18 }}
+                    >
+                      <Check className="w-3 h-3" strokeWidth={3} />
+                    </m.span>
+                  )}
+                </AnimatePresence>
               </span>
               <span className="flex-1 min-w-0">
                 <span

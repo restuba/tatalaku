@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useCallback, useId } from "react";
+import { AnimatePresence, m } from "motion/react";
+import { SPRING_SOFT } from "@/components/motion";
 import { createPortal } from "react-dom";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { ModalAction } from "./modal-action";
@@ -76,41 +78,53 @@ function Modal({
     };
   }, [open, handleKeyDown, modalId]);
 
-  if (!mounted || !open) return null;
+  if (!mounted) return null;
 
   const widthClass = maxWidth ? (maxWidthClasses[maxWidth] ?? "max-w-md") : "";
 
-  const modalContent = (
-    <ModalContext.Provider value={{ onClose, scroll }}>
-      <div
-        className={`fixed inset-0 flex items-center justify-center p-4 overflow-y-auto ${
-          elevated ? "z-[80]" : "z-50"
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-      >
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm transition-opacity"
-          onClick={disableBackdropClick ? undefined : onClose}
-          aria-hidden="true"
-        />
+  // AnimatePresence keeps the dialog mounted while it animates out, so closing
+  // feels as considered as opening (backdrop fades, paper springs away).
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <ModalContext.Provider value={{ onClose, scroll }}>
+          <div
+            className={`fixed inset-0 flex items-center justify-center p-4 overflow-y-auto ${
+              elevated ? "z-[80]" : "z-50"
+            }`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={ariaLabel}
+          >
+            {/* Backdrop */}
+            <m.div
+              className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm"
+              onClick={disableBackdropClick ? undefined : onClose}
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+            />
 
-        {/* Paper Container */}
-        <div
-          className={`glass-surface relative z-10 flex flex-col w-full rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10 animate-slide-up-fade transition-all ${
-            fullWidth ? "w-full" : ""
-          } ${widthClass} ${scroll === "paper" ? "max-h-[calc(100vh-4rem)]" : ""} ${className}`}
-          style={{ animationDuration: "250ms" }}
-        >
-          {children}
-        </div>
-      </div>
-    </ModalContext.Provider>
+            {/* Paper Container */}
+            <m.div
+              className={`glass-surface relative z-10 flex flex-col w-full rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10 ${
+                fullWidth ? "w-full" : ""
+              } ${widthClass} ${scroll === "paper" ? "max-h-[calc(100vh-4rem)]" : ""} ${className}`}
+              initial={{ opacity: 0, y: 14, scale: 0.97, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: 8, scale: 0.98, filter: "blur(4px)" }}
+              transition={SPRING_SOFT}
+            >
+              {children}
+            </m.div>
+          </div>
+        </ModalContext.Provider>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
-
-  return createPortal(modalContent, document.body);
 }
 
 // ─── Compound Attachment ─────────────────────────────────────────────

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { m } from "motion/react";
+import { EASE_OUT } from "@/components/motion";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
@@ -16,6 +18,7 @@ import { WorkspaceShellSkeleton } from "./_components/workspace-skeleton";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isInitialized: isAuthInit, error, fetchMe } = useAuthStore();
   const {
     workspaces,
@@ -177,7 +180,17 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       <KeyboardShortcuts />
       <DialogHost />
       <main className="flex-1 h-dvh overflow-y-auto flex flex-col relative z-10 bg-codex-background">
-        {children}
+        {/* Route transition: each page glides in. Opacity + translate only —
+            a lingering filter/transform would re-anchor fixed editor menus. */}
+        <m.div
+          key={pathname}
+          className="flex-1 flex flex-col"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.42, ease: EASE_OUT }}
+        >
+          {children}
+        </m.div>
       </main>
     </div>
   );
