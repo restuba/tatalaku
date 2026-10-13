@@ -13,8 +13,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 :root {
   /* Common definitions that apply to all themes */
-  --font-ui: Geist, Inter;
-  --font-code: "Geist Mono", ui-monospace, SFMono-Regular;
+  /* Self-hosted Geist via next/font/local (see app/layout.tsx); the generated
+     family names differ from "Geist", so reference the variables instead. */
+  --font-ui: var(--font-geist-sans), Inter, system-ui, sans-serif;
+  --font-code: var(--font-geist-mono), ui-monospace, SFMono-Regular;
 
   /* Derived colors via color-mix based on contrast */
   --color-surface-secondary: color-mix(

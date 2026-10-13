@@ -16,7 +16,7 @@ const AUTH_ROUTES = ["/login", "/register"];
 // rejects stale sessions with 401.
 const SESSION_COOKIE = "tatalaku_session";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = request.cookies.has(SESSION_COOKIE);
 

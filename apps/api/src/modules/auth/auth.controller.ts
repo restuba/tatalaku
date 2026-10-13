@@ -74,7 +74,7 @@ export class AuthController {
       });
     } catch (err) {
       // If refresh fails (e.g., token expired, user deleted from DB), clear the invalid cookie
-      // so the client's middleware doesn't get stuck in an infinite redirect loop.
+      // so the web app's proxy (src/proxy.ts) doesn't get stuck in an infinite redirect loop.
       res.clearCookie(REFRESH_TOKEN_COOKIE, clearCookieOptions);
       next(err);
     }

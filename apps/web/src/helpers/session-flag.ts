@@ -5,7 +5,7 @@
  * (tatalaku-services.up.railway.app). Because the web app runs on a different
  * site (tatalaku.up.railway.app) and `up.railway.app` is on the Public Suffix
  * List, that cookie can never be shared with the web domain — so the Next.js
- * proxy/middleware cannot read it to gate protected routes.
+ * proxy (src/proxy.ts) cannot read it to gate protected routes.
  *
  * To let the proxy know a session exists, we set this NON-sensitive marker
  * cookie on the web domain right after a successful auth. It carries no token,

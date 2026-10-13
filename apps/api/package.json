@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "migrate:page-search": "tsx src/scripts/migrate-page-search.ts"
+    "migrate:page-search": "tsx src/scripts/migrate-page-search.ts",
+    "migrate:page-order": "tsx src/scripts/migrate-page-order.ts"
   },
   "dependencies": {
     "@tatalaku/shared": "workspace:*",

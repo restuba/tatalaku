@@ -138,7 +138,7 @@ export function Sidebar() {
         <div
           aria-hidden
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-codex-foreground/20 md:hidden animate-in fade-in-0 duration-150"
+          className="fixed inset-0 z-30 bg-codex-background/60 backdrop-blur-sm md:hidden animate-in fade-in-0 duration-150"
         />
       )}
       <aside
