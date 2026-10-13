@@ -98,10 +98,10 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
     >
       <Modal.Header showClose divider>
         <div className="flex items-center gap-3">
-          <Users className="w-5 h-5 text-muted" />
+          <Users className="w-5 h-5 text-codex-muted" />
           <div>
-            <h2 className="text-base font-semibold text-ink leading-tight">Members</h2>
-            <p className="text-xs text-muted mt-0.5">{activeWorkspace?.name}</p>
+            <h2 className="text-base font-semibold text-codex-foreground leading-tight">Members</h2>
+            <p className="text-xs text-codex-muted mt-0.5">{activeWorkspace?.name}</p>
           </div>
         </div>
       </Modal.Header>
@@ -110,7 +110,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
       {isOwner && (
         <form
           onSubmit={handleInviteMember}
-          className="p-4 border-b border-border bg-surface-secondary/20"
+          className="p-4 border-b border-codex-border bg-codex-surface-secondary/20"
         >
           <div className="flex items-center gap-2">
             <div className="flex-1">
@@ -120,7 +120,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                 value={inviteEmail}
                 onChange={(val: string) => setInviteEmail(val)}
                 size="small"
-                prefix={<Mail className="w-3.5 h-3.5 text-muted" />}
+                prefix={<Mail className="w-3.5 h-3.5 text-codex-muted" />}
               />
             </div>
             <Button
@@ -135,8 +135,8 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
           </div>
           {inviteStatus && (
             <p
-              className={`text-[11px] mt-1.5 ${
-                inviteStatus.type === "success" ? "text-success" : "text-danger"
+              className={`text-xs mt-1.5 ${
+                inviteStatus.type === "success" ? "text-codex-success" : "text-codex-danger"
               }`}
             >
               {inviteStatus.message}
@@ -148,27 +148,27 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
       {/* Members List */}
       <Modal.Content className="p-4 overflow-y-auto space-y-1.5 min-h-[160px] max-h-[50vh]">
         {!activeWorkspaceMembers || activeWorkspaceMembers.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted text-xs">
+          <div className="flex items-center justify-center h-32 text-codex-muted text-xs">
             Loading members...
           </div>
         ) : (
           activeWorkspaceMembers.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-2.5 rounded-codex-md hover:bg-surface-secondary/50 transition-colors group"
+              className="flex items-center justify-between p-2.5 rounded-codex-md hover:bg-codex-surface-secondary/50 transition-colors group"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-surface-secondary border border-border text-ink flex items-center justify-center text-xs font-semibold shrink-0">
+                <div className="w-8 h-8 rounded-full bg-codex-surface-secondary border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-semibold shrink-0">
                   {member.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-ink truncate">
+                  <p className="text-xs font-medium text-codex-foreground truncate">
                     {member.name}{" "}
                     {user?.id === member.id && (
-                      <span className="text-[11px] text-muted font-normal">(You)</span>
+                      <span className="text-xs text-codex-muted font-normal">(You)</span>
                     )}
                   </p>
-                  <p className="text-[11px] text-muted truncate">{member.email}</p>
+                  <p className="text-xs text-codex-muted truncate">{member.email}</p>
                 </div>
               </div>
 
@@ -201,8 +201,8 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
 
       {/* Footer info for non-owners */}
       {!isOwner && (
-        <div className="p-3.5 bg-surface-secondary/30 border-t border-border flex items-center gap-2 text-xs text-muted">
-          <ShieldAlert className="w-4 h-4 shrink-0 text-muted" />
+        <div className="p-3.5 bg-codex-surface-secondary/30 border-t border-codex-border flex items-center gap-2 text-xs text-codex-muted">
+          <ShieldAlert className="w-4 h-4 shrink-0 text-codex-muted" />
           <span>Only the workspace owner can invite or remove members.</span>
         </div>
       )}

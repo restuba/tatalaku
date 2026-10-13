@@ -6,6 +6,8 @@ import { createContentExtensions } from "@/components/editor/extensions";
 // Built lazily: the extension list is heavy and only needed on first export.
 let manager: MarkdownManager | null = null;
 
+const PLAIN_TEXT_LANGUAGES = new Set(["plaintext", "text"]);
+
 function getSerializer(): MarkdownManager {
   if (!manager) {
     manager = new MarkdownManager({ extensions: createContentExtensions() });
@@ -25,6 +27,11 @@ function toSerializable(node: JSONContent): JSONContent {
       attrs: { language: "mermaid" },
       content: code ? [{ type: "text", text: code }] : [],
     };
+  }
+
+  // Plain-text blocks round-trip as a bare ``` fence (the Markdown default)
+  if (node.type === "codeBlock" && PLAIN_TEXT_LANGUAGES.has(String(node.attrs?.["language"]))) {
+    return { ...node, attrs: { ...node.attrs, language: null } };
   }
 
   if (node.content) {

@@ -58,8 +58,8 @@ function MermaidPreview({ code }: { code: string }) {
   if (error) {
     return (
       <div className="py-6 text-center">
-        <span className="font-mono text-[11px] text-codex-danger">[SYNTAX ERROR]</span>
-        <p className="mt-1 font-mono text-[11px] text-codex-muted">{error}</p>
+        <span className="font-mono text-xs text-codex-danger">[SYNTAX ERROR]</span>
+        <p className="mt-1 font-mono text-xs text-codex-muted">{error}</p>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export function MermaidNodeView(props: NodeViewProps) {
       <div className="group relative w-full rounded-codex-lg border border-codex-border bg-codex-surface">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-codex-border px-4 py-2 bg-codex-background/50 rounded-t-codex-lg">
-          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-codex-muted">
+          <span className="font-mono text-xs uppercase tracking-[0.08em] text-codex-muted">
             MERMAID
           </span>
           {editor.isEditable && (
@@ -137,14 +137,14 @@ export function MermaidNodeView(props: NodeViewProps) {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="rounded-codex-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-codex-muted transition-colors hover:text-codex-foreground"
+                    className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-muted transition-colors hover:text-codex-foreground"
                   >
                     CANCEL
                   </button>
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="rounded-codex-full bg-codex-primary px-3 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-white transition-opacity hover:opacity-80"
+                    className="rounded-full bg-codex-accent px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-background transition-opacity hover:opacity-80"
                   >
                     SAVE
                   </button>
@@ -153,7 +153,7 @@ export function MermaidNodeView(props: NodeViewProps) {
                 <button
                   type="button"
                   onClick={handleStartEdit}
-                  className="rounded-codex-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-codex-muted opacity-0 transition-all hover:text-codex-foreground group-hover:opacity-100"
+                  className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-muted opacity-0 transition-all hover:text-codex-foreground group-hover:opacity-100"
                 >
                   EDIT
                 </button>
@@ -170,7 +170,7 @@ export function MermaidNodeView(props: NodeViewProps) {
               value={editCode}
               onChange={(e) => setEditCode(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="min-h-[160px] w-full resize-y rounded-codex-md border border-codex-border bg-codex-background p-4 font-mono text-sm leading-relaxed text-codex-foreground focus:border-codex-primary focus:ring-1 focus:ring-codex-primary focus:outline-none"
+              className="min-h-[160px] w-full resize-y rounded-codex-md border border-codex-border bg-codex-background p-4 font-mono text-sm leading-relaxed text-codex-foreground focus:border-codex-accent focus:ring-1 focus:ring-codex-accent focus:outline-none"
               placeholder={"graph TD\n    A[Start] --> B[End]"}
               spellCheck={false}
             />

@@ -6,7 +6,7 @@ description: Panduan teknis menambah atau memodifikasi block type di editor Tipt
 
 ## Konteks
 
-Editor Tatalaku pakai Tiptap sebagai fondasi block-based editor mirip Notion. Setiap block type (paragraph, heading, bulletList, todo, toggle, code, quote, divider, image) adalah custom Tiptap Node/Extension.
+Editor Tatalaku pakai Tiptap sebagai fondasi block-based editor. Setiap block type (paragraph, heading, bulletList, todo, toggle, code, quote, divider, image) adalah custom Tiptap Node/Extension.
 
 ## Aturan Menambah Block Type Baru
 

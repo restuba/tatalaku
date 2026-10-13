@@ -170,7 +170,7 @@ interface ColorPopoverProps {
 function ColorPopover({ title, options, activeValue, swatchKind, onSelect }: ColorPopoverProps) {
   return (
     <div className="absolute left-0 top-full mt-1 w-44 glass-surface border border-codex-border rounded-codex-md py-1 shadow-lg text-sm z-30">
-      <div className="px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-codex-muted">
+      <div className="px-3 py-1 text-xs font-medium uppercase tracking-wide text-codex-muted">
         {title}
       </div>
       {options.map((option) => (

@@ -90,6 +90,7 @@ html[data-code-theme="everforest-light"] {
   --color-codex-border: var(--color-border);
   --color-codex-accent: var(--color-accent);
   --color-codex-muted: var(--color-muted);
+  --color-codex-skill: var(--color-skill);
 
   /* Status Colors */
   --color-codex-danger: var(--color-danger);
@@ -107,7 +108,11 @@ html[data-code-theme="everforest-light"] {
   --radius-codex-2xl: 1.5rem;
 
   --font-sans: var(--font-ui), var(--font-geist-sans);
-  --font-mono: var(--font-code), var(--font-geist-mono);
+  /* Real monospace system fonts sit before the generic fallback. next/font's
+     "Geist Mono Fallback" is metric-adjusted Arial (proportional), so if the
+     webfont fails to load it must never be reached, or ASCII art misaligns. */
+  --font-mono:
+    var(--font-code), Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 /* Modal and Popover Surface Styles */
@@ -183,7 +188,7 @@ button:disabled,
   cursor: default; /* Tailwind utility classes will override this to not-allowed where needed */
 }
 
-/* Tiptap Notion-style Editor Typography & Blocks */
+/* Tiptap Editor Typography & Blocks */
 .tiptap {
   outline: none;
 }
@@ -299,8 +304,8 @@ button:disabled,
   border-top-color: var(--color-border);
 }
 
-/* Inline code (mark) — Notion-style:
-   - Iconic Notion red text (#eb5757)
+/* Inline code (mark):
+   - Red text (#eb5757)
    - Neutral warm translucent gray background in light mode (rgba(135, 131, 120, 0.15))
    - Neutral translucent light gray background in dark mode (rgba(255, 255, 255, 0.08))
    - Clean, borderless rendering (border: none)
@@ -358,6 +363,12 @@ button:disabled,
   background: none;
   border: none;
   font-size: inherit;
+}
+
+/* Plain-text blocks (ASCII trees, diagrams): use the font's natural line
+   height so box-drawing glyphs (│ ├ └) join into continuous lines. */
+.tiptap pre[data-plaintext] {
+  line-height: normal;
 }
 
 /* Highlight.js syntax highlighting adapted to current theme */
@@ -474,7 +485,7 @@ button:disabled,
   background: transparent;
 }
 
-/* Focused single cell: thin accent border around just that cell (Notion-style).
+/* Focused single cell: thin accent border around just that cell.
    Uses an inset ring so it sits inside the cell border without shifting layout.
    Suppressed while a multi-cell selection is active (a whole column/row is
    selected via the handle) to avoid competing indicators. */
@@ -522,7 +533,7 @@ button:disabled,
   display: none;
 }
 
-/* Multi-Block Selection (Notion-style) */
+/* Multi-Block Selection */
 .tiptap .block-selected {
   background-color: color-mix(in srgb, var(--color-accent) 30%, transparent) !important;
   caret-color: transparent;
@@ -589,7 +600,7 @@ button:disabled,
   scroll-margin-top: 4.5rem;
 }
 
-/* Drag & Drop Block Reordering (Notion-style) */
+/* Drag & Drop Block Reordering */
 .is-dragging-source {
   opacity: 0.35 !important;
   pointer-events: none;

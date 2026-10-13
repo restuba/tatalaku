@@ -9,7 +9,7 @@ cat > "AGENTS.md" << 'FILE_EOF'
 # AGENTS.md — Tatalaku
 
 ## Project Context
-Tatalaku — aplikasi web mirip Notion. Monorepo (pnpm workspaces):
+Tatalaku — aplikasi web workspace catatan & dokumen berbasis block editor. Monorepo (pnpm workspaces):
 - `apps/web` — Next.js 15 (App Router), TypeScript, Tailwind, Zustand
 - `apps/api` — Express, TypeScript, Mongoose (MongoDB)
 - `packages/shared` — tipe & schema Zod yang dipakai bersama FE-BE
@@ -172,7 +172,7 @@ description: Panduan teknis menambah atau memodifikasi block type di editor Tipt
 # Skill: Tiptap Block Editor
 
 ## Konteks
-Editor Tatalaku pakai Tiptap sebagai fondasi block-based editor mirip Notion. Setiap block type (paragraph, heading, bulletList, todo, toggle, code, quote, divider, image) adalah custom Tiptap Node/Extension.
+Editor Tatalaku pakai Tiptap sebagai fondasi block-based editor. Setiap block type (paragraph, heading, bulletList, todo, toggle, code, quote, divider, image) adalah custom Tiptap Node/Extension.
 
 ## Aturan Menambah Block Type Baru
 1. Definisikan block type baru di `packages/shared` dulu (tambah ke union type `BlockType`), supaya backend dan frontend konsisten.

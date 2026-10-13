@@ -104,7 +104,7 @@ export function getHeadingDOM(editor: Editor | null, item: ToCItem): HTMLElement
 }
 
 /**
- * Scroll smoothly to a DOM node and trigger the Notion-style flash highlight.
+ * Scroll smoothly to a DOM node and trigger a brief flash highlight.
  * In Tatalaku, the scroll container is the <main> element inside WorkspaceLayout.
  */
 export function scrollToTargetNode(targetDom: HTMLElement | null) {
@@ -292,10 +292,10 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
           <div className="flex items-center justify-between px-3.5 py-2 border-b border-codex-border/60 bg-codex-surface/50">
             <div className="flex items-center gap-2">
               <ListTree className="w-3.5 h-3.5 text-codex-accent" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-codex-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wider text-codex-foreground">
                 Outline
               </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-codex-border/50 text-codex-muted">
+              <span className="text-xs font-mono px-1.5 py-0.5 rounded-full bg-codex-border/50 text-codex-muted">
                 {items.length}
               </span>
             </div>
@@ -347,7 +347,7 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
                         ? "text-xs font-semibold"
                         : item.level === 2
                           ? "text-xs font-medium"
-                          : "text-[11px] opacity-90"
+                          : "text-xs opacity-90"
                     }`}
                   >
                     {item.text}
@@ -358,14 +358,14 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
           </div>
 
           {/* Subtle footer tip */}
-          <div className="px-3 py-1.5 border-t border-codex-border/40 bg-codex-surface/30 flex items-center gap-1.5 text-[10px] text-codex-muted">
+          <div className="px-3 py-1.5 border-t border-codex-border/40 bg-codex-surface/30 flex items-center gap-1.5 text-xs text-codex-muted">
             <Sparkles className="w-3 h-3 text-codex-accent/70 shrink-0" />
             <span className="opacity-70">Click to jump to section</span>
           </div>
         </aside>
       )}
 
-      {/* 2. Notion-style Vertical Outline Bars (always visible on the right edge, max 40 bars) */}
+      {/* 2. Vertical Outline Bars (always visible on the right edge, max 40 bars) */}
       <div
         className={`flex flex-col items-end gap-y-2 py-1.5 px-2 rounded-codex-md cursor-pointer transition-opacity duration-200 ${
           isHovered ? "opacity-100" : "opacity-40 hover:opacity-100"

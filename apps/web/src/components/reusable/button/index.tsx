@@ -34,7 +34,7 @@ function getSizeClasses(size: ButtonSize, shape: ButtonShape): string {
 
 function getShapeClasses(shape: ButtonShape): string {
   const map: Record<ButtonShape, string> = {
-    default: "rounded-md",
+    default: "rounded-codex-sm",
     circle: "rounded-full p-0",
     round: "rounded-full",
   };
@@ -57,32 +57,36 @@ function getVariantClasses(variant: ButtonVariant, color: ButtonColor, isDashed:
 
   const colorVariants: Record<ButtonColor, Record<ButtonVariant, string>> = {
     primary: {
-      solid: "bg-accent text-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-accent text-accent bg-transparent hover:bg-accent/10 active:bg-accent/20`,
-      filled: "bg-accent/15 text-accent hover:bg-accent/25 active:bg-accent/30",
-      text: "text-accent bg-transparent hover:bg-accent/10 active:bg-accent/20",
-      link: "text-accent underline-offset-4 hover:underline bg-transparent",
+      solid: "bg-codex-accent text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
+      outlined: `border ${borderStyle} border-codex-accent text-codex-accent bg-transparent hover:bg-codex-accent/10 active:bg-codex-accent/20`,
+      filled:
+        "bg-codex-accent/15 text-codex-accent hover:bg-codex-accent/25 active:bg-codex-accent/30",
+      text: "text-codex-accent bg-transparent hover:bg-codex-accent/10 active:bg-codex-accent/20",
+      link: "text-codex-accent underline-offset-4 hover:underline bg-transparent",
     },
     danger: {
-      solid: "bg-danger text-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-danger text-danger bg-transparent hover:bg-danger-bg/40 active:bg-danger-bg`,
-      filled: "bg-danger-bg text-danger hover:bg-danger-bg/80 active:bg-danger-bg",
-      text: "text-danger bg-transparent hover:bg-danger-bg/40 active:bg-danger-bg",
-      link: "text-danger underline-offset-4 hover:underline bg-transparent",
+      solid: "bg-codex-danger text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
+      outlined: `border ${borderStyle} border-codex-danger text-codex-danger bg-transparent hover:bg-codex-danger-bg/40 active:bg-codex-danger-bg`,
+      filled:
+        "bg-codex-danger-bg text-codex-danger hover:bg-codex-danger-bg/80 active:bg-codex-danger-bg",
+      text: "text-codex-danger bg-transparent hover:bg-codex-danger-bg/40 active:bg-codex-danger-bg",
+      link: "text-codex-danger underline-offset-4 hover:underline bg-transparent",
     },
     warning: {
-      solid: "bg-accent text-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-accent text-accent bg-transparent hover:bg-accent/10`,
-      filled: "bg-accent/15 text-accent hover:bg-accent/25",
-      text: "text-accent bg-transparent hover:bg-accent/10",
-      link: "text-accent underline-offset-4 hover:underline bg-transparent",
+      solid: "bg-codex-accent text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
+      outlined: `border ${borderStyle} border-codex-accent text-codex-accent bg-transparent hover:bg-codex-accent/10`,
+      filled: "bg-codex-accent/15 text-codex-accent hover:bg-codex-accent/25",
+      text: "text-codex-accent bg-transparent hover:bg-codex-accent/10",
+      link: "text-codex-accent underline-offset-4 hover:underline bg-transparent",
     },
     default: {
-      solid: "bg-surface-secondary text-ink border border-border hover:bg-muted/15 shadow-xs",
-      outlined: `border ${borderStyle} border-border text-ink bg-surface hover:border-accent hover:text-accent active:bg-surface-secondary`,
-      filled: "bg-surface-secondary text-ink hover:bg-muted/20 active:bg-muted/30",
-      text: "text-ink bg-transparent hover:bg-surface-secondary active:bg-muted/20",
-      link: "text-ink underline-offset-4 hover:underline bg-transparent",
+      solid:
+        "bg-codex-surface-secondary text-codex-foreground border border-codex-border hover:bg-codex-muted/15 shadow-xs",
+      outlined: `border ${borderStyle} border-codex-border text-codex-foreground bg-codex-surface hover:border-codex-accent hover:text-codex-accent active:bg-codex-surface-secondary`,
+      filled:
+        "bg-codex-surface-secondary text-codex-foreground hover:bg-codex-muted/20 active:bg-codex-muted/30",
+      text: "text-codex-foreground bg-transparent hover:bg-codex-surface-secondary active:bg-codex-muted/20",
+      link: "text-codex-foreground underline-offset-4 hover:underline bg-transparent",
     },
   };
 
@@ -119,7 +123,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const classes = [
       "inline-flex items-center justify-center font-medium cursor-pointer select-none transition-all duration-150",
-      "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent",
+      "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-codex-accent",
       getSizeClasses(size, effectiveShape),
       getShapeClasses(effectiveShape),
       getVariantClasses(resolvedVariant, resolvedColor, btnType === "dashed"),

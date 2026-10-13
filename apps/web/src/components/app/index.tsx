@@ -9,19 +9,19 @@ import type { MessageItem, MessageType } from "./app-context";
 function MessageIcon({ type }: { type: MessageType }) {
   if (type === "success") {
     return (
-      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-success text-surface">
+      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-codex-success text-codex-surface">
         <CheckIcon size={10} />
       </span>
     );
   }
   if (type === "error") {
     return (
-      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-danger text-surface">
+      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-codex-danger text-codex-surface">
         <CloseIcon size={10} />
       </span>
     );
   }
-  return <span className="h-2 w-2 rounded-full bg-accent" />;
+  return <span className="h-2 w-2 rounded-full bg-codex-accent" />;
 }
 
 function MessageContainer() {
@@ -33,7 +33,7 @@ function MessageContainer() {
       {context.messages.map((item: MessageItem) => (
         <div
           key={item.id}
-          className="pointer-events-auto flex items-center gap-2.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm text-ink shadow-lg animate-in fade-in slide-in-from-top-2 duration-150"
+          className="pointer-events-auto flex items-center gap-2.5 rounded-codex-md border border-codex-border bg-codex-surface px-4 py-2 text-sm text-codex-foreground shadow-lg animate-in fade-in slide-in-from-top-2 duration-150"
         >
           <MessageIcon type={item.type} />
           <span>{item.content}</span>

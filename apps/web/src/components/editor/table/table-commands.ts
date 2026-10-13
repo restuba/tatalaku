@@ -3,7 +3,7 @@ import { CellSelection, TableMap, selectedRect } from "@tiptap/pm/tables";
 import { Transaction } from "@tiptap/pm/state";
 
 /**
- * Low-level helpers around prosemirror-tables to implement Notion-style
+ * Low-level helpers around prosemirror-tables to implement
  * column/row actions (color, duplicate, clear contents) that Tiptap's table
  * extension does not expose directly.
  *
@@ -232,7 +232,7 @@ export function isCellSelection(editor: Editor): boolean {
  * Select the entire column or row that contains the current text selection,
  * producing a CellSelection. This is what turns a hovered column/row into the
  * "active" state (highlighted via `.selectedCell`) when the user clicks the
- * grip handle, mirroring Notion.
+ * grip handle.
  */
 export function selectColumnOrRow(editor: Editor, axis: Axis): boolean {
   const { state } = editor.view;

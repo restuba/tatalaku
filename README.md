@@ -1,6 +1,6 @@
 # Tatalaku
 
-Tatalaku adalah aplikasi web produktivitas dan kolaborasi dokumen (Notion-like workspace) berbasis block editor.
+Tatalaku adalah aplikasi web produktivitas dan kolaborasi dokumen berbasis block editor.
 
 ---
 

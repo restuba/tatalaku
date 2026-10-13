@@ -57,16 +57,16 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
     <Modal open={isOpen} onClose={onClose} maxWidth="sm" fullWidth aria-label="Trash">
       <Modal.Header showClose divider>
         <div className="flex items-center gap-2">
-          <Trash2 className="w-5 h-5 text-muted" />
+          <Trash2 className="w-5 h-5 text-codex-muted" />
           <span>Trash</span>
         </div>
       </Modal.Header>
 
       <Modal.Content className="p-4 max-h-[60vh] overflow-y-auto">
         {loading ? (
-          <p className="text-sm text-muted text-center py-8">Loading…</p>
+          <p className="text-sm text-codex-muted text-center py-8">Loading…</p>
         ) : archivedPages.length === 0 ? (
-          <div className="text-center py-10 px-4 text-muted">
+          <div className="text-center py-10 px-4 text-codex-muted">
             <Trash2 className="w-8 h-8 mx-auto mb-3 opacity-20" />
             <p className="text-sm">Trash is empty</p>
           </div>
@@ -79,22 +79,24 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
               return (
                 <div
                   key={page.id}
-                  className="flex items-center justify-between p-3 hover:bg-surface-secondary/50 rounded-codex-md group transition-colors"
+                  className="flex items-center justify-between p-3 hover:bg-codex-surface-secondary/50 rounded-codex-md group transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="w-4 h-4 text-muted shrink-0" />
-                    <span className="text-sm truncate text-ink">{page.title || "Untitled"}</span>
+                    <FileText className="w-4 h-4 text-codex-muted shrink-0" />
+                    <span className="text-sm truncate text-codex-foreground">
+                      {page.title || "Untitled"}
+                    </span>
                   </div>
 
                   {isConfirming ? (
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-muted">Delete forever?</span>
+                      <span className="text-xs text-codex-muted">Delete forever?</span>
                       <Button
                         variant="text"
                         size="small"
                         loading={isDeleting}
                         onClick={() => handlePermanentDelete(page.id)}
-                        className="text-danger hover:text-danger"
+                        className="text-codex-danger hover:text-codex-danger"
                         title="Confirm permanent delete"
                         icon={<Check className="w-4 h-4" />}
                       />
@@ -103,7 +105,7 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
                         size="small"
                         disabled={isDeleting}
                         onClick={() => setConfirmingId(null)}
-                        className="text-muted hover:text-ink"
+                        className="text-codex-muted hover:text-codex-foreground"
                         title="Cancel"
                         icon={<X className="w-4 h-4" />}
                       />
@@ -114,7 +116,7 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
                         variant="text"
                         size="small"
                         onClick={() => restorePage(page.id)}
-                        className="text-muted hover:text-success"
+                        className="text-codex-muted hover:text-codex-success"
                         title="Restore"
                         icon={<RefreshCcw className="w-4 h-4" />}
                       />
@@ -122,7 +124,7 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
                         variant="text"
                         size="small"
                         onClick={() => setConfirmingId(page.id)}
-                        className="text-muted hover:text-danger"
+                        className="text-codex-muted hover:text-codex-danger"
                         title="Delete permanently"
                         icon={<Trash2 className="w-4 h-4" />}
                       />

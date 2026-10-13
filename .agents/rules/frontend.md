@@ -23,3 +23,7 @@
 
 - Tailwind CSS untuk styling utama, shadcn/ui untuk komponen dasar (button, dialog, dropdown, dll) — jangan bikin komponen dasar dari nol kalau shadcn/ui sudah punya.
 - **Semua warna, radius, dan shadow WAJIB pakai token Codex yang sudah didefinisikan — dilarang keras hardcode warna/radius dalam bentuk apa pun, termasuk arbitrary value Tailwind.**
+- Selalu pakai nama token ber-prefix `codex-` (`text-codex-foreground`, `bg-codex-surface`, `border-codex-border`, `text-codex-muted`, `bg-codex-accent`, `text-codex-danger`, dst). Jangan pakai versi tanpa prefix (`text-ink`, `bg-surface`, `text-muted`, `border-border`) walaupun nilainya sama.
+- Radius pakai `rounded-codex-{sm,md,lg,xl,2xl}` (atau `rounded-full` untuk pill), bukan `rounded-md`/`rounded-lg` bawaan Tailwind.
+- Teks di atas background solid (accent/danger) pakai `text-codex-background`, bukan `text-white`.
+- Ukuran teks minimal `text-xs` (12px); jangan pakai `text-[10px]`/`text-[11px]`.

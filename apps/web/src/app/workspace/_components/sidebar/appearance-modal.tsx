@@ -31,15 +31,15 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
       <Modal.Content className="space-y-8 py-6">
         {/* Mode Picker */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-ink">Mode</h3>
-          <div className="grid grid-cols-3 gap-3 p-1 bg-surface-secondary/50 rounded-codex-lg border border-border/50">
+          <h3 className="text-sm font-medium text-codex-foreground">Mode</h3>
+          <div className="grid grid-cols-3 gap-3 p-1 bg-codex-surface-secondary/50 rounded-codex-lg border border-codex-border/50">
             <button
               type="button"
               onClick={() => setTheme("system")}
               className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
                 theme === "system"
-                  ? "bg-surface/80 shadow-sm text-ink ring-1 ring-border/50"
-                  : "text-muted hover:text-ink hover:bg-surface/40"
+                  ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
+                  : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
               }`}
             >
               <Monitor className="w-5 h-5" />
@@ -50,8 +50,8 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
               onClick={() => setTheme("light")}
               className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
                 theme === "light"
-                  ? "bg-surface/80 shadow-sm text-ink ring-1 ring-border/50"
-                  : "text-muted hover:text-ink hover:bg-surface/40"
+                  ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
+                  : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
               }`}
             >
               <Sun className="w-5 h-5" />
@@ -62,8 +62,8 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
               onClick={() => setTheme("dark")}
               className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
                 theme === "dark"
-                  ? "bg-surface/80 shadow-sm text-ink ring-1 ring-border/50"
-                  : "text-muted hover:text-ink hover:bg-surface/40"
+                  ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
+                  : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
               }`}
             >
               <Moon className="w-5 h-5" />
@@ -74,7 +74,7 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
 
         {/* Theme Presets */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-ink">Theme</h3>
+          <h3 className="text-sm font-medium text-codex-foreground">Theme</h3>
           <div className="grid grid-cols-2 gap-3">
             {currentPresets.map((preset) => {
               const isActive = activeConfig.codeThemeId === preset.codeThemeId;
@@ -86,13 +86,13 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
                   onClick={() => setCodeThemeId(preset.codeThemeId, currentVariant)}
                   className={`flex items-center gap-3 p-3 rounded-codex-xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-95 border ${
                     isActive
-                      ? "border-accent bg-surface/80 ring-1 ring-accent/30 shadow-sm"
-                      : "border-border/30 bg-surface-secondary/20 hover:bg-surface-secondary/50 hover:border-border/50"
+                      ? "border-codex-accent bg-codex-surface/80 ring-1 ring-codex-accent/30 shadow-sm"
+                      : "border-codex-border/30 bg-codex-surface-secondary/20 hover:bg-codex-surface-secondary/50 hover:border-codex-border/50"
                   }`}
                 >
                   {/* Swatch Preview */}
                   <div
-                    className="w-10 h-10 rounded-codex-md flex items-center justify-center shadow-inner shrink-0 overflow-hidden border border-border/20"
+                    className="w-10 h-10 rounded-codex-md flex items-center justify-center shadow-inner shrink-0 overflow-hidden border border-codex-border/20"
                     style={{ backgroundColor: preset.theme.surface }}
                   >
                     <div className="flex flex-col gap-1.5 w-full px-2">
@@ -106,7 +106,7 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
                       />
                     </div>
                   </div>
-                  <span className="text-sm font-medium text-ink capitalize">
+                  <span className="text-sm font-medium text-codex-foreground capitalize">
                     {preset.codeThemeId.replace(/-light|-dark/g, "").replace("-", " ")}
                   </span>
                 </button>

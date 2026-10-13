@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { UserMinus, ShieldAlert, Mail, Users, Check } from "lucide-react";
+import { Input } from "@/components/reusable/input";
+import { Button } from "@/components/reusable/button";
+import { Badge } from "@/components/reusable/badge";
 
 export function MembersTab() {
   const {
@@ -86,27 +89,33 @@ export function MembersTab() {
           onSubmit={handleInviteMember}
           className="p-4 rounded-codex-xl border border-codex-border bg-codex-surface space-y-2.5"
         >
-          <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider block">
+          <label
+            htmlFor="invite-member-email"
+            className="text-xs font-semibold text-codex-muted uppercase tracking-wider block"
+          >
             Invite New Member
           </label>
           <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-codex-muted" />
-              <input
-                type="email"
-                placeholder="colleague@example.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-codex-md border border-codex-border bg-codex-background text-codex-foreground placeholder:text-codex-muted/60 outline-none focus:border-codex-accent transition-colors"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={!inviteEmail.trim() || isInviting}
-              className="px-4 py-2 text-xs font-medium bg-codex-accent text-codex-background rounded-codex-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity shrink-0"
+            <Input
+              id="invite-member-email"
+              type="email"
+              size="small"
+              placeholder="colleague@example.com"
+              value={inviteEmail}
+              onChange={setInviteEmail}
+              prefix={<Mail className="w-3.5 h-3.5" />}
+              className="flex-1"
+            />
+            <Button
+              htmlType="submit"
+              btnType="primary"
+              size="small"
+              loading={isInviting}
+              disabled={!inviteEmail.trim()}
+              className="shrink-0"
             >
-              {isInviting ? "Inviting..." : "Invite"}
-            </button>
+              {isInviting ? "Inviting…" : "Invite"}
+            </Button>
           </div>
           {inviteStatus && (
             <p
@@ -154,33 +163,34 @@ export function MembersTab() {
                     <p className="text-xs font-medium text-codex-foreground truncate">
                       {member.name}{" "}
                       {user?.id === member.id && (
-                        <span className="text-[11px] text-codex-muted font-normal">(You)</span>
+                        <span className="text-xs text-codex-muted font-normal">(You)</span>
                       )}
                     </p>
-                    <p className="text-[11px] text-codex-muted truncate">{member.email}</p>
+                    <p className="text-xs text-codex-muted truncate">{member.email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span
-                    className={`text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full border ${
-                      member.role === "owner"
-                        ? "bg-codex-accent/15 text-codex-accent border-codex-accent/30"
-                        : "bg-codex-surface-secondary text-codex-muted border-codex-border"
-                    }`}
+                  <Badge
+                    status={member.role === "owner" ? "primary" : "default"}
+                    size="small"
+                    className="uppercase tracking-wider font-semibold"
                   >
                     {member.role}
-                  </span>
+                  </Badge>
 
                   {isOwner && member.id !== user?.id && (
-                    <button
+                    <Button
+                      variant="text"
+                      color="danger"
+                      size="small"
+                      loading={isRemoving === member.id}
                       onClick={() => handleRemoveMember(member.id)}
-                      disabled={isRemoving === member.id}
-                      className="p-1.5 text-codex-muted hover:text-codex-danger hover:bg-codex-danger/10 rounded-codex-sm opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                      icon={<UserMinus className="w-3.5 h-3.5" />}
+                      aria-label={`Remove ${member.name || member.email}`}
                       title="Remove member"
-                    >
-                      <UserMinus className="w-3.5 h-3.5" />
-                    </button>
+                      className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                    />
                   )}
                 </div>
               </div>

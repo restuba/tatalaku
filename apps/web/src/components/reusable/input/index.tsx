@@ -31,30 +31,31 @@ function getVariantClasses(
 ): string {
   if (disabled) {
     return variant === "borderless"
-      ? "bg-transparent text-muted cursor-not-allowed"
-      : "border border-border bg-surface-secondary text-muted cursor-not-allowed";
+      ? "bg-transparent text-codex-muted cursor-not-allowed"
+      : "border border-codex-border bg-codex-surface-secondary text-codex-muted cursor-not-allowed";
   }
 
   const isError = status === "error";
   const isWarning = status === "warning";
 
   if (variant === "borderless") {
-    if (isError) return "bg-transparent border border-danger shadow-xs";
-    if (isWarning) return "bg-transparent border border-accent shadow-xs";
+    if (isError) return "bg-transparent border border-codex-danger shadow-xs";
+    if (isWarning) return "bg-transparent border border-codex-accent shadow-xs";
     return "bg-transparent border border-transparent";
   }
 
   if (variant === "filled") {
-    if (isError) return "bg-danger-bg/40 border border-danger";
-    if (focused) return "bg-surface border border-accent ring-2 ring-accent/20";
-    return "bg-surface-secondary border border-transparent hover:bg-muted/15";
+    if (isError) return "bg-codex-danger-bg/40 border border-codex-danger";
+    if (focused) return "bg-codex-surface border border-codex-accent ring-2 ring-codex-accent/20";
+    return "bg-codex-surface-secondary border border-transparent hover:bg-codex-muted/15";
   }
 
   // outlined (default)
-  if (isError) return "border border-danger bg-surface ring-2 ring-danger/15";
-  if (isWarning) return "border border-accent bg-surface ring-2 ring-accent/15";
-  if (focused) return "border border-accent bg-surface ring-2 ring-accent/15 shadow-xs";
-  return "border border-border bg-surface hover:border-accent/70";
+  if (isError) return "border border-codex-danger bg-codex-surface ring-2 ring-codex-danger/15";
+  if (isWarning) return "border border-codex-accent bg-codex-surface ring-2 ring-codex-accent/15";
+  if (focused)
+    return "border border-codex-accent bg-codex-surface ring-2 ring-codex-accent/15 shadow-xs";
+  return "border border-codex-border bg-codex-surface hover:border-codex-accent/70";
 }
 
 // ─── Input Component ────────────────────────────────────────────────
@@ -130,15 +131,15 @@ const Input = forwardRef<InputRef, InputProps>(
     return (
       <div className={className}>
         {label && (
-          <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-ink">
+          <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-codex-foreground">
             {label}
           </label>
         )}
         <div
-          className={`inline-flex w-full items-center gap-2 rounded-md transition-all duration-150 ${sizeStyles.wrapper} ${variantStyles}`}
+          className={`inline-flex w-full items-center gap-2 rounded-codex-sm transition-all duration-150 ${sizeStyles.wrapper} ${variantStyles}`}
           onClick={() => inputRef.current?.focus()}
         >
-          {prefix && <span className="shrink-0 text-muted">{prefix}</span>}
+          {prefix && <span className="shrink-0 text-codex-muted">{prefix}</span>}
 
           <input
             ref={inputRef}
@@ -148,7 +149,7 @@ const Input = forwardRef<InputRef, InputProps>(
             disabled={disabled}
             maxLength={maxLength}
             placeholder={placeholder}
-            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted disabled:cursor-not-allowed ${sizeStyles.input} text-ink`}
+            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-codex-muted disabled:cursor-not-allowed ${sizeStyles.input} text-codex-foreground`}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={(e) => {
@@ -167,7 +168,7 @@ const Input = forwardRef<InputRef, InputProps>(
             <button
               type="button"
               onClick={handleClear}
-              className="shrink-0 cursor-pointer text-muted hover:text-ink transition-colors"
+              className="shrink-0 cursor-pointer text-codex-muted hover:text-codex-foreground transition-colors"
               aria-label="Clear input"
               tabIndex={-1}
             >
@@ -175,11 +176,11 @@ const Input = forwardRef<InputRef, InputProps>(
             </button>
           )}
 
-          {suffix && <span className="shrink-0 text-muted">{suffix}</span>}
+          {suffix && <span className="shrink-0 text-codex-muted">{suffix}</span>}
         </div>
 
         {showCount && maxLength && (
-          <div className="mt-1 text-right text-[11px] text-muted">
+          <div className="mt-1 text-right text-xs text-codex-muted">
             {currentValue.length}/{maxLength}
           </div>
         )}
@@ -246,7 +247,7 @@ const Search = forwardRef<InputRef, SearchProps>(
             type="button"
             onClick={handleSearch}
             disabled={loading || rest.disabled}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-r-md border border-l-0 border-accent bg-accent font-medium text-surface transition-opacity hover:opacity-90 active:opacity-100 disabled:pointer-events-none disabled:opacity-50 cursor-pointer ${btnSizeMap[size]}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-r-md border border-l-0 border-codex-accent bg-codex-accent font-medium text-codex-surface transition-opacity hover:opacity-90 active:opacity-100 disabled:pointer-events-none disabled:opacity-50 cursor-pointer ${btnSizeMap[size]}`}
           >
             {loading ? <SpinnerIcon size={14} /> : null}
             {buttonContent}
@@ -265,7 +266,7 @@ const Search = forwardRef<InputRef, SearchProps>(
           <button
             type="button"
             onClick={handleSearch}
-            className="cursor-pointer text-muted transition-colors hover:text-ink"
+            className="cursor-pointer text-codex-muted transition-colors hover:text-codex-foreground"
             tabIndex={-1}
             aria-label="Search"
           >

@@ -79,6 +79,13 @@ function normalizeNode(node: JSONContent): JSONContent | null {
     return { type: "mermaid", attrs: { code: getText(node) } };
   }
 
+  // In Markdown a fence without an info string (or an indented block) is plain
+  // text. Left as `null`, the editor would auto-detect a language and colorize
+  // things like ASCII trees, so pin it to plaintext.
+  if (node.type === "codeBlock" && !node.attrs?.["language"]) {
+    return { ...node, attrs: { ...node.attrs, language: "plaintext" } };
+  }
+
   const next: JSONContent = { ...node };
 
   if (node.type === "heading") {

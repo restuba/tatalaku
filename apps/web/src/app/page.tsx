@@ -1,21 +1,8 @@
-"use client";
-
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { ArrowRight, FileText, Blocks, Search, Download } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { useIsMounted } from "@/hooks/use-is-mounted";
-
-const SESSION_COOKIE = "tatalaku_session";
-
-/**
- * Reads the session marker cookie once the client has mounted. Before mount it
- * reports false so SSR and the first client render agree (hydration-safe).
- */
-function useHasSession(): boolean {
-  const mounted = useIsMounted();
-  if (!mounted) return false;
-  return document.cookie.split("; ").some((c) => c.startsWith(`${SESSION_COOKIE}=`));
-}
+import { SESSION_FLAG_COOKIE } from "@/helpers/session-flag";
 
 const FEATURES = [
   {
@@ -38,14 +25,14 @@ const FEATURES = [
     title: "Markdown in & out",
     description: "Import your existing notes and export any page back to Markdown.",
   },
-];
+] as const;
 
-export default function LandingPage() {
-  // Signed-in visitors go straight to their workspace; everyone else signs up.
-  const hasSession = useHasSession();
-
-  const primaryHref = hasSession ? "/workspace" : "/register";
-  const primaryLabel = hasSession ? "Open workspace" : "Get started";
+export default async function LandingPage() {
+  // Read the session marker from the request on the server, so the first paint
+  // already shows the right CTA (no client-side cookie read / hydration flip).
+  // It's only a hint: a stale marker still gets validated (and cleared) by the
+  // workspace layout, which redirects to /login if the session is gone.
+  const hasSession = (await cookies()).has(SESSION_FLAG_COOKIE);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-codex-surface">
@@ -67,18 +54,29 @@ export default function LandingPage() {
       <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 py-6">
         <Logo size="md" />
         <nav className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="px-3 py-2 rounded-codex-lg text-sm font-medium text-codex-foreground hover:bg-codex-surface-secondary transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link
-            href={primaryHref}
-            className="px-3 py-2 rounded-codex-lg text-sm font-medium bg-codex-accent text-codex-background hover:bg-codex-accent/90 transition-colors"
-          >
-            {hasSession ? "Workspace" : "Sign up"}
-          </Link>
+          {hasSession ? (
+            <Link
+              href="/workspace"
+              className="px-3 py-2 rounded-codex-lg text-sm font-medium bg-codex-accent text-codex-background hover:bg-codex-accent/90 transition-colors"
+            >
+              Open workspace
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="px-3 py-2 rounded-codex-lg text-sm font-medium text-codex-foreground hover:bg-codex-surface-secondary transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="px-3 py-2 rounded-codex-lg text-sm font-medium bg-codex-accent text-codex-background hover:bg-codex-accent/90 transition-colors"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 
@@ -103,8 +101,8 @@ export default function LandingPage() {
           className="mt-6 max-w-xl text-base sm:text-lg text-codex-muted leading-relaxed animate-slide-up-fade opacity-0"
           style={{ animationDelay: "160ms" }}
         >
-          Tatalaku is a Notion-style workspace for notes and docs — nested pages, a flexible block
-          editor, and instant search. Breathe, focus, create.
+          Tatalaku brings your notes and docs together — nested pages, a flexible block editor, and
+          instant search. Breathe, focus, create.
         </p>
 
         <div
@@ -112,18 +110,20 @@ export default function LandingPage() {
           style={{ animationDelay: "240ms" }}
         >
           <Link
-            href={primaryHref}
+            href={hasSession ? "/workspace" : "/register"}
             className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-codex-xl bg-codex-accent text-codex-background font-medium text-sm hover:bg-codex-accent/90 transition-all shadow-lg shadow-codex-accent/20"
           >
-            {primaryLabel}
+            {hasSession ? "Open workspace" : "Get started"}
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center h-12 px-6 rounded-codex-xl border border-codex-border text-codex-foreground font-medium text-sm hover:bg-codex-surface-secondary transition-colors"
-          >
-            Sign in
-          </Link>
+          {!hasSession && (
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center h-12 px-6 rounded-codex-xl border border-codex-border text-codex-foreground font-medium text-sm hover:bg-codex-surface-secondary transition-colors"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
 
         {/* Feature highlights */}

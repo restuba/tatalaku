@@ -2,6 +2,8 @@ import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
 import React from "react";
 import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 
+const PLAIN_TEXT_LANGUAGES: ReadonlySet<string> = new Set(["plaintext", "text"]);
+
 interface CodeBlockComponentProps {
   node: ProseMirrorNode;
   updateAttributes: (attrs: Record<string, unknown>) => void;
@@ -11,6 +13,7 @@ interface CodeBlockComponentProps {
 export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBlockComponentProps) {
   // @ts-expect-error - extension.options.lowlight is untyped
   const languages = extension.options.lowlight.listLanguages().sort();
+  const isPlainText = PLAIN_TEXT_LANGUAGES.has(String(node.attrs.language));
 
   const stopPropagation = (e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -39,7 +42,12 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
           </option>
         ))}
       </select>
-      <pre className="!m-0 !p-4 !bg-transparent">
+      <pre
+        className="!m-0 !p-4 !bg-transparent"
+        // Plain-text blocks often hold ASCII trees/diagrams; tighter leading lets
+        // box-drawing characters (│ ├ └) connect vertically. See globals.css.
+        data-plaintext={isPlainText ? "" : undefined}
+      >
         <code className={node.attrs.language ? `language-${node.attrs.language}` : ""}>
           <NodeViewContent />
         </code>

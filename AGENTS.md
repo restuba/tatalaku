@@ -2,7 +2,7 @@
 
 ## Project Context
 
-Tatalaku — aplikasi web mirip Notion. Monorepo (pnpm workspaces):
+Tatalaku — aplikasi web workspace catatan & dokumen berbasis block editor. Monorepo (pnpm workspaces):
 
 - `apps/web` — Next.js 15 (App Router), TypeScript, Tailwind, Zustand
 - `apps/api` — Express, TypeScript, Mongoose (MongoDB)

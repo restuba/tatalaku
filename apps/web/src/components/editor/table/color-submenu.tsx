@@ -11,7 +11,7 @@ interface ColorSubmenuProps {
 }
 
 /**
- * Notion-style color picker shown as a submenu from the table action menu.
+ * Color picker shown as a submenu from the table action menu.
  * Lists text colors then background colors, each swatch derived from the
  * Codex theme tokens (see table-colors.ts).
  */
@@ -23,7 +23,7 @@ export function ColorSubmenu({
 }: ColorSubmenuProps) {
   return (
     <div className="w-48 glass-surface border border-codex-border rounded-codex-md py-1 shadow-lg text-sm">
-      <div className="px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-codex-muted">
+      <div className="px-3 py-1 text-xs font-medium uppercase tracking-wide text-codex-muted">
         Text
       </div>
       {TABLE_TEXT_COLORS.map((option) => (
@@ -42,7 +42,7 @@ export function ColorSubmenu({
 
       <div className="h-px bg-codex-border my-1" />
 
-      <div className="px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-codex-muted">
+      <div className="px-3 py-1 text-xs font-medium uppercase tracking-wide text-codex-muted">
         Background
       </div>
       {TABLE_BACKGROUND_COLORS.map((option) => (

@@ -23,7 +23,7 @@ export function ViewModeToggle<T extends string>({
 }: ViewModeToggleProps<T>) {
   return (
     <div
-      className={`inline-flex items-center rounded-md border border-border bg-surface-secondary p-0.5 ${className}`}
+      className={`inline-flex items-center rounded-codex-sm border border-codex-border bg-codex-surface-secondary p-0.5 ${className}`}
       role="radiogroup"
     >
       {options.map((option) => {
@@ -38,8 +38,8 @@ export function ViewModeToggle<T extends string>({
             onClick={() => onChange(option.value)}
             className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all cursor-pointer select-none ${
               isSelected
-                ? "bg-surface text-ink shadow-xs border border-border"
-                : "text-muted hover:text-ink border border-transparent"
+                ? "bg-codex-surface text-codex-foreground shadow-xs border border-codex-border"
+                : "text-codex-muted hover:text-codex-foreground border border-transparent"
             }`}
           >
             {option.icon && <span className="shrink-0">{option.icon}</span>}

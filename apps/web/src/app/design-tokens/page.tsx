@@ -82,7 +82,7 @@ export default function DesignTokensPage() {
               <div className="mt-auto pt-8">
                 <div className="bg-codex-surface border border-codex-border rounded-codex-lg p-4">
                   <div className="text-xs font-medium mb-1">9% usage remaining</div>
-                  <div className="text-[10px] text-codex-muted mb-3">Resets every month</div>
+                  <div className="text-xs text-codex-muted mb-3">Resets every month</div>
                   <div className="h-1.5 bg-codex-border rounded-full overflow-hidden mb-3">
                     <div className="h-full bg-codex-accent w-[9%]" />
                   </div>

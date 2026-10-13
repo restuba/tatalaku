@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { useAuthStore } from "@/stores/auth-store";
-import { Building, Copy, Check, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { Building, Copy, Check, Trash2, AlertTriangle } from "lucide-react";
+import { Input } from "@/components/reusable/input";
+import { Button } from "@/components/reusable/button";
 
 export function GeneralTab({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
@@ -108,33 +110,26 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
             Workspace Name
           </label>
           <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <input
-                id="ws-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={!isOwner}
-                placeholder="Workspace name"
-                className="w-full px-3 py-2 pl-9 rounded-codex-md border border-codex-border bg-codex-background text-sm text-codex-foreground outline-none focus:border-codex-accent transition-colors disabled:opacity-60"
-              />
-              <Building className="w-4 h-4 text-codex-muted absolute left-3 top-2.5" />
-            </div>
+            <Input
+              id="ws-name"
+              type="text"
+              value={name}
+              onChange={setName}
+              disabled={!isOwner}
+              placeholder="Workspace name"
+              prefix={<Building className="w-4 h-4" />}
+              className="flex-1"
+            />
             {isOwner && (
-              <button
-                type="submit"
-                disabled={!isNameChanged || isSaving}
-                className="px-4 py-2 rounded-codex-md bg-codex-accent text-codex-background text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shrink-0"
+              <Button
+                htmlType="submit"
+                btnType="primary"
+                loading={isSaving}
+                disabled={!isNameChanged}
+                className="shrink-0"
               >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <span>Save</span>
-                )}
-              </button>
+                {isSaving ? "Saving…" : "Save"}
+              </Button>
             )}
           </div>
           {saveSuccess && (
@@ -156,17 +151,21 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
           <span className="text-xs font-mono text-codex-muted truncate flex-1 select-all">
             {activeWorkspace.id}
           </span>
-          <button
+          <Button
+            variant="text"
+            size="small"
             onClick={handleCopyId}
-            className="p-1 rounded-codex-sm hover:bg-codex-surface text-codex-muted hover:text-codex-foreground transition-colors shrink-0"
+            aria-label={copiedId ? "Workspace ID copied" : "Copy workspace ID"}
             title="Copy Workspace ID"
-          >
-            {copiedId ? (
-              <Check className="w-3.5 h-3.5 text-codex-success" />
-            ) : (
-              <Copy className="w-3.5 h-3.5" />
-            )}
-          </button>
+            className="shrink-0"
+            icon={
+              copiedId ? (
+                <Check className="w-3.5 h-3.5 text-codex-success" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )
+            }
+          />
         </div>
       </div>
 
@@ -185,13 +184,15 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
               </div>
             </div>
             <div className="flex justify-end">
-              <button
+              <Button
+                btnType="primary"
+                color="danger"
+                size="small"
                 onClick={() => setShowDeleteModal(true)}
-                className="px-3.5 py-1.5 rounded-codex-md bg-codex-danger text-white text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5"
+                icon={<Trash2 className="w-3.5 h-3.5" />}
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Workspace</span>
-              </button>
+                Delete Workspace
+              </Button>
             </div>
           </div>
         </div>
@@ -223,23 +224,26 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
             />
 
             <div className="flex items-center justify-end gap-2 pt-2">
-              <button
+              <Button
+                size="small"
+                disabled={isDeleting}
                 onClick={() => {
                   setShowDeleteModal(false);
                   setDeleteConfirmText("");
                 }}
-                disabled={isDeleting}
-                className="px-3 py-1.5 rounded-codex-md border border-codex-border hover:bg-codex-surface-secondary text-xs text-codex-foreground transition-colors"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                btnType="primary"
+                color="danger"
+                size="small"
+                loading={isDeleting}
+                disabled={deleteConfirmText !== activeWorkspace.name}
                 onClick={handleDeleteWorkspace}
-                disabled={deleteConfirmText !== activeWorkspace.name || isDeleting}
-                className="px-3 py-1.5 rounded-codex-md bg-codex-danger text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                {isDeleting ? "Deleting..." : "Delete Permanently"}
-              </button>
+                {isDeleting ? "Deleting…" : "Delete Permanently"}
+              </Button>
             </div>
           </div>
         </div>

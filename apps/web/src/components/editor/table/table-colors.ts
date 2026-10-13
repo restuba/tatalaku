@@ -1,5 +1,5 @@
 /**
- * Table cell color palette for the Notion-style simple table.
+ * Table cell color palette for the simple table.
  *
  * Colors are aligned with the existing Codex theme tokens. Instead of
  * hardcoding hex values, every swatch is derived from theme CSS variables
@@ -35,8 +35,8 @@ export const TABLE_TEXT_COLORS: TableColorOption[] = [
 
 /**
  * Background colors. `value` is applied to the cell's `background-color` style.
- * Kept subtle (low color-mix percentages) to match Notion's soft cell tints and
- * to stay legible against both light and dark surfaces.
+ * Kept subtle (low color-mix percentages) for soft cell tints that stay
+ * legible against both light and dark surfaces.
  */
 export const TABLE_BACKGROUND_COLORS: TableColorOption[] = [
   { key: "default", label: "Default", value: null },

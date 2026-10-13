@@ -24,29 +24,29 @@ export type StatusTone = "success" | "warning" | "danger" | "info" | "default";
 
 export const STATUS_CLASSES: Record<StatusTone, { bg: string; text: string; border: string }> = {
   success: {
-    bg: "bg-success-bg",
-    text: "text-success",
-    border: "border-success/20",
+    bg: "bg-codex-success-bg",
+    text: "text-codex-success",
+    border: "border-codex-success/20",
   },
   warning: {
-    bg: "bg-accent/15",
-    text: "text-accent",
-    border: "border-accent/20",
+    bg: "bg-codex-accent/15",
+    text: "text-codex-accent",
+    border: "border-codex-accent/20",
   },
   danger: {
-    bg: "bg-danger-bg",
-    text: "text-danger",
-    border: "border-danger/20",
+    bg: "bg-codex-danger-bg",
+    text: "text-codex-danger",
+    border: "border-codex-danger/20",
   },
   info: {
-    bg: "bg-info-bg",
-    text: "text-info",
-    border: "border-info/20",
+    bg: "bg-codex-info-bg",
+    text: "text-codex-info",
+    border: "border-codex-info/20",
   },
   default: {
-    bg: "bg-surface-secondary",
-    text: "text-ink",
-    border: "border-border",
+    bg: "bg-codex-surface-secondary",
+    text: "text-codex-foreground",
+    border: "border-codex-border",
   },
 };
 

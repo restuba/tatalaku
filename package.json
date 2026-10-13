@@ -2,7 +2,7 @@
   "name": "tatalaku",
   "version": "1.0.0",
   "private": true,
-  "description": "Tatalaku — Notion-like workspace web application",
+  "description": "Tatalaku — block-based workspace for notes and documents",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "pnpm --parallel -r dev",

@@ -42,7 +42,7 @@ function Tabs({
   return (
     <div className={className}>
       {/* Tab Bar */}
-      <div className="relative border-b border-border">
+      <div className="relative border-b border-codex-border">
         <div
           ref={scrollRef}
           role="tablist"

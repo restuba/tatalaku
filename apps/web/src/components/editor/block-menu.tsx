@@ -337,7 +337,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
 
         {isOpen && (
           <div className="absolute left-0 mt-1 w-56 glass-surface border border-codex-border rounded-codex-md py-1 text-sm max-h-[60vh] overflow-y-auto">
-            <div className="px-3 py-1.5 text-[10px] font-semibold text-codex-muted uppercase tracking-wider">
+            <div className="px-3 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
               Actions
             </div>
             <button
@@ -373,7 +373,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
 
             <div className="h-px bg-codex-border my-1" />
 
-            <div className="px-3 py-1.5 text-[10px] font-semibold text-codex-muted uppercase tracking-wider">
+            <div className="px-3 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
               Turn into
             </div>
             <button

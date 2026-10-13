@@ -93,7 +93,7 @@ export function AppearanceTab() {
               >
                 {/* Swatch Preview */}
                 <div
-                  className="w-10 h-10 rounded-codex-md flex items-center justify-center shadow-inner shrink-0 overflow-hidden border border-black/5 dark:border-white/5"
+                  className="w-10 h-10 rounded-codex-md flex items-center justify-center shadow-inner shrink-0 overflow-hidden border border-codex-border/50"
                   style={{ backgroundColor: preset.theme.surface }}
                 >
                   <div className="flex flex-col gap-1.5 w-full px-2">

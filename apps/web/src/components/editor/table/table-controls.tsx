@@ -16,9 +16,9 @@ interface CellColors {
 }
 
 /**
- * Notion-style contextual table controls.
+ * Contextual table controls.
  *
- * Behavior (mirrors Notion):
+ * Behavior:
  * - Hovering the top edge of a column (or left edge of a row) reveals an
  *   elongated strip handle that spans the whole column width / row height. The
  *   strip itself is the indicator (there is no separate accent line).
@@ -119,8 +119,8 @@ export function TableControls({ editor }: TableControlsProps) {
       setRowRect(new DOMRect(relTable.left, relCell.top, relTable.width, relCell.height));
 
       // Whenever the cursor is inside a cell, show both the column handle (above
-      // the hovered column) and the row handle (left of the hovered row), like
-      // Notion — no need to aim for a specific edge zone or click first.
+      // the hovered column) and the row handle (left of the hovered row), so
+      // there's no need to aim for a specific edge zone or click first.
       setShowColHandle(true);
       setShowRowHandle(true);
 

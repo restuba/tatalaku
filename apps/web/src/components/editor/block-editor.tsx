@@ -68,7 +68,7 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
       }),
       // Adds `.has-focus` to the focused node. CSS scopes the visible outline to
       // table cells only, so clicking a cell shows a thin accent border around
-      // that single cell (Notion-style focused-cell indicator).
+      // that single cell (focused-cell indicator).
       Focus.configure({
         className: "has-focus",
         mode: "deepest",

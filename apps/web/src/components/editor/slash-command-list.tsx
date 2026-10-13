@@ -210,7 +210,7 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
 
     return (
       <div className="z-50 bg-codex-surface/80 dark:bg-codex-surface/60 backdrop-blur-xl border border-codex-border/40 shadow-2xl shadow-black/10 rounded-codex-xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
-        <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-codex-muted">
+        <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-codex-muted">
           Basic blocks
         </div>
         <div className="space-y-0.5">
@@ -239,9 +239,7 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium truncate">{item.title}</p>
-                  <p className="text-[11px] text-codex-muted truncate opacity-80">
-                    {item.description}
-                  </p>
+                  <p className="text-xs text-codex-muted truncate opacity-80">{item.description}</p>
                 </div>
               </button>
             );

@@ -42,9 +42,9 @@ interface ActionItem {
 }
 
 /**
- * Notion-style context menu for a table column or row.
+ * Context menu for a table column or row.
  *
- * Layout mirrors Notion: a "Search actions" input at the top, then a
+ * Layout: a "Search actions" input at the top, then a
  * header toggle (column menu only), a Color submenu, insert directions,
  * duplicate, clear contents, and a destructive delete.
  */
@@ -62,7 +62,7 @@ export function TableActionMenu({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Autofocus the search box like Notion does.
+    // Autofocus the search box so actions can be filtered right away.
     inputRef.current?.focus();
   }, []);
 
@@ -248,7 +248,7 @@ export function TableActionMenu({
   );
 }
 
-/** Small pill switch mirroring Notion's "Header column" toggle. */
+/** Small pill switch for the "Header column" toggle. */
 function HeaderToggle({ active }: { active: boolean }) {
   return (
     <span

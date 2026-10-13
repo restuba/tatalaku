@@ -99,7 +99,7 @@ export function WorkspaceSwitcher() {
               <p className="text-sm font-semibold text-codex-foreground truncate">
                 {user?.name || "User"}
               </p>
-              <p className="text-[10px] text-codex-muted truncate">{user?.email}</p>
+              <p className="text-xs text-codex-muted truncate">{user?.email}</p>
             </div>
           </div>
           <div className="px-2 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
@@ -170,7 +170,7 @@ export function WorkspaceSwitcher() {
                     onSubmit={(e) => handleInvite(ws.id, e)}
                     className="px-2 py-1.5 mb-1 bg-codex-background rounded-codex-md border border-codex-border mt-1"
                   >
-                    <p className="text-[10px] uppercase font-semibold text-codex-muted mb-1.5">
+                    <p className="text-xs uppercase font-semibold text-codex-muted mb-1.5">
                       Invite to {ws.name}
                     </p>
                     <div className="flex items-center gap-1.5">

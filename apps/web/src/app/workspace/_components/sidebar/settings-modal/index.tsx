@@ -71,7 +71,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = "account" }: Setti
           <div className="px-2 py-2 mb-2">
             <h2 className="text-sm font-semibold text-codex-foreground">Settings</h2>
             {activeWorkspace && (
-              <p className="text-[11px] text-codex-muted truncate mt-0.5">{activeWorkspace.name}</p>
+              <p className="text-xs text-codex-muted truncate mt-0.5">{activeWorkspace.name}</p>
             )}
           </div>
 
@@ -79,7 +79,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = "account" }: Setti
           <div className="space-y-4 flex-1 overflow-y-auto">
             {/* Account Group */}
             <div className="space-y-0.5">
-              <div className="px-2 py-1 text-[10px] font-semibold text-codex-muted uppercase tracking-wider">
+              <div className="px-2 py-1 text-xs font-semibold text-codex-muted uppercase tracking-wider">
                 Account
               </div>
               <button
@@ -108,7 +108,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = "account" }: Setti
 
             {/* Workspace Group */}
             <div className="space-y-0.5">
-              <div className="px-2 py-1 text-[10px] font-semibold text-codex-muted uppercase tracking-wider">
+              <div className="px-2 py-1 text-xs font-semibold text-codex-muted uppercase tracking-wider">
                 Workspace
               </div>
               <button

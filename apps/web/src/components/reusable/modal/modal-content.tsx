@@ -9,9 +9,9 @@ export function ModalContent({ children, className = "", dividers = false }: Mod
 
   return (
     <div
-      className={`flex-1 px-5 py-3 text-sm text-ink ${
+      className={`flex-1 px-5 py-3 text-sm text-codex-foreground ${
         scroll === "paper" ? "overflow-y-auto" : ""
-      } ${dividers ? "border-y border-border" : ""} ${className}`}
+      } ${dividers ? "border-y border-codex-border" : ""} ${className}`}
     >
       {children}
     </div>

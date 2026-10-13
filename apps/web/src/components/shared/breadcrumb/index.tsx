@@ -19,7 +19,7 @@ export function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className={`flex min-w-0 items-center text-sm text-muted ${className}`}
+      className={`flex min-w-0 items-center text-sm text-codex-muted ${className}`}
     >
       {/* Single line: long labels truncate instead of wrapping */}
       <ol className="flex min-w-0 items-center gap-1">
@@ -31,7 +31,7 @@ export function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="flex min-w-0 items-center gap-1.5 rounded-codex-sm px-1.5 py-0.5 hover:bg-surface-secondary hover:text-ink transition-colors"
+                  className="flex min-w-0 items-center gap-1.5 rounded-codex-sm px-1.5 py-0.5 hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
                 >
                   {item.icon && <span className="shrink-0">{item.icon}</span>}
                   <span className="max-w-40 truncate">{item.label}</span>
@@ -39,7 +39,7 @@ export function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
               ) : (
                 <span
                   className={`flex min-w-0 items-center gap-1.5 px-1.5 py-0.5 ${
-                    isLast ? "text-ink" : "text-muted"
+                    isLast ? "text-codex-foreground" : "text-codex-muted"
                   }`}
                   aria-current={isLast ? "page" : undefined}
                 >
@@ -48,7 +48,7 @@ export function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
                 </span>
               )}
 
-              {!isLast && <ChevronRightIcon size={12} className="shrink-0 text-muted/60" />}
+              {!isLast && <ChevronRightIcon size={12} className="shrink-0 text-codex-muted/60" />}
             </li>
           );
         })}
