@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { AnimatePresence, m } from "motion/react";
-import { SPRING } from "./index";
+import { TWEEN_FAST } from "./index";
 
 type Origin = "top left" | "top right" | "bottom left" | "bottom right" | "top" | "bottom";
 
@@ -19,9 +19,9 @@ interface PopPanelProps {
 }
 
 /**
- * Animated container for dropdowns and popovers: springs out of its trigger
- * corner on open and fades away on close (stays mounted until the exit ends).
- * Positioning stays with the caller's className/style.
+ * Animated container for dropdowns and popovers: fades in with a 2px drop
+ * toward its trigger on open and fades out on close (stays mounted until the
+ * exit ends). Positioning stays with the caller's className/style.
  */
 export function PopPanel({
   open,
@@ -45,10 +45,10 @@ export function PopPanel({
               ? { top: position.top, left: position.left, transformOrigin: origin }
               : { transformOrigin: origin }
           }
-          initial={{ opacity: 0, scale: 0.94, y: fromAbove ? -6 : 6 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.12 } }}
-          transition={SPRING}
+          initial={{ opacity: 0, y: fromAbove ? -2 : 2 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.12 } }}
+          transition={TWEEN_FAST}
         >
           {children}
         </m.div>

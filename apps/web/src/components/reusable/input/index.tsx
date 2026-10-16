@@ -29,6 +29,8 @@ function getVariantClasses(
   focused: boolean,
   disabled: boolean,
 ): string {
+  // Lines carry every state: the border brightens to ink on focus and turns
+  // red on error. No rings, no glow.
   if (disabled) {
     return variant === "borderless"
       ? "bg-transparent text-codex-muted cursor-not-allowed"
@@ -39,23 +41,22 @@ function getVariantClasses(
   const isWarning = status === "warning";
 
   if (variant === "borderless") {
-    if (isError) return "bg-transparent border border-codex-danger shadow-xs";
-    if (isWarning) return "bg-transparent border border-codex-accent shadow-xs";
+    if (isError) return "bg-transparent border border-codex-danger";
+    if (isWarning) return "bg-transparent border border-codex-accent";
     return "bg-transparent border border-transparent";
   }
 
   if (variant === "filled") {
-    if (isError) return "bg-codex-danger-bg/40 border border-codex-danger";
-    if (focused) return "bg-codex-surface border border-codex-accent ring-2 ring-codex-accent/20";
-    return "bg-codex-surface-secondary border border-transparent hover:bg-codex-muted/15";
+    if (isError) return "bg-codex-danger-bg border border-codex-danger";
+    if (focused) return "bg-codex-surface-raised border border-codex-foreground";
+    return "bg-codex-surface-raised border border-transparent hover:border-codex-border-strong";
   }
 
   // outlined (default)
-  if (isError) return "border border-codex-danger bg-codex-surface ring-2 ring-codex-danger/15";
-  if (isWarning) return "border border-codex-accent bg-codex-surface ring-2 ring-codex-accent/15";
-  if (focused)
-    return "border border-codex-accent bg-codex-surface ring-2 ring-codex-accent/15 shadow-xs";
-  return "border border-codex-border bg-codex-surface hover:border-codex-accent/70";
+  if (isError) return "border border-codex-danger bg-codex-background";
+  if (isWarning) return "border border-codex-accent bg-codex-background";
+  if (focused) return "border border-codex-foreground bg-codex-background";
+  return "border border-codex-border-strong bg-codex-background hover:border-codex-muted";
 }
 
 // ─── Input Component ────────────────────────────────────────────────
@@ -131,12 +132,15 @@ const Input = forwardRef<InputRef, InputProps>(
     return (
       <div className={className}>
         {label && (
-          <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-codex-foreground">
+          <label
+            htmlFor={id}
+            className="mb-2 block font-mono text-xs uppercase tracking-label text-codex-muted"
+          >
             {label}
           </label>
         )}
         <div
-          className={`inline-flex w-full items-center gap-2 rounded-codex-sm transition-all duration-150 ${sizeStyles.wrapper} ${variantStyles}`}
+          className={`inline-flex w-full items-center gap-2 rounded-codex-md transition-colors duration-150 ${sizeStyles.wrapper} ${variantStyles}`}
           onClick={() => inputRef.current?.focus()}
         >
           {prefix && <span className="shrink-0 text-codex-muted">{prefix}</span>}
@@ -149,7 +153,7 @@ const Input = forwardRef<InputRef, InputProps>(
             disabled={disabled}
             maxLength={maxLength}
             placeholder={placeholder}
-            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-codex-muted disabled:cursor-not-allowed ${sizeStyles.input} text-codex-foreground`}
+            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-codex-muted/70 disabled:cursor-not-allowed ${sizeStyles.input} text-codex-foreground`}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={(e) => {
@@ -247,7 +251,7 @@ const Search = forwardRef<InputRef, SearchProps>(
             type="button"
             onClick={handleSearch}
             disabled={loading || rest.disabled}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-r-md border border-l-0 border-codex-accent bg-codex-accent font-medium text-codex-surface transition-opacity hover:opacity-90 active:opacity-100 disabled:pointer-events-none disabled:opacity-50 cursor-pointer ${btnSizeMap[size]}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-r-codex-md border border-l-0 border-codex-accent bg-codex-accent font-mono uppercase tracking-label text-codex-background transition-opacity hover:opacity-85 disabled:pointer-events-none disabled:opacity-40 cursor-pointer ${btnSizeMap[size]}`}
           >
             {loading ? <SpinnerIcon size={14} /> : null}
             {buttonContent}

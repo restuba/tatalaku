@@ -13,27 +13,31 @@ import type {
 } from "./types";
 
 // ─── Style Builders ──────────────────────────────────────────────────
+// Buttons speak in the label voice: Space Mono, ALL CAPS, tracked out.
+// Primary is the one solid action on a screen; everything else is outlined
+// or ghost. Destructive actions are outlined in red, never filled.
 
 function getSizeClasses(size: ButtonSize, shape: ButtonShape): string {
   if (shape === "circle") {
     const map: Record<ButtonSize, string> = {
       small: "h-8 w-8 text-xs",
-      medium: "h-9 w-9 text-sm",
-      large: "h-11 w-11 text-base",
+      medium: "h-9 w-9 text-xs",
+      large: "h-11 w-11 text-sm",
     };
     return map[size];
   }
 
   const map: Record<ButtonSize, string> = {
-    small: "h-8 px-2.5 text-xs gap-1.5",
-    medium: "h-9 px-3.5 text-sm gap-2",
-    large: "h-11 px-5 text-base gap-2.5",
+    small: "h-8 px-3.5 text-xs gap-1.5 pointer-coarse:h-10",
+    medium: "h-9 px-4 text-xs gap-2 pointer-coarse:h-11",
+    large: "h-11 px-6 text-xs gap-2.5 pointer-coarse:h-12",
   };
   return map[size];
 }
 
 function getShapeClasses(shape: ButtonShape): string {
   const map: Record<ButtonShape, string> = {
+    // Technical: a squared-off control for dense toolbars
     default: "rounded-codex-sm",
     circle: "rounded-full p-0",
     round: "rounded-full",
@@ -57,35 +61,33 @@ function getVariantClasses(variant: ButtonVariant, color: ButtonColor, isDashed:
 
   const colorVariants: Record<ButtonColor, Record<ButtonVariant, string>> = {
     primary: {
-      solid: "bg-codex-accent text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-codex-accent text-codex-accent bg-transparent hover:bg-codex-accent/10 active:bg-codex-accent/20`,
-      filled:
-        "bg-codex-accent/15 text-codex-accent hover:bg-codex-accent/25 active:bg-codex-accent/30",
-      text: "text-codex-accent bg-transparent hover:bg-codex-accent/10 active:bg-codex-accent/20",
+      solid: "border border-codex-accent bg-codex-accent text-codex-background hover:opacity-85",
+      outlined: `border ${borderStyle} border-codex-accent text-codex-accent bg-transparent hover:bg-codex-accent/10`,
+      filled: "bg-codex-accent/10 text-codex-accent hover:bg-codex-accent/20",
+      text: "text-codex-accent bg-transparent hover:bg-codex-accent/10",
       link: "text-codex-accent underline-offset-4 hover:underline bg-transparent",
     },
     danger: {
-      solid: "bg-codex-danger text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-codex-danger text-codex-danger bg-transparent hover:bg-codex-danger-bg/40 active:bg-codex-danger-bg`,
-      filled:
-        "bg-codex-danger-bg text-codex-danger hover:bg-codex-danger-bg/80 active:bg-codex-danger-bg",
-      text: "text-codex-danger bg-transparent hover:bg-codex-danger-bg/40 active:bg-codex-danger-bg",
+      // Destructive: outlined red at every weight, tinted on hover
+      solid: "border border-codex-danger text-codex-danger bg-transparent hover:bg-codex-danger-bg",
+      outlined: `border ${borderStyle} border-codex-danger text-codex-danger bg-transparent hover:bg-codex-danger-bg`,
+      filled: "bg-codex-danger-bg text-codex-danger hover:bg-codex-danger-bg/70",
+      text: "text-codex-danger bg-transparent hover:bg-codex-danger-bg",
       link: "text-codex-danger underline-offset-4 hover:underline bg-transparent",
     },
     warning: {
-      solid: "bg-codex-accent text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
+      solid: "border border-codex-accent bg-codex-accent text-codex-background hover:opacity-85",
       outlined: `border ${borderStyle} border-codex-accent text-codex-accent bg-transparent hover:bg-codex-accent/10`,
-      filled: "bg-codex-accent/15 text-codex-accent hover:bg-codex-accent/25",
+      filled: "bg-codex-accent/10 text-codex-accent hover:bg-codex-accent/20",
       text: "text-codex-accent bg-transparent hover:bg-codex-accent/10",
       link: "text-codex-accent underline-offset-4 hover:underline bg-transparent",
     },
     default: {
       solid:
-        "bg-codex-surface-secondary text-codex-foreground border border-codex-border hover:bg-codex-muted/15 shadow-xs",
-      outlined: `border ${borderStyle} border-codex-border text-codex-foreground bg-codex-surface hover:border-codex-accent hover:text-codex-accent active:bg-codex-surface-secondary`,
-      filled:
-        "bg-codex-surface-secondary text-codex-foreground hover:bg-codex-muted/20 active:bg-codex-muted/30",
-      text: "text-codex-foreground bg-transparent hover:bg-codex-surface-secondary active:bg-codex-muted/20",
+        "border border-codex-border-strong bg-codex-surface-raised text-codex-foreground hover:border-codex-muted",
+      outlined: `border ${borderStyle} border-codex-border-strong text-codex-foreground bg-transparent hover:border-codex-muted active:bg-codex-surface-raised`,
+      filled: "bg-codex-surface-raised text-codex-foreground hover:bg-codex-border",
+      text: "text-codex-muted bg-transparent hover:bg-codex-surface-raised hover:text-codex-foreground",
       link: "text-codex-foreground underline-offset-4 hover:underline bg-transparent",
     },
   };
@@ -102,7 +104,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant,
       color = "default",
       size = "medium",
-      shape = "default",
+      shape = "round",
       icon,
       iconPlacement = "start",
       loading = false,
@@ -122,14 +124,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const effectiveShape = isIconOnly ? "circle" : shape;
 
     const classes = [
-      // active:scale gives a tactile "press" (instant when motion is off)
-      "inline-flex items-center justify-center font-medium cursor-pointer select-none transition-all duration-150 active:scale-[0.97]",
-      "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-codex-accent",
+      "inline-flex shrink-0 items-center justify-center font-mono uppercase tracking-label cursor-pointer select-none transition-[background-color,border-color,color,opacity] duration-150",
+      "focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-codex-foreground",
       getSizeClasses(size, effectiveShape),
       getShapeClasses(effectiveShape),
       getVariantClasses(resolvedVariant, resolvedColor, btnType === "dashed"),
       block ? "w-full" : "",
-      isDisabled ? "pointer-events-none opacity-50 cursor-not-allowed" : "",
+      isDisabled ? "pointer-events-none opacity-40 cursor-not-allowed" : "",
       className,
     ]
       .filter(Boolean)

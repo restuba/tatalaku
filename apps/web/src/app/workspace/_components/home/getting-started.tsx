@@ -3,8 +3,9 @@
 import type { Page } from "@tatalaku/shared";
 import { AnimatePresence, m } from "motion/react";
 import { Check } from "lucide-react";
-import { SPRING_SOFT } from "@/components/motion";
+import { TWEEN_FAST } from "@/components/motion";
 import { useUIStore } from "@/stores/ui-store";
+import { SectionHeading } from "./section-heading";
 
 interface ChecklistItem {
   id: string;
@@ -86,58 +87,60 @@ export function GettingStarted({
   if (isOnboardingDismissed || doneCount === items.length) return null;
 
   return (
-    <section className="mt-12">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xs font-medium text-codex-muted">
-          Getting started
-          <span className="ml-2 tabular-nums">
-            {doneCount}/{items.length}
-          </span>
-        </h2>
-        <button
-          type="button"
-          onClick={dismissOnboarding}
-          className="px-1.5 py-0.5 rounded-codex-sm text-xs text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
-        >
-          Hide
-        </button>
-      </div>
+    <section className="mt-16" aria-labelledby="home-onboarding-heading">
+      <SectionHeading
+        id="home-onboarding-heading"
+        label="Getting started"
+        meta={`${doneCount}/${items.length}`}
+        action={
+          <button
+            type="button"
+            onClick={dismissOnboarding}
+            // Buttons don't inherit text-transform, so the label voice is restated here
+            className="-my-1 rounded-codex-sm px-1.5 py-1 uppercase tracking-label text-codex-muted transition-colors hover:text-codex-foreground"
+          >
+            Hide
+          </button>
+        }
+      />
 
-      {/* Progress bar */}
+      {/* Segmented progress: one square block per step, filled as steps complete */}
       <div
-        className="h-1 mb-3 rounded-full bg-codex-surface-secondary overflow-hidden"
+        className="mt-4 flex gap-0.5"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={items.length}
         aria-valuenow={doneCount}
         aria-label="Getting started progress"
       >
-        <m.div
-          className="h-full origin-left rounded-full bg-codex-accent"
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: doneCount / items.length }}
-          transition={{ ...SPRING_SOFT, delay: 0.4 }}
-        />
+        {items.map((item) => (
+          <span
+            key={item.id}
+            className={`h-2 flex-1 transition-colors duration-300 ${
+              item.isDone ? "bg-codex-foreground" : "bg-codex-border"
+            }`}
+          />
+        ))}
       </div>
 
-      <ul className="-mx-2">
+      <ul className="mt-3 divide-y divide-codex-border">
         {items.map((item, index) => (
           <li
             key={item.id}
-            className="opacity-0 animate-slide-up-fade"
-            style={{ animationDelay: `${420 + index * 50}ms` }}
+            className="animate-row-in"
+            style={{ animationDelay: `${380 + index * 45}ms` }}
           >
             <button
               type="button"
               onClick={item.onAction}
               disabled={item.isDone}
-              className="group w-full flex items-center gap-3 px-2 py-2 rounded-codex-md text-left hover:bg-codex-surface-secondary disabled:hover:bg-transparent disabled:cursor-default transition-colors duration-150"
+              className="group w-full flex items-center gap-3 px-2 py-3 text-left transition-colors duration-150 hover:bg-codex-surface-secondary disabled:hover:bg-transparent disabled:cursor-default"
             >
               <span
                 className={`w-4 h-4 shrink-0 flex items-center justify-center rounded-full border transition-colors ${
                   item.isDone
                     ? "bg-codex-accent border-codex-accent text-codex-background"
-                    : "border-codex-border group-hover:border-codex-muted"
+                    : "border-codex-border-strong group-hover:border-codex-muted"
                 }`}
                 aria-hidden="true"
               >
@@ -146,10 +149,10 @@ export function GettingStarted({
                     <m.span
                       key="check"
                       className="flex"
-                      initial={{ scale: 0, rotate: -45 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0 }}
-                      transition={{ type: "spring", stiffness: 600, damping: 18 }}
+                      initial={{ opacity: 0, scale: 0.6 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={TWEEN_FAST}
                     >
                       <Check className="w-3 h-3" strokeWidth={3} />
                     </m.span>
@@ -169,6 +172,9 @@ export function GettingStarted({
                     {item.description}
                   </span>
                 )}
+              </span>
+              <span className="shrink-0 font-mono text-xs uppercase tracking-label text-codex-muted/70 tabular-nums">
+                {String(index + 1).padStart(2, "0")}
               </span>
               <span className="sr-only">{item.isDone ? "Completed" : "Not completed"}</span>
             </button>

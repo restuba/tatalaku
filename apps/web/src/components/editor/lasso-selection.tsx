@@ -177,6 +177,8 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
 
   // Calculate coordinates for rendering the lasso box relative to the container
   let lassoStyle = {};
+  // Visuals only apply once the box is drawn, so the empty placeholder stays invisible
+  let lassoClassName = "";
   if (isSelecting && startPoint && currentPoint && containerRect) {
     const left = Math.min(startPoint.x, currentPoint.x) - containerRect.left;
     const top = Math.min(startPoint.y, currentPoint.y) - containerRect.top;
@@ -190,13 +192,11 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
         top: `${top}px`,
         width: `${width}px`,
         height: `${height}px`,
-        backgroundColor: "var(--color-info)",
-        opacity: 0.15,
-        border: "1px solid var(--color-info)",
-        borderRadius: "2px",
         pointerEvents: "none",
         zIndex: 50,
       };
+      // Flat accent marquee: a 1px border over a faint tint, square corners
+      lassoClassName = "border border-codex-accent bg-codex-accent/10";
     }
   }
 
@@ -207,7 +207,7 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
       onContextMenu={(e) => isSelecting && e.preventDefault()}
     >
       {children}
-      {isSelecting && <div style={lassoStyle} />}
+      {isSelecting && <div className={lassoClassName} style={lassoStyle} />}
     </div>
   );
 }

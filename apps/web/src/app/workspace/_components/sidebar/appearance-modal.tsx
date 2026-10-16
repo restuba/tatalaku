@@ -6,6 +6,15 @@ import { presets } from "@/lib/themes";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { Modal } from "@/components/reusable/modal";
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
+/** Section title in the label voice */
+const SECTION_LABEL = "font-mono text-xs uppercase tracking-label text-codex-muted";
+const SEGMENT =
+  "flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md font-mono text-xs uppercase tracking-label transition-colors duration-150";
+const SEGMENT_ACTIVE = "bg-codex-surface-raised text-codex-foreground";
+const SEGMENT_IDLE = "text-codex-muted hover:text-codex-foreground";
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface AppearanceModalProps {
@@ -29,52 +38,40 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
       </Modal.Header>
 
       <Modal.Content className="space-y-8 py-6">
-        {/* Mode Picker */}
+        {/* Mode Picker: an outlined segmented group, the selected segment raised */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-codex-foreground">Mode</h3>
-          <div className="grid grid-cols-3 gap-3 p-1 bg-codex-surface-secondary/50 rounded-codex-lg border border-codex-border/50">
+          <h3 className={SECTION_LABEL}>Mode</h3>
+          <div className="grid grid-cols-3 gap-1 p-1 rounded-codex-lg border border-codex-border">
             <button
               type="button"
               onClick={() => setTheme("system")}
-              className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
-                theme === "system"
-                  ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
-                  : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
-              }`}
+              className={`${SEGMENT} ${theme === "system" ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
             >
               <Monitor className="w-5 h-5" />
-              <span className="text-xs font-medium">System</span>
+              <span>System</span>
             </button>
             <button
               type="button"
               onClick={() => setTheme("light")}
-              className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
-                theme === "light"
-                  ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
-                  : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
-              }`}
+              className={`${SEGMENT} ${theme === "light" ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
             >
               <Sun className="w-5 h-5" />
-              <span className="text-xs font-medium">Light</span>
+              <span>Light</span>
             </button>
             <button
               type="button"
               onClick={() => setTheme("dark")}
-              className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
-                theme === "dark"
-                  ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
-                  : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
-              }`}
+              className={`${SEGMENT} ${theme === "dark" ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
             >
               <Moon className="w-5 h-5" />
-              <span className="text-xs font-medium">Dark</span>
+              <span>Dark</span>
             </button>
           </div>
         </div>
 
-        {/* Theme Presets */}
+        {/* Theme Presets: outlined cards, the selected one outlined in ink */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-codex-foreground">Theme</h3>
+          <h3 className={SECTION_LABEL}>Theme</h3>
           <div className="grid grid-cols-2 gap-3">
             {currentPresets.map((preset) => {
               const isActive = activeConfig.codeThemeId === preset.codeThemeId;
@@ -84,24 +81,24 @@ export function AppearanceModal({ isOpen, onClose }: AppearanceModalProps) {
                   type="button"
                   key={preset.codeThemeId}
                   onClick={() => setCodeThemeId(preset.codeThemeId, currentVariant)}
-                  className={`flex items-center gap-3 p-3 rounded-codex-xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-95 border ${
+                  className={`flex items-center gap-3 p-3 rounded-codex-lg text-left border transition-colors duration-150 ${
                     isActive
-                      ? "border-codex-accent bg-codex-surface/80 ring-1 ring-codex-accent/30 shadow-sm"
-                      : "border-codex-border/30 bg-codex-surface-secondary/20 hover:bg-codex-surface-secondary/50 hover:border-codex-border/50"
+                      ? "border-codex-foreground"
+                      : "border-codex-border hover:border-codex-border-strong"
                   }`}
                 >
-                  {/* Swatch Preview */}
+                  {/* Swatch Preview: the preset's own colors, drawn as flat bars */}
                   <div
-                    className="w-10 h-10 rounded-codex-md flex items-center justify-center shadow-inner shrink-0 overflow-hidden border border-codex-border/20"
+                    className="w-10 h-10 rounded-codex-md flex items-center justify-center shrink-0 overflow-hidden border border-codex-border"
                     style={{ backgroundColor: preset.theme.surface }}
                   >
                     <div className="flex flex-col gap-1.5 w-full px-2">
                       <div
-                        className="h-1.5 rounded-full w-full"
+                        className="h-1.5 w-full"
                         style={{ backgroundColor: preset.theme.accent }}
                       />
                       <div
-                        className="h-1 rounded-full w-2/3 opacity-80"
+                        className="h-1 w-2/3 opacity-80"
                         style={{ backgroundColor: preset.theme.ink }}
                       />
                     </div>

@@ -17,12 +17,14 @@ export default function DesignTokensPage() {
           <h2 className="text-2xl font-semibold border-b border-codex-border pb-2">
             Color Palette
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <ColorSwatch name="Background" variable="bg-codex-background" border />
-            <ColorSwatch name="Sidebar" variable="bg-codex-sidebar" border />
-            <ColorSwatch name="Surface" variable="bg-codex-surface" border />
+            <ColorSwatch name="Sidebar / Elevated" variable="bg-codex-sidebar" border />
+            <ColorSwatch name="Surface Raised" variable="bg-codex-surface-raised" border />
             <ColorSwatch name="Border" variable="bg-codex-border" />
+            <ColorSwatch name="Border Strong" variable="bg-codex-border-strong" />
             <ColorSwatch name="Accent" variable="bg-codex-accent" text="text-codex-background" />
+            <ColorSwatch name="Signal" variable="bg-codex-signal" text="text-codex-background" />
             <ColorSwatch name="Muted" variable="bg-codex-muted" text="text-codex-background" />
           </div>
         </section>
@@ -51,6 +53,16 @@ export default function DesignTokensPage() {
               <p className="text-sm text-codex-muted">
                 Resets every month · Next reset is on Sep 23 at 9:30 PM
               </p>
+            </div>
+            <div>
+              <div className="text-sm text-codex-muted mb-1">Label (Space Mono, ALL CAPS)</div>
+              <p className="border-b border-codex-border pb-3 font-mono text-xs uppercase tracking-label text-codex-muted">
+                Recently edited
+              </p>
+            </div>
+            <div>
+              <div className="text-sm text-codex-muted mb-1">Display Number (Doto)</div>
+              <p className="font-display text-5xl font-semibold leading-none tabular-nums">042</p>
             </div>
           </div>
         </section>

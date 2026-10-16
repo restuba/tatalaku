@@ -14,10 +14,10 @@ import { formatTimeAgo, formatFullDate } from "@/lib/date";
 import { getPage } from "@/services/page/get-page";
 import { promptDialog } from "@/stores/dialog-store";
 import { validateImageUrl } from "@/lib/url";
-import { AnimatePresence, m, type Transition, type Variants } from "motion/react";
-import { EASE_OUT } from "@/components/motion";
+import { AnimatePresence, m } from "motion/react";
+import { TWEEN, TWEEN_FAST } from "@/components/motion";
 import { PopPanel } from "@/components/motion/pop-panel";
-import { TopBar } from "../_components/top-bar";
+import { TOP_BAR_ICON_BUTTON, TopBar } from "../_components/top-bar";
 import {
   FileText,
   Plus,
@@ -30,24 +30,29 @@ import {
 
 const COMMON_EMOJIS = ["📝", "🚀", "💡", "🎯", "📌", "✨", "📚", "🎨", "🔥", "📋", "💻", "⭐"];
 
-/** Bouncy spring for the page icon and emoji picks */
-const ICON_POP: Transition = { type: "spring", stiffness: 520, damping: 16, mass: 0.7 };
-
-/** Emoji grid cascades in on open (the stagger lives on the parent only) */
-const EMOJI_GRID: Variants = {
-  hidden: {},
-  shown: { transition: { staggerChildren: 0.015 } },
-};
-const EMOJI_ITEM: Variants = {
-  hidden: { opacity: 0, scale: 0.5 },
-  shown: { opacity: 1, scale: 1 },
-};
-
 const SAVE_STATUS_LABEL: Record<Exclude<SaveStatus, "idle">, string> = {
-  saving: "Saving…",
+  saving: "Saving",
   saved: "Saved",
-  error: "Failed to save",
+  error: "Not saved",
 };
+
+/** Status readout color: neutral while saving, green once saved, red on failure */
+const SAVE_STATUS_TONE: Record<Exclude<SaveStatus, "idle">, string> = {
+  saving: "text-codex-muted",
+  saved: "text-codex-success",
+  error: "text-codex-danger",
+};
+
+/** Quiet text button that reveals page affordances (add icon / add cover) */
+const GHOST_BUTTON =
+  "inline-flex h-8 items-center gap-1.5 -ml-2 px-2 rounded-codex-md text-sm text-codex-muted transition-[opacity,color,background-color] duration-150 hover:bg-codex-surface-secondary hover:text-codex-foreground focus-visible:opacity-100 pointer-coarse:h-11";
+
+/** Pill over the cover image: opaque enough to read on any photo, no blur */
+const COVER_BUTTON =
+  "inline-flex h-8 items-center rounded-full border border-codex-border-strong bg-codex-background/85 px-3 font-mono text-xs uppercase tracking-label text-codex-foreground transition-colors duration-150 hover:border-codex-muted pointer-coarse:h-11";
+
+const MENU_ITEM =
+  "w-full flex h-9 items-center gap-2.5 px-2.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-raised transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed";
 
 function PageDetail({ page }: { page: Page }) {
   const router = useRouter();
@@ -235,20 +240,24 @@ function PageDetail({ page }: { page: Page }) {
       {exportFailed && (
         <span
           role="alert"
-          className="px-2 text-xs text-codex-danger animate-in fade-in duration-150"
+          className="px-2 font-mono text-xs uppercase tracking-label text-codex-danger animate-in fade-in duration-150"
         >
-          Export failed
+          [ Error: export failed ]
         </span>
       )}
 
-      {/* Save status: only visible while something is happening */}
+      {/* Save status: a dot and a mono readout, only while something is happening */}
       {saveStatus !== "idle" && (
         <span
           role="status"
-          className={`px-2 text-xs animate-in fade-in duration-150 ${
-            saveStatus === "error" ? "text-codex-danger" : "text-codex-muted"
-          }`}
+          className={`flex items-center gap-1.5 px-2 font-mono text-xs uppercase tracking-label animate-in fade-in duration-150 ${SAVE_STATUS_TONE[saveStatus]}`}
         >
+          <span
+            aria-hidden="true"
+            className={`size-1.5 rounded-full bg-current ${
+              saveStatus === "saving" ? "motion-safe:animate-pulse" : ""
+            }`}
+          />
           {SAVE_STATUS_LABEL[saveStatus]}
         </span>
       )}
@@ -257,10 +266,8 @@ function PageDetail({ page }: { page: Page }) {
         <button
           type="button"
           onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-          className={`p-1.5 pointer-coarse:p-2.5 rounded-codex-md transition-colors ${
-            isOptionsOpen
-              ? "bg-codex-surface-secondary text-codex-foreground"
-              : "text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground"
+          className={`${TOP_BAR_ICON_BUTTON} ${
+            isOptionsOpen ? "bg-codex-surface-raised text-codex-foreground" : ""
           }`}
           aria-label="Page options"
           aria-expanded={isOptionsOpen}
@@ -272,13 +279,9 @@ function PageDetail({ page }: { page: Page }) {
         <PopPanel
           open={isOptionsOpen}
           origin="top right"
-          className="absolute top-full right-0 mt-1 w-60 glass-surface border border-codex-border rounded-codex-lg p-1 z-50"
+          className="absolute top-full right-0 mt-1 w-60 glass-surface rounded-codex-lg border border-codex-border-strong p-1 z-50"
         >
-          <button
-            type="button"
-            onClick={handleAddSubpage}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left"
-          >
+          <button type="button" onClick={handleAddSubpage} className={MENU_ITEM}>
             <Plus className="w-4 h-4 text-codex-muted" />
             <span>Add subpage</span>
           </button>
@@ -287,19 +290,28 @@ function PageDetail({ page }: { page: Page }) {
             type="button"
             onClick={handleExportMarkdown}
             disabled={isExporting}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-codex-md text-sm text-codex-foreground hover:bg-codex-surface-secondary transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            className={MENU_ITEM}
           >
             <Download className="w-4 h-4 text-codex-muted" />
             <span>{isExporting ? "Exporting…" : "Export to Markdown"}</span>
           </button>
 
           {/* Page metadata lives here instead of cluttering the canvas */}
-          <div className="mt-1 pt-2 pb-1 px-2 border-t border-codex-border space-y-0.5 text-xs text-codex-muted">
+          <div className="mx-2 my-1 h-px bg-codex-border" />
+          <dl className="px-2.5 pt-1.5 pb-2 space-y-1 font-mono text-xs uppercase tracking-label">
             {lastEditedAt && (
-              <p title={formatFullDate(lastEditedAt)}>Edited {formatTimeAgo(lastEditedAt)}</p>
+              <div className="flex justify-between gap-3" title={formatFullDate(lastEditedAt)}>
+                <dt className="text-codex-muted/70">Edited</dt>
+                <dd className="text-codex-muted">{formatTimeAgo(lastEditedAt)}</dd>
+              </div>
             )}
-            {page.createdAt && <p>Created {formatFullDate(page.createdAt)}</p>}
-          </div>
+            {page.createdAt && (
+              <div className="flex justify-between gap-3" title={formatFullDate(page.createdAt)}>
+                <dt className="text-codex-muted/70">Created</dt>
+                <dd className="text-codex-muted">{formatTimeAgo(page.createdAt)}</dd>
+              </div>
+            )}
+          </dl>
         </PopPanel>
       </div>
     </>
@@ -320,9 +332,10 @@ function PageDetail({ page }: { page: Page }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.45, ease: EASE_OUT }}
+            transition={TWEEN}
           >
-            <div className="group/cover relative w-full h-40 sm:h-56 overflow-hidden bg-codex-surface-secondary">
+            {/* Full bleed, closed off from the page by a hairline */}
+            <div className="group/cover relative w-full h-40 sm:h-56 overflow-hidden border-b border-codex-border bg-codex-surface-secondary">
               {/* Parallax wrapper (scroll-driven CSS) — kept separate from the
                   motion-driven <img> so the two transforms never collide */}
               <div className="cover-parallax absolute inset-0">
@@ -331,24 +344,16 @@ function PageDetail({ page }: { page: Page }) {
                   src={coverImage}
                   alt=""
                   className="w-full h-full object-cover"
-                  initial={{ opacity: 0, scale: 1.08 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.9, ease: EASE_OUT }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ ...TWEEN, duration: 0.5 }}
                 />
               </div>
-              <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/cover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
-                <button
-                  type="button"
-                  onClick={handleAddCover}
-                  className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
-                >
+              <div className="absolute bottom-3 right-3 flex items-center gap-2 opacity-0 group-hover/cover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+                <button type="button" onClick={handleAddCover} className={COVER_BUTTON}>
                   Change cover
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleSetCover(null)}
-                  className="px-2 py-1 rounded-codex-md text-xs font-medium bg-codex-background/80 text-codex-foreground backdrop-blur-sm hover:bg-codex-background transition-colors"
-                >
+                <button type="button" onClick={() => handleSetCover(null)} className={COVER_BUTTON}>
                   Remove
                 </button>
               </div>
@@ -369,7 +374,7 @@ function PageDetail({ page }: { page: Page }) {
             <button
               type="button"
               onClick={handleAddCover}
-              className="inline-flex items-center gap-1.5 mb-2 px-1.5 py-1 -ml-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-all duration-150 opacity-0 group-hover/title:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100"
+              className={`${GHOST_BUTTON} mb-1 opacity-0 group-hover/title:opacity-100 pointer-coarse:opacity-100`}
             >
               <ImageIcon className="w-4 h-4" />
               <span>Add cover</span>
@@ -378,7 +383,7 @@ function PageDetail({ page }: { page: Page }) {
 
           <div className="relative" ref={emojiPickerRef}>
             {icon ? (
-              // key={icon}: every new icon pops in with its own little spring
+              // key={icon}: every new icon fades in on its own
               <m.button
                 key={icon}
                 type="button"
@@ -386,11 +391,9 @@ function PageDetail({ page }: { page: Page }) {
                 className="text-5xl leading-none p-1 -ml-1 mb-3 rounded-codex-md hover:bg-codex-surface-secondary transition-colors"
                 aria-label="Change icon"
                 title="Change icon"
-                initial={{ opacity: 0, scale: 0.4, rotate: -18 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                transition={ICON_POP}
-                whileHover={{ scale: 1.06, rotate: -4 }}
-                whileTap={{ scale: 0.92 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={TWEEN_FAST}
               >
                 {icon}
               </m.button>
@@ -399,7 +402,7 @@ function PageDetail({ page }: { page: Page }) {
               <button
                 type="button"
                 onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-                className={`inline-flex items-center gap-1.5 mb-2 px-1.5 py-1 -ml-1.5 rounded-codex-md text-sm text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-all duration-150 focus-visible:opacity-100 ${
+                className={`${GHOST_BUTTON} mb-1 ${
                   isEmojiPickerOpen
                     ? "opacity-100"
                     : "opacity-0 group-hover/title:opacity-100 pointer-coarse:opacity-100"
@@ -413,41 +416,40 @@ function PageDetail({ page }: { page: Page }) {
             <PopPanel
               open={isEmojiPickerOpen}
               origin="top left"
-              className="absolute left-0 top-full z-50 glass-surface border border-codex-border rounded-codex-lg p-2 w-60"
+              className="absolute left-0 top-full z-50 w-60 glass-surface rounded-codex-lg border border-codex-border-strong p-2"
             >
-              <m.div
-                className="grid grid-cols-6 gap-1"
-                variants={EMOJI_GRID}
-                initial="hidden"
-                animate="shown"
-              >
+              <p className="px-1 pb-2 font-mono text-xs uppercase tracking-label text-codex-muted/80">
+                Icon
+              </p>
+              <div className="grid grid-cols-6 gap-1">
                 {COMMON_EMOJIS.map((emoji) => (
-                  <m.button
+                  <button
                     type="button"
                     key={emoji}
                     onClick={() => handleSelectIcon(emoji)}
-                    className={`w-8 h-8 pointer-coarse:w-10 pointer-coarse:h-10 flex items-center justify-center text-lg rounded-codex-md hover:bg-codex-surface-secondary transition-colors ${
-                      emoji === icon ? "bg-codex-surface-secondary" : ""
+                    className={`w-8 h-8 pointer-coarse:w-10 pointer-coarse:h-10 flex items-center justify-center text-lg rounded-codex-md transition-colors hover:bg-codex-surface-raised ${
+                      emoji === icon
+                        ? "bg-codex-surface-raised ring-1 ring-inset ring-codex-border-strong"
+                        : ""
                     }`}
                     aria-label={`Use ${emoji} as icon`}
                     aria-pressed={emoji === icon}
-                    variants={EMOJI_ITEM}
-                    transition={ICON_POP}
-                    whileHover={{ scale: 1.25 }}
-                    whileTap={{ scale: 0.9 }}
                   >
                     {emoji}
-                  </m.button>
+                  </button>
                 ))}
-              </m.div>
+              </div>
               {icon && (
-                <button
-                  type="button"
-                  onClick={() => handleSelectIcon(null)}
-                  className="w-full mt-1 px-2 py-1.5 rounded-codex-md text-left text-xs text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
-                >
-                  Remove icon
-                </button>
+                <>
+                  <div className="my-2 h-px bg-codex-border" />
+                  <button
+                    type="button"
+                    onClick={() => handleSelectIcon(null)}
+                    className="flex h-8 w-full items-center px-2 rounded-codex-md text-left text-sm text-codex-muted transition-colors hover:bg-codex-surface-raised hover:text-codex-foreground"
+                  >
+                    Remove icon
+                  </button>
+                </>
               )}
             </PopPanel>
           </div>
@@ -473,7 +475,7 @@ function PageDetail({ page }: { page: Page }) {
             }}
             // block: an inline textarea sits on the text baseline and leaves a
             // descender gap below it, which the page skeleton can't predict
-            className="block w-full text-4xl font-bold bg-transparent text-codex-foreground placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
+            className="block w-full text-4xl font-semibold bg-transparent text-codex-foreground caret-codex-signal placeholder:text-codex-muted/40 outline-none resize-none overflow-hidden border-none p-0 tracking-tight leading-tight"
           />
         </div>
 
@@ -506,18 +508,20 @@ export default function PageView() {
 
   if (!currentPage) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <FileText className="w-10 h-10 text-codex-muted opacity-40 mb-3" />
-        <h2 className="text-base font-semibold text-codex-foreground">Page not found</h2>
-        <p className="text-xs text-codex-muted mt-1 mb-4">
+      <div className="flex-1 flex flex-col items-center justify-center px-8 py-24 text-center">
+        <FileText className="w-8 h-8 text-codex-muted/60 mb-6" aria-hidden="true" />
+        <p className="font-mono text-xs uppercase tracking-label text-codex-muted">
+          [ Page not found ]
+        </p>
+        <p className="mt-3 text-sm text-codex-muted">
           This page may have been deleted or archived.
         </p>
         <Link
           href="/workspace"
-          className="inline-flex items-center gap-1.5 text-xs text-codex-accent hover:opacity-80 transition-opacity"
+          className="mt-8 inline-flex h-10 items-center gap-2 rounded-full border border-codex-border-strong px-5 font-mono text-xs uppercase tracking-label text-codex-foreground transition-colors hover:border-codex-muted"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Workspace</span>
+          <span>Back to workspace</span>
         </Link>
       </div>
     );

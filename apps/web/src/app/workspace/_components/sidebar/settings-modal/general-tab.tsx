@@ -8,6 +8,11 @@ import { Building, Copy, Check, Trash2, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/reusable/input";
 import { Button } from "@/components/reusable/button";
 
+/** Section title in the label voice */
+const SECTION_LABEL = "block font-mono text-xs uppercase tracking-label text-codex-muted";
+/** Mono status prefix for inline error messages */
+const ERROR_PREFIX = "mr-1.5 font-mono uppercase tracking-label";
+
 export function GeneralTab({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const { activeWorkspace, updateWorkspace, deleteWorkspace, workspaces } = useWorkspaceStore();
@@ -26,8 +31,8 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
 
   if (!activeWorkspace) {
     return (
-      <div className="py-12 text-center text-codex-muted text-xs">
-        No active workspace selected.
+      <div className="py-24 text-center font-mono text-xs uppercase tracking-label text-codex-muted">
+        [ No active workspace selected ]
       </div>
     );
   }
@@ -88,28 +93,26 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-8 animate-in fade-in duration-200">
       {/* Workspace Profile Form */}
-      <form onSubmit={handleSave} className="space-y-6">
-        <div className="p-5 rounded-codex-xl border border-codex-border bg-codex-surface flex items-center gap-4">
-          <div className="w-12 h-12 rounded-codex-lg bg-codex-surface-secondary border border-codex-border flex items-center justify-center text-codex-foreground font-bold text-lg shrink-0">
+      <form onSubmit={handleSave} className="space-y-8">
+        {/* Outlined card, no tint; the tile matches the sidebar's workspace switcher */}
+        <div className="p-5 rounded-codex-lg border border-codex-border flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-codex-lg bg-codex-foreground text-lg font-semibold text-codex-background">
             {activeWorkspace.name.charAt(0).toUpperCase()}
           </div>
-          <div className="space-y-0.5 min-w-0">
-            <h4 className="text-sm font-semibold text-codex-foreground truncate">
+          <div className="space-y-1 min-w-0">
+            <h4 className="text-sm font-medium text-codex-foreground truncate">
               {activeWorkspace.name}
             </h4>
-            <p className="text-xs text-codex-muted">
+            <p className="font-mono text-xs uppercase tracking-label text-codex-muted">
               {isOwner ? "Owner (Full Admin Access)" : "Member"}
             </p>
           </div>
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="ws-name"
-            className="text-xs font-semibold text-codex-muted uppercase tracking-wider"
-          >
+          <label htmlFor="ws-name" className={SECTION_LABEL}>
             Workspace Name
           </label>
           <div className="flex items-center gap-2">
@@ -136,21 +139,24 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
             )}
           </div>
           {saveSuccess && (
-            <p className="text-xs text-codex-success flex items-center gap-1 mt-1">
-              <Check className="w-3.5 h-3.5" />
+            <p className="text-xs text-codex-success flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 shrink-0" />
               <span>Workspace name updated successfully.</span>
             </p>
           )}
-          {saveError && <p className="text-xs text-codex-danger mt-1">{saveError}</p>}
+          {saveError && (
+            <p className="text-xs text-codex-danger">
+              <span className={ERROR_PREFIX}>[Error]</span>
+              {saveError}
+            </p>
+          )}
         </div>
       </form>
 
-      {/* Workspace Details */}
-      <div className="space-y-3 pt-2">
-        <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
-          Workspace ID
-        </label>
-        <div className="flex items-center gap-2 p-2.5 rounded-codex-md border border-codex-border bg-codex-background">
+      {/* Workspace Details: a mono readout in a hairline frame */}
+      <div className="space-y-2">
+        <label className={SECTION_LABEL}>Workspace ID</label>
+        <div className="flex items-center gap-2 py-1 pl-3 pr-1 rounded-codex-md border border-codex-border">
           <span className="text-xs font-mono text-codex-muted truncate flex-1 select-all">
             {activeWorkspace.id}
           </span>
@@ -172,14 +178,15 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
         </div>
       </div>
 
-      {/* Danger Zone */}
+      {/* Danger Zone: a hairline card set apart by spacing; the red is kept for
+          the warning mark and the outlined destructive button */}
       {isOwner && (
-        <div className="pt-6 border-t border-codex-border space-y-4">
-          <div className="rounded-codex-xl border border-codex-danger/30 bg-codex-danger-bg/20 p-4 space-y-3">
+        <div className="pt-4">
+          <div className="rounded-codex-lg border border-codex-border p-4 space-y-3">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-codex-danger shrink-0 mt-0.5" />
+              <AlertTriangle className="w-4 h-4 text-codex-danger shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold text-codex-danger">Delete Workspace</h4>
+                <h4 className="text-sm font-medium text-codex-foreground">Delete Workspace</h4>
                 <p className="text-xs text-codex-muted leading-relaxed">
                   Permanently delete this workspace and all pages inside it. This action cannot be
                   undone.
@@ -201,18 +208,18 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal: dense scrim, flat elevated dialog */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-codex-background/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-codex-2xl border border-codex-border bg-codex-surface p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="space-y-1">
-              <h4 className="text-base font-semibold text-codex-danger flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-codex-background/80 p-4">
+          <div className="glass-surface w-full max-w-sm rounded-codex-xl border border-codex-border-strong p-6 space-y-4 animate-in fade-in duration-150">
+            <div className="space-y-2">
+              <h4 className="text-lg font-medium tracking-tight text-codex-foreground flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-codex-danger" />
                 <span>Confirm Deletion</span>
               </h4>
-              <p className="text-xs text-codex-muted">
+              <p className="text-sm text-codex-muted">
                 Type{" "}
-                <span className="font-semibold text-codex-foreground">{activeWorkspace.name}</span>{" "}
+                <span className="font-medium text-codex-foreground">{activeWorkspace.name}</span>{" "}
                 below to confirm:
               </p>
             </div>
@@ -220,14 +227,16 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
             <input
               type="text"
               autoFocus
+              aria-label="Workspace name"
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
               placeholder={activeWorkspace.name}
-              className="w-full px-3 py-2 rounded-codex-md border border-codex-border bg-codex-background text-sm text-codex-foreground outline-none focus:border-codex-danger transition-colors"
+              className="h-9 w-full px-3 rounded-codex-md border border-codex-border-strong bg-codex-background text-sm text-codex-foreground outline-none placeholder:text-codex-muted/70 focus:border-codex-foreground transition-colors"
             />
 
             {deleteError && (
               <p role="alert" className="text-xs text-codex-danger">
+                <span className={ERROR_PREFIX}>[Error]</span>
                 {deleteError}
               </p>
             )}

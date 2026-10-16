@@ -16,31 +16,35 @@ export default function PageError({
   }, [error]);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in-95 duration-200">
-      <div className="w-16 h-16 rounded-codex-2xl bg-codex-background dark:bg-orange-500/10 flex items-center justify-center text-orange-500 mb-6">
+    <div className="flex-1 flex flex-col items-center justify-center px-8 py-24 text-center animate-in fade-in duration-200">
+      {/* A bare mark in the danger color, no tinted tile */}
+      <div className="mb-6 flex items-center justify-center text-codex-danger">
         <FileWarning className="w-8 h-8" />
       </div>
-      <h2 className="text-xl font-bold text-codex-foreground dark:text-codex-background mb-2">
+      <h2 className="text-2xl font-semibold tracking-tight text-codex-foreground">
         Page could not be loaded
       </h2>
-      <p className="text-sm text-codex-muted dark:text-codex-muted max-w-md mb-8">
+      <p className="mt-3 max-w-md text-sm text-codex-muted">
         We couldn&apos;t load this page. It might have been deleted, or you might not have
         permission to view it.
       </p>
 
-      <div className="flex items-center gap-3">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        {/* Secondary: outlined pill */}
         <Link
           href="/workspace"
-          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-codex-muted dark:text-codex-muted bg-codex-background dark:bg-codex-sidebar border border-codex-border dark:border-codex-border rounded-codex-xl hover:bg-codex-background dark:hover:bg-codex-sidebar transition-colors"
+          className="inline-flex h-9 items-center gap-2 rounded-full border border-codex-border-strong px-5 font-mono text-xs uppercase tracking-label text-codex-foreground transition-colors hover:border-codex-muted pointer-coarse:h-11"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
           <span>Go back</span>
         </Link>
+        {/* Primary: the one solid action */}
         <button
+          type="button"
           onClick={() => reset()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-codex-background bg-codex-sidebar dark:bg-codex-background dark:text-codex-foreground rounded-codex-xl hover:bg-codex-sidebar dark:hover:bg-codex-sidebar transition-colors"
+          className="inline-flex h-9 items-center gap-2 rounded-full bg-codex-accent px-5 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity hover:opacity-85 pointer-coarse:h-11"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-3.5 h-3.5" />
           <span>Try again</span>
         </button>
       </div>

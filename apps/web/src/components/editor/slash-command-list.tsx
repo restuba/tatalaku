@@ -212,20 +212,22 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
       },
     }));
 
+    // Elevated panel: flat, opaque and outlined by a strong border (no blur or
+    // shadow). Fades in without scaling.
     if (props.items.length === 0) {
       return (
-        <div className="z-50 bg-codex-surface/80 dark:bg-codex-surface/60 backdrop-blur-xl border border-codex-border/40 shadow-xl rounded-codex-xl p-2 min-w-[240px] text-xs text-codex-muted">
-          No matching blocks
+        <div className="z-50 min-w-60 glass-surface rounded-codex-lg border border-codex-border-strong px-3 py-2.5 font-mono text-xs uppercase tracking-label text-codex-muted animate-in fade-in duration-150">
+          [ No matching blocks ]
         </div>
       );
     }
 
     return (
-      <div className="z-50 bg-codex-surface/80 dark:bg-codex-surface/60 backdrop-blur-xl border border-codex-border/40 shadow-2xl shadow-black/10 rounded-codex-xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
-        <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-codex-muted">
+      <div className="z-50 min-w-70 max-h-72 overflow-y-auto glass-surface rounded-codex-lg border border-codex-border-strong p-1 animate-in fade-in duration-150">
+        <div className="px-2.5 pt-2 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80">
           Basic blocks
         </div>
-        <div className="space-y-0.5">
+        <div className="space-y-px">
           {props.items.map((item, index) => {
             const Icon = item.icon;
             const isSelected = index === selectedIndex;
@@ -234,24 +236,22 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
                 key={item.title}
                 type="button"
                 onClick={() => props.command(item)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-left transition-all duration-200 ${
-                  isSelected
-                    ? "bg-codex-background/80 border border-codex-border/50 text-codex-foreground shadow-sm scale-[0.98]"
-                    : "text-codex-muted hover:bg-codex-background/50 hover:text-codex-foreground border border-transparent hover:scale-[1.02]"
+                className={`group flex w-full items-center gap-2.5 rounded-codex-md px-2.5 py-1.5 text-left transition-colors duration-150 ${
+                  isSelected ? "bg-codex-surface-raised" : "hover:bg-codex-surface-raised"
                 }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-codex-sm flex items-center justify-center shrink-0 border ${
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-codex-sm border border-codex-border bg-codex-background transition-colors duration-150 ${
                     isSelected
-                      ? "bg-codex-surface border-codex-border text-codex-foreground"
-                      : "bg-codex-background border-transparent text-codex-muted"
+                      ? "text-codex-foreground"
+                      : "text-codex-muted group-hover:text-codex-foreground"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium truncate">{item.title}</p>
-                  <p className="text-xs text-codex-muted truncate opacity-80">{item.description}</p>
+                  <p className="truncate text-sm text-codex-foreground">{item.title}</p>
+                  <p className="truncate text-xs text-codex-muted">{item.description}</p>
                 </div>
               </button>
             );

@@ -117,7 +117,8 @@ export function scrollToTargetNode(targetDom: HTMLElement | null) {
   if (mainContainer) {
     const containerRect = mainContainer.getBoundingClientRect();
     const targetRect = targetDom.getBoundingClientRect();
-    // Sticky header is ~52px tall. We set targetOffset to 72px for 20px clean breathing space.
+    // The sticky top bar is 48px tall (56px on touch); a 72px offset leaves
+    // 16-24px of breathing space below it.
     const targetOffset = 72;
     const currentScrollTop = mainContainer.scrollTop;
     const targetTop = targetRect.top - containerRect.top + currentScrollTop - targetOffset;
@@ -277,33 +278,37 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
   // Maximum 40 bars for the vertical outline bar indicator
   const displayBars = items.slice(0, 40);
 
+  // Vertically centered (not offset from the top), so the panel's max height
+  // (100vh - 8rem) keeps it clear of the sticky top bar (48px, 56px on touch).
+  // Shown from xl up only, so no smaller breakpoints are needed.
   return (
     <div
-      className="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex items-center select-none"
+      className="fixed right-5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex items-center select-none"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* 1. Popover Menu Box (Smoothly visible on hover, scrollable, auto-hides on blur) */}
+      {/* 1. Popover Menu Box (fades in on hover, scrollable, hides shortly after the pointer leaves) */}
       {isHovered && (
         <aside
           aria-label="Table of contents"
-          className="mr-2.5 sm:mr-3 w-72 sm:w-80 max-h-[calc(100vh-8rem)] overflow-hidden flex flex-col glass-surface border border-codex-border shadow-2xl rounded-codex-xl animate-in fade-in slide-in-from-right-2 duration-150"
+          className="mr-3 flex w-80 max-h-[calc(100vh-8rem)] flex-col overflow-hidden glass-surface rounded-codex-lg border border-codex-border-strong animate-in fade-in slide-in-from-right-1 duration-150"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-3.5 py-2 border-b border-codex-border/60 bg-codex-surface/50">
+          {/* Header: mono label and the heading count */}
+          <div className="flex items-center justify-between border-b border-codex-border px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <ListTree className="w-3.5 h-3.5 text-codex-accent" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-codex-foreground">
+              <ListTree className="w-3.5 h-3.5 text-codex-muted" />
+              <span className="font-mono text-xs uppercase tracking-label text-codex-muted">
                 Outline
               </span>
-              <span className="text-xs font-mono px-1.5 py-0.5 rounded-full bg-codex-border/50 text-codex-muted">
+              <span className="font-mono text-xs tabular-nums text-codex-muted/70">
                 {items.length}
               </span>
             </div>
           </div>
 
-          {/* Scrollable Outline List */}
-          <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5 max-h-[55vh] text-xs">
+          {/* Scrollable Outline List: entries hang off a continuous hairline rail
+              (each entry's left border, no gaps between them) */}
+          <div className="flex-1 overflow-y-auto max-h-[55vh] px-4 py-3">
             {items.map((item) => {
               const isActive = activeId === item.id;
               return (
@@ -312,45 +317,35 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
                   ref={isActive ? activeItemRef : undefined}
                   href={`#${item.id}`}
                   onClick={(e) => handleItemClick(e, item)}
-                  className={`group relative flex items-center gap-1.5 py-1.5 pr-2 rounded-codex-md transition-all duration-150 ${
+                  className={`group relative flex items-center gap-2 border-l border-codex-border py-1.5 pr-2 text-sm transition-colors duration-150 ${
                     isActive
-                      ? "bg-codex-accent/15 text-codex-foreground font-semibold shadow-xs"
-                      : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface-secondary/50"
+                      ? "text-codex-foreground"
+                      : "text-codex-muted hover:text-codex-foreground"
                   }`}
                   style={{
-                    paddingLeft: `${(item.level - 1) * 14 + 10}px`,
+                    paddingLeft: `${(item.level - 1) * 14 + 12}px`,
                   }}
                 >
-                  {/* Active Indicator Bar */}
+                  {/* Active marker: a 2px signal bar over the rail */}
                   {isActive && (
-                    <span className="absolute left-1 top-1.5 bottom-1.5 w-1 rounded-full bg-codex-accent animate-in fade-in duration-200" />
+                    <span className="absolute -left-px inset-y-0 w-0.5 bg-codex-signal animate-in fade-in duration-150" />
                   )}
 
                   {/* Level marker */}
                   <span
-                    className={`shrink-0 transition-opacity ${
-                      isActive
-                        ? "text-codex-accent opacity-100"
-                        : "opacity-40 group-hover:opacity-80"
+                    className={`shrink-0 transition-opacity duration-150 ${
+                      isActive ? "opacity-100" : "opacity-40 group-hover:opacity-80"
                     }`}
                   >
                     {item.level === 1 ? (
                       <Hash className="w-3.5 h-3.5" />
                     ) : (
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-current" />
+                      <span className="inline-block w-1 h-1 rounded-full bg-current" />
                     )}
                   </span>
 
                   {/* Heading Text */}
-                  <span
-                    className={`truncate ${
-                      item.level === 1
-                        ? "text-xs font-semibold"
-                        : item.level === 2
-                          ? "text-xs font-medium"
-                          : "text-xs opacity-90"
-                    }`}
-                  >
+                  <span className={`truncate ${item.level === 1 ? "font-medium" : ""}`}>
                     {item.text}
                   </span>
                 </a>
@@ -358,17 +353,18 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
             })}
           </div>
 
-          {/* Subtle footer tip */}
-          <div className="px-3 py-1.5 border-t border-codex-border/40 bg-codex-surface/30 flex items-center gap-1.5 text-xs text-codex-muted">
-            <Sparkles className="w-3 h-3 text-codex-accent/70 shrink-0" />
-            <span className="opacity-70">Click to jump to section</span>
+          {/* Footer hint in the label voice */}
+          <div className="flex items-center gap-2 border-t border-codex-border px-4 py-2.5 font-mono text-xs uppercase tracking-label text-codex-muted/70">
+            <Sparkles className="w-3 h-3 shrink-0" />
+            <span>Click to jump to section</span>
           </div>
         </aside>
       )}
 
-      {/* 2. Vertical Outline Bars (always visible on the right edge, max 40 bars) */}
+      {/* 2. Vertical Outline Bars (always visible on the right edge, max 40 bars):
+          square-ended 2px segments, the active one in the signal color */}
       <div
-        className={`flex flex-col items-end gap-y-2 py-1.5 px-2 rounded-codex-md cursor-pointer transition-opacity duration-200 ${
+        className={`flex flex-col items-end gap-y-2 py-1.5 px-2 cursor-pointer transition-opacity duration-200 ${
           isHovered ? "opacity-100" : "opacity-40 hover:opacity-100"
         }`}
         title="Outline"
@@ -379,18 +375,16 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
           // Level 1: 24px (w-6)
           // Level 2: 16px (w-4)
           // Level 3: 10px (w-2.5)
-          const widthClass =
-            item.level === 1 ? "w-5 sm:w-6" : item.level === 2 ? "w-3.5 sm:w-4" : "w-2 sm:w-2.5";
+          const widthClass = item.level === 1 ? "w-6" : item.level === 2 ? "w-4" : "w-2.5";
 
           return (
             <button
               key={item.id}
+              type="button"
               onClick={(e) => handleItemClick(e, item)}
               aria-label={`Jump to ${item.text}`}
-              className={`h-[2.5px] rounded-full transition-all duration-150 ${widthClass} ${
-                isActive
-                  ? "bg-codex-accent h-[3px] scale-x-105"
-                  : "bg-codex-foreground/40 hover:bg-codex-foreground/80 hover:scale-x-110"
+              className={`h-0.5 transition-colors duration-150 ${widthClass} ${
+                isActive ? "bg-codex-signal" : "bg-codex-foreground/40 hover:bg-codex-foreground/80"
               }`}
             />
           );

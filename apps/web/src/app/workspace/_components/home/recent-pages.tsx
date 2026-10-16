@@ -1,42 +1,14 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { m } from "motion/react";
 import type { Page } from "@tatalaku/shared";
 import { FileText, Plus } from "lucide-react";
-import { EASE_OUT } from "@/components/motion";
-import { TiltCard } from "@/components/motion/tilt-card";
+import { TWEEN } from "@/components/motion";
 import { formatTimeAgo } from "@/lib/date";
+import { SectionHeading } from "./section-heading";
 
 const SLOT_COUNT = 4;
-
-/** Theme tokens the generated banners blend between */
-const BANNER_TOKENS = ["--color-accent", "--color-info", "--color-skill"] as const;
-
-/** Small deterministic string hash (FNV-1a) — same page, same banner */
-function hashString(value: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < value.length; i++) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return hash >>> 0;
-}
-
-/**
- * Pages without a cover get a generated banner: two theme colors at an angle
- * derived from the page id, softened into the surface so it suits any theme.
- */
-function generatedBanner(pageId: string): CSSProperties {
-  const hash = hashString(pageId);
-  const from = BANNER_TOKENS[hash % BANNER_TOKENS.length] ?? "--color-accent";
-  const to = BANNER_TOKENS[(hash >>> 3) % BANNER_TOKENS.length] ?? "--color-info";
-  const angle = hash % 360;
-  return {
-    backgroundImage: `linear-gradient(${angle}deg, color-mix(in srgb, var(${from}) 38%, var(--color-surface)), color-mix(in srgb, var(${to}) 18%, var(--color-surface)))`,
-  };
-}
 
 interface RecentPagesProps {
   pages: Page[];
@@ -46,9 +18,9 @@ interface RecentPagesProps {
 
 const cardEnter = (index: number) =>
   ({
-    initial: { opacity: 0, y: 18 },
+    initial: { opacity: 0, y: 6 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.55, delay: 0.3 + index * 0.07, ease: EASE_OUT },
+    transition: { ...TWEEN, delay: 0.3 + index * 0.05 },
   }) as const;
 
 export function RecentPages({ pages, getParentPath, onCreatePage }: RecentPagesProps) {
@@ -57,50 +29,51 @@ export function RecentPages({ pages, getParentPath, onCreatePage }: RecentPagesP
   const showGhost = visible.length < SLOT_COUNT;
 
   return (
-    <section className="mt-12">
-      <h2 className="text-xs font-medium text-codex-muted mb-3">Recently edited</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <section className="mt-16" aria-labelledby="home-recent-heading">
+      <SectionHeading
+        id="home-recent-heading"
+        label="Recently edited"
+        meta={String(visible.length).padStart(2, "0")}
+      />
+      <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
         {visible.map((page, index) => {
           const parentPath = getParentPath(page);
           return (
             <m.div key={page.id} {...cardEnter(index)}>
-              <TiltCard className="h-full rounded-codex-xl">
-                <Link
-                  href={`/workspace/${page.id}`}
-                  className="flex flex-col h-40 overflow-hidden rounded-codex-xl border border-codex-border bg-codex-surface hover:border-codex-accent/40 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-codex-accent"
-                >
-                  {/* Banner: the real cover when there is one */}
-                  <span
-                    className="relative block h-14 shrink-0 overflow-hidden"
-                    style={page.coverImage ? undefined : generatedBanner(page.id)}
-                  >
-                    {page.coverImage && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={page.coverImage}
-                        alt=""
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    )}
+              <Link
+                href={`/workspace/${page.id}`}
+                className="group flex h-40 flex-col overflow-hidden rounded-codex-xl border border-codex-border bg-codex-surface-secondary transition-colors duration-200 hover:border-codex-border-strong"
+              >
+                {/* Banner: the real cover when there is one, a dot field otherwise */}
+                <span className="relative block h-14 shrink-0 overflow-hidden border-b border-codex-border">
+                  {page.coverImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={page.coverImage}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="block size-full dot-matrix opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+                  )}
+                </span>
+                <span className="relative flex min-w-0 flex-1 flex-col px-3 pt-6 pb-3">
+                  {/* Icon tile overlapping the banner's bottom edge */}
+                  <span className="absolute -top-4 left-3 flex h-8 w-8 items-center justify-center rounded-codex-md border border-codex-border bg-codex-surface-secondary text-lg leading-none">
+                    {page.icon ?? <FileText className="w-4 h-4 text-codex-muted" />}
                   </span>
-                  <span className="flex flex-1 flex-col min-w-0 px-3 pb-3">
-                    {/* relative: paint above the (positioned) banner it overlaps */}
-                    <span className="relative -mt-4 mb-2 flex h-8 w-8 items-center justify-center rounded-codex-md border border-codex-border bg-codex-surface text-xl leading-none">
-                      {page.icon ?? <FileText className="w-4 h-4 text-codex-muted" />}
-                    </span>
-                    <span className="mt-auto min-w-0">
-                      <span className="block text-sm font-medium text-codex-foreground line-clamp-2 leading-snug">
-                        {page.title || "Untitled"}
-                      </span>
-                      <span className="block text-xs text-codex-muted mt-1 truncate">
-                        {parentPath ? `${parentPath} · ` : ""}
-                        {formatTimeAgo(page.updatedAt || page.createdAt)}
-                      </span>
+                  <span className="block text-sm font-medium text-codex-foreground line-clamp-2 leading-snug">
+                    {page.title || "Untitled"}
+                  </span>
+                  <span className="mt-auto flex min-w-0 items-center justify-between gap-2 pt-2 font-mono text-xs uppercase tracking-label">
+                    <span className="truncate text-codex-muted/70">{parentPath}</span>
+                    <span className="shrink-0 text-codex-muted">
+                      {formatTimeAgo(page.updatedAt || page.createdAt)}
                     </span>
                   </span>
-                </Link>
-              </TiltCard>
+                </span>
+              </Link>
             </m.div>
           );
         })}
@@ -110,12 +83,12 @@ export function RecentPages({ pages, getParentPath, onCreatePage }: RecentPagesP
             <button
               type="button"
               onClick={onCreatePage}
-              className="group flex flex-col items-center justify-center gap-2 w-full h-40 p-3 rounded-codex-xl border border-dashed border-codex-border text-codex-muted hover:border-codex-accent/50 hover:text-codex-foreground transition-colors duration-200"
+              className="group flex flex-col items-center justify-center gap-3 w-full h-40 p-3 rounded-codex-xl border border-dashed border-codex-border-strong text-codex-muted transition-colors duration-200 hover:border-codex-muted hover:text-codex-foreground"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-codex-border transition-transform duration-300 group-hover:rotate-90 group-hover:border-codex-accent/50">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-codex-border-strong transition-colors duration-200 group-hover:border-codex-muted">
                 <Plus className="w-4 h-4" />
               </span>
-              <span className="text-xs">New page</span>
+              <span className="font-mono text-xs uppercase tracking-label">New page</span>
             </button>
           </m.div>
         )}

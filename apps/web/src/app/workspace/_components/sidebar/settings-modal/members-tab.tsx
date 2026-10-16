@@ -10,6 +10,9 @@ import { Badge } from "@/components/reusable/badge";
 import { useApp } from "@/components/app";
 import { confirmDialog } from "@/stores/dialog-store";
 
+/** Section title in the label voice */
+const SECTION_LABEL = "block font-mono text-xs uppercase tracking-label text-codex-muted";
+
 export function MembersTab() {
   const {
     activeWorkspace,
@@ -37,8 +40,8 @@ export function MembersTab() {
 
   if (!activeWorkspace) {
     return (
-      <div className="py-12 text-center text-codex-muted text-xs">
-        No active workspace selected.
+      <div className="py-24 text-center font-mono text-xs uppercase tracking-label text-codex-muted">
+        [ No active workspace selected ]
       </div>
     );
   }
@@ -93,17 +96,14 @@ export function MembersTab() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Invite form (for Owner) */}
+    <div className="space-y-8 animate-in fade-in duration-200">
+      {/* Invite form (for Owner): an outlined card, no tint */}
       {isOwner ? (
         <form
           onSubmit={handleInviteMember}
-          className="p-4 rounded-codex-xl border border-codex-border bg-codex-surface space-y-2.5"
+          className="p-4 rounded-codex-lg border border-codex-border space-y-3"
         >
-          <label
-            htmlFor="invite-member-email"
-            className="text-xs font-semibold text-codex-muted uppercase tracking-wider block"
-          >
+          <label htmlFor="invite-member-email" className={SECTION_LABEL}>
             Invite New Member
           </label>
           <div className="flex items-center gap-2">
@@ -130,63 +130,66 @@ export function MembersTab() {
           </div>
           {inviteStatus && (
             <p
-              className={`text-xs mt-1 flex items-center gap-1 ${
+              className={`text-xs flex items-center gap-1.5 ${
                 inviteStatus.type === "success" ? "text-codex-success" : "text-codex-danger"
               }`}
             >
-              {inviteStatus.type === "success" && <Check className="w-3.5 h-3.5" />}
+              {inviteStatus.type === "success" && <Check className="w-3.5 h-3.5 shrink-0" />}
+              {inviteStatus.type === "error" && (
+                <span className="font-mono uppercase tracking-label">[Error]</span>
+              )}
               <span>{inviteStatus.message}</span>
             </p>
           )}
         </form>
       ) : (
-        <div className="p-3.5 rounded-codex-xl border border-codex-border bg-codex-surface flex items-center gap-2.5 text-xs text-codex-muted">
+        <div className="px-4 py-3 rounded-codex-lg border border-codex-border flex items-center gap-2.5 text-xs text-codex-muted">
           <ShieldAlert className="w-4 h-4 shrink-0 text-codex-muted" />
           <span>Only the workspace owner can invite or remove members.</span>
         </div>
       )}
 
-      {/* Members List */}
+      {/* Members List: hairline-ruled rows inside an outlined card */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
+          <label className={SECTION_LABEL}>
             All Members ({activeWorkspaceMembers?.length || 0})
           </label>
         </div>
 
-        <div className="rounded-codex-xl border border-codex-border bg-codex-surface divide-y divide-codex-border overflow-hidden">
+        <div className="rounded-codex-lg border border-codex-border divide-y divide-codex-border overflow-hidden">
           {!activeWorkspaceMembers || activeWorkspaceMembers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-codex-muted text-xs gap-2">
-              <Users className="w-6 h-6 opacity-40" />
-              <span>Loading members...</span>
+            <div className="flex flex-col items-center justify-center gap-3 py-12 text-codex-muted">
+              <Users className="w-5 h-5 text-codex-muted/60" />
+              <span className="font-mono text-xs uppercase tracking-label">
+                [ Loading members ]
+              </span>
             </div>
           ) : (
             activeWorkspaceMembers.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-3 hover:bg-codex-surface-secondary/40 transition-colors group"
+                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-codex-surface-raised/60 transition-colors group"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-codex-surface-secondary border border-codex-border text-codex-foreground flex items-center justify-center text-xs font-semibold shrink-0">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-codex-border-strong font-mono text-xs font-bold text-codex-foreground">
                     {member.name ? member.name.charAt(0).toUpperCase() : "M"}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-codex-foreground truncate">
+                    <p className="text-sm text-codex-foreground truncate">
                       {member.name}{" "}
                       {user?.id === member.id && (
-                        <span className="text-xs text-codex-muted font-normal">(You)</span>
+                        <span className="font-mono text-xs uppercase tracking-label text-codex-muted/70">
+                          (You)
+                        </span>
                       )}
                     </p>
-                    <p className="text-xs text-codex-muted truncate">{member.email}</p>
+                    <p className="font-mono text-xs text-codex-muted truncate">{member.email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge
-                    status={member.role === "owner" ? "primary" : "default"}
-                    size="small"
-                    className="uppercase tracking-wider font-semibold"
-                  >
+                  <Badge status={member.role === "owner" ? "primary" : "default"} size="small">
                     {member.role}
                   </Badge>
 

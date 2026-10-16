@@ -60,12 +60,12 @@ export default function WorkspaceHomePage() {
     activePages.length === 0
       ? []
       : [
-          { label: activePages.length === 1 ? "page" : "pages", value: activePages.length },
+          { label: "Pages", value: activePages.length },
           {
-            label: "edited this week",
+            label: "Edited this week",
             value: activePages.filter((p) => getLastTouched(p) >= weekAgo).length,
           },
-          { label: "favorites", value: activePages.filter((p) => p.isFavorite).length },
+          { label: "Favorites", value: activePages.filter((p) => p.isFavorite).length },
         ];
 
   async function handleCreatePage(parentPageId?: string) {
@@ -98,8 +98,7 @@ export default function WorkspaceHomePage() {
     <div className="flex-1 flex flex-col relative w-full">
       <TopBar items={[{ label: "Home" }]} />
 
-      {/* overflow-x-clip: the hero glow bleeds past the column without adding a scrollbar */}
-      <div className="flex-1 w-full overflow-x-clip">
+      <div className="flex-1 w-full">
         <div
           className={`w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-[max-width] duration-200 ${
             isFullWidth ? "max-w-none" : "max-w-3xl"

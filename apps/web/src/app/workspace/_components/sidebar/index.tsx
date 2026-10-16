@@ -19,15 +19,15 @@ import {
   Upload,
 } from "lucide-react";
 import { AnimatePresence, LayoutGroup, m } from "motion/react";
-import { EASE_OUT, SPRING } from "@/components/motion";
-import { SIDEBAR_ACTIVE_LAYOUT_ID } from "./constants";
+import { TWEEN, TWEEN_FAST } from "@/components/motion";
+import { SidebarActivePill } from "./active-pill";
 import { TrashModal } from "./trash-modal";
 import { SettingsModal, type SettingsTab } from "./settings-modal";
 import { PageTreeSkeleton } from "@/components/ui/skeleton";
 
-// Shared look for every clickable row in the sidebar
+// Shared look for every clickable row in the sidebar: 32px on mouse, 44px on touch
 const NAV_ITEM_BASE =
-  "w-full flex items-center gap-2 px-2 py-1 pointer-coarse:py-2 rounded-codex-md text-sm transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed";
+  "group relative isolate flex h-8 w-full items-center gap-2.5 rounded-codex-md px-2 text-left text-sm transition-colors duration-150 pointer-coarse:h-11 disabled:cursor-not-allowed disabled:opacity-40";
 
 /** Horizontal drag (px) past which releasing a swipe closes the drawer */
 const SWIPE_CLOSE_THRESHOLD = 64;
@@ -94,7 +94,8 @@ function useSwipeToClose(
     };
   }, [panelRef, isOpen, onClose]);
 }
-const NAV_ITEM_IDLE = "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground";
+const NAV_ITEM_IDLE =
+  "text-codex-muted hover:bg-codex-surface-raised/60 hover:text-codex-foreground";
 const NAV_ITEM_ACTIVE = "text-codex-foreground font-medium";
 
 interface NavItemProps {
@@ -113,18 +114,19 @@ function NavItem({ icon, label, onClick, isActive = false, disabled, trailing }:
       onClick={onClick}
       disabled={disabled}
       aria-current={isActive ? "page" : undefined}
-      className={`group relative isolate ${NAV_ITEM_BASE} ${isActive ? NAV_ITEM_ACTIVE : NAV_ITEM_IDLE}`}
+      className={`${NAV_ITEM_BASE} ${isActive ? NAV_ITEM_ACTIVE : NAV_ITEM_IDLE}`}
     >
-      {isActive && (
-        <m.span
-          layoutId={SIDEBAR_ACTIVE_LAYOUT_ID}
-          className="absolute inset-0 -z-10 rounded-codex-md bg-codex-border/60"
-          transition={SPRING}
-          aria-hidden="true"
-        />
-      )}
-      <span className="shrink-0 flex">{icon}</span>
-      <span className="flex-1 truncate text-left">{label}</span>
+      {isActive && <SidebarActivePill />}
+      <span
+        className={`flex w-4 shrink-0 justify-center transition-colors ${
+          isActive
+            ? "text-codex-foreground"
+            : "text-codex-muted/70 group-hover:text-codex-foreground"
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="flex-1 truncate">{label}</span>
       {trailing}
     </button>
   );
@@ -132,25 +134,31 @@ function NavItem({ icon, label, onClick, isActive = false, disabled, trailing }:
 
 interface SectionProps {
   label: string;
+  /** Item count shown next to the label, zero-padded like a readout */
+  count?: number | undefined;
   isOpen: boolean;
   onToggle: () => void;
   action?: ReactNode;
   children: ReactNode;
 }
 
-function SidebarSection({ label, isOpen, onToggle, action, children }: SectionProps) {
+function SidebarSection({ label, count, isOpen, onToggle, action, children }: SectionProps) {
   return (
     <div>
-      <div className="group flex items-center justify-between px-2 py-1">
+      <div className="group/section flex h-9 items-end justify-between pb-1">
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={isOpen}
-          className="flex items-center gap-1 text-xs font-medium text-codex-muted hover:text-codex-foreground transition-colors"
+          className="flex h-7 items-center gap-1.5 rounded-codex-sm px-2 font-mono text-xs uppercase tracking-label text-codex-muted/80 transition-colors hover:bg-codex-surface-raised/60 hover:text-codex-muted"
         >
           <span>{label}</span>
+          {count !== undefined && (
+            <span className="tabular-nums">{String(count).padStart(2, "0")}</span>
+          )}
           <ChevronRight
-            className={`w-3 h-3 opacity-0 group-hover:opacity-100 transition-all duration-150 ${
+            aria-hidden="true"
+            className={`h-3 w-3 opacity-0 transition-[opacity,rotate] duration-150 group-hover/section:opacity-100 ${
               isOpen ? "rotate-90" : ""
             }`}
           />
@@ -165,7 +173,7 @@ function SidebarSection({ label, isOpen, onToggle, action, children }: SectionPr
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.28, ease: EASE_OUT }}
+            transition={TWEEN}
           >
             <div className="space-y-px">{children}</div>
           </m.div>
@@ -205,9 +213,10 @@ export function Sidebar() {
 
   let panelStateClass: string;
   if (isSidebarOpen) {
-    panelStateClass = "h-full opacity-100";
+    // The docked column's edge: one hairline between navigation and content
+    panelStateClass = "h-full opacity-100 border-r border-codex-border";
   } else if (isPeekLayout) {
-    panelStateClass = `fixed top-14 bottom-14 left-0 z-50 rounded-r-codex-xl border border-l-0 border-codex-border bg-codex-sidebar ${
+    panelStateClass = `fixed top-14 bottom-14 left-0 z-50 rounded-r-codex-xl border border-l-0 border-codex-border-strong bg-codex-sidebar ${
       isPeekShown ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
     }`;
   } else {
@@ -235,10 +244,11 @@ export function Sidebar() {
     return () => window.removeEventListener("keydown", onKey);
   }, [isSidebarOpen, closeSidebar]);
 
-  const rootPages = pages
-    .filter((p) => (p.parentPageId === null || p.parentPageId === undefined) && !p.isArchived)
+  const activePages = pages.filter((p) => !p.isArchived);
+  const rootPages = activePages
+    .filter((p) => p.parentPageId === null || p.parentPageId === undefined)
     .sort((a, b) => a.order - b.order);
-  const favoritePages = pages.filter((p) => p.isFavorite && !p.isArchived);
+  const favoritePages = activePages.filter((p) => p.isFavorite);
 
   async function handleCreateTopLevelPage() {
     if (!activeWorkspace) return;
@@ -262,11 +272,11 @@ export function Sidebar() {
             key="sidebar-backdrop"
             aria-hidden
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-30 bg-codex-background/60 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-30 bg-codex-background/70 md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={TWEEN_FAST}
           />
         )}
       </AnimatePresence>
@@ -283,7 +293,7 @@ export function Sidebar() {
         ref={asideRef}
         aria-label="Workspace navigation"
         className={`h-dvh bg-codex-sidebar flex flex-col select-none shrink-0 transition-all duration-200 ease-out group/sidebar fixed inset-y-0 left-0 z-40 md:relative md:z-20 ${
-          isSidebarOpen ? "w-72 md:w-60 shadow-xl md:shadow-none" : "w-0 overflow-hidden"
+          isSidebarOpen ? "w-72 md:w-60" : "w-0 overflow-hidden"
         }`}
       >
         <div
@@ -294,14 +304,14 @@ export function Sidebar() {
           onMouseLeave={isPeekLayout ? unpeekSidebar : undefined}
         >
           {/* Top: Workspace Selector + collapse / dock */}
-          <div className="flex items-center gap-1 px-2 pt-2 pb-1">
+          <div className="flex h-14 shrink-0 items-center gap-1 px-2">
             <div className="flex-1 min-w-0">
               <WorkspaceSwitcher />
             </div>
             <button
               type="button"
               onClick={toggleSidebar}
-              className="shrink-0 p-1.5 rounded-codex-md text-codex-muted opacity-0 group-hover/sidebar:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100 hover:bg-codex-border/40 hover:text-codex-foreground transition-all duration-150"
+              className="flex size-8 shrink-0 items-center justify-center rounded-codex-md text-codex-muted opacity-0 transition-[opacity,color,background-color] duration-150 group-hover/sidebar:opacity-100 hover:bg-codex-surface-raised hover:text-codex-foreground focus-visible:opacity-100 pointer-coarse:size-11 pointer-coarse:opacity-100"
               aria-label={isPeekLayout ? "Keep sidebar open" : "Close sidebar"}
               title={isPeekLayout ? "Keep sidebar open" : "Close sidebar"}
             >
@@ -314,13 +324,13 @@ export function Sidebar() {
           </div>
 
           {/* Primary navigation */}
-          <nav className="px-2 pb-3 space-y-px">
+          <nav className="shrink-0 px-2 pb-2 space-y-px">
             <NavItem
               icon={<Search className="w-4 h-4" />}
               label="Search"
               onClick={() => setCommandPaletteOpen(true)}
               trailing={
-                <kbd className="font-sans text-xs text-codex-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                <kbd className="font-mono text-xs tracking-label text-codex-muted/70 pointer-coarse:hidden">
                   ⌘K
                 </kbd>
               }
@@ -334,15 +344,16 @@ export function Sidebar() {
           </nav>
 
           {/* Scrollable Sections (Favorites & Pages) */}
-          <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-4">
+          <div className="flex-1 overflow-y-auto px-2 pb-3">
             {favoritePages.length > 0 && (
               <SidebarSection
                 label="Favorites"
+                count={favoritePages.length}
                 isOpen={isFavoritesOpen}
                 onToggle={() => setIsFavoritesOpen(!isFavoritesOpen)}
               >
                 {/* Own layout scope: a favorited active page appears twice, and
-                    each copy should keep its own highlight pill */}
+                    each copy should keep its own highlight */}
                 <LayoutGroup id="favorites">
                   {favoritePages.map((page) => (
                     <PageTreeItem key={`fav-${page.id}`} page={page} level={0} />
@@ -353,6 +364,7 @@ export function Sidebar() {
 
             <SidebarSection
               label="Pages"
+              count={isPagesLoading ? undefined : activePages.length}
               isOpen={isPagesOpen}
               onToggle={() => setIsPagesOpen(!isPagesOpen)}
               action={
@@ -360,7 +372,7 @@ export function Sidebar() {
                   type="button"
                   onClick={handleCreateTopLevelPage}
                   disabled={!activeWorkspace}
-                  className="p-0.5 rounded-codex-sm text-codex-muted opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 hover:bg-codex-border/40 hover:text-codex-foreground transition-all disabled:cursor-not-allowed"
+                  className="flex size-7 items-center justify-center rounded-codex-sm text-codex-muted opacity-0 transition-[opacity,color,background-color] duration-150 group-hover/section:opacity-100 hover:bg-codex-surface-raised hover:text-codex-foreground focus-visible:opacity-100 disabled:cursor-not-allowed pointer-coarse:size-10 pointer-coarse:opacity-100"
                   aria-label="Create page"
                   title="Create page"
                 >
@@ -383,8 +395,8 @@ export function Sidebar() {
             </SidebarSection>
           </div>
 
-          {/* Secondary navigation (bottom) */}
-          <div className="px-2 py-2 space-y-px">
+          {/* Secondary navigation, set off by a hairline */}
+          <div className="shrink-0 border-t border-codex-border px-2 py-2 space-y-px">
             <NavItem
               icon={<Settings className="w-4 h-4" />}
               label="Settings"
@@ -409,7 +421,7 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Modals placed outside the aside so they aren't trapped by backdrop-filter */}
+      {/* Modals placed outside the aside so they aren't clipped by its overflow */}
       <TrashModal isOpen={isTrashOpen} onClose={() => setIsTrashOpen(false)} />
       <SettingsModal
         isOpen={isSettingsOpen}

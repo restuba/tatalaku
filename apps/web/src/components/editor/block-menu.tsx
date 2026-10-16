@@ -18,6 +18,16 @@ import {
 import { startBlockDrag, endBlockDrag, countBlocksInRange } from "./extensions/drag-drop-block";
 import { getBlockRange, blockSelectionKey } from "./extensions/block-selection";
 
+/** Group heading inside the menu, in the mono label voice */
+const MENU_LABEL =
+  "px-2.5 pt-2 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80";
+
+const MENU_ITEM =
+  "flex h-8 w-full items-center gap-2 rounded-codex-md px-2.5 text-left text-sm text-codex-muted transition-colors";
+
+/** Regular action: lifts to the raised surface on hover */
+const MENU_ITEM_DEFAULT = `${MENU_ITEM} hover:bg-codex-surface-raised hover:text-codex-foreground`;
+
 interface BlockMenuProps {
   editor: Editor | null;
 }
@@ -183,7 +193,8 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     // 4. Dispatch startBlockDrag to BlockDragDrop plugin
     startBlockDrag(view, { from, to });
 
-    // 5. Create clean drag preview badge
+    // 5. Create clean drag preview badge: a flat chip (raised surface, strong
+    //    border, mono label), no shadow
     const count = countBlocksInRange(view, from, to);
     const ghost = document.createElement("div");
     ghost.style.position = "absolute";
@@ -192,7 +203,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     ghost.style.zIndex = "99999";
     ghost.style.pointerEvents = "none";
     ghost.innerHTML = `
-      <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--color-surface,#ffffff);color:var(--color-ink,#1f2328);border:1px solid var(--color-accent,#0969da);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.18);font-size:12px;font-weight:500;font-family:sans-serif;">
+      <div class="inline-flex items-center gap-1.5 rounded-codex-sm border border-codex-border-strong bg-codex-surface-raised px-3 py-1.5 font-mono text-xs uppercase tracking-label text-codex-foreground">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="9" cy="12" r="1.5"></circle>
           <circle cx="9" cy="5" r="1.5"></circle>
@@ -313,7 +324,11 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     >
       <div className="relative">
         <div
-          className="p-1 rounded-codex-sm cursor-grab active:cursor-grabbing hover:bg-codex-surface text-codex-muted hover:text-codex-foreground select-none"
+          className={`p-1 rounded-codex-sm cursor-grab active:cursor-grabbing select-none transition-colors duration-150 ${
+            isOpen
+              ? "bg-codex-surface-raised text-codex-foreground"
+              : "text-codex-muted/70 hover:bg-codex-surface-raised hover:text-codex-foreground"
+          }`}
           draggable
           onDragStart={handleDragStart}
           onDragEnd={() => {
@@ -343,18 +358,15 @@ export function BlockMenu({ editor }: BlockMenuProps) {
         </div>
 
         {isOpen && (
-          <div className="absolute left-0 mt-1 w-56 glass-surface border border-codex-border rounded-codex-md py-1 text-sm max-h-[60vh] overflow-y-auto">
-            <div className="px-3 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
-              Actions
-            </div>
-            <button
-              onClick={copyLinkToBlock}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground transition-colors"
-            >
+          <div className="absolute left-0 mt-1 w-56 max-h-[60vh] overflow-y-auto glass-surface rounded-codex-lg border border-codex-border-strong p-1 text-sm animate-in fade-in duration-150">
+            <div className={MENU_LABEL}>Actions</div>
+            <button type="button" onClick={copyLinkToBlock} className={MENU_ITEM_DEFAULT}>
               {isCopied ? (
                 <>
                   <Check className="w-4 h-4 text-codex-success" />
-                  <span className="text-codex-success font-medium text-xs">Link copied!</span>
+                  <span className="font-mono text-xs uppercase tracking-label text-codex-success">
+                    [ Link copied ]
+                  </span>
                 </>
               ) : (
                 <>
@@ -363,71 +375,75 @@ export function BlockMenu({ editor }: BlockMenuProps) {
                 </>
               )}
             </button>
-            <button
-              onClick={duplicateNode}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
-            >
+            <button type="button" onClick={duplicateNode} className={MENU_ITEM_DEFAULT}>
               <Copy className="w-4 h-4" />
               Duplicate
             </button>
             <button
+              type="button"
               onClick={deleteNode}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-danger-bg/10 text-codex-danger"
+              className={`${MENU_ITEM} hover:bg-codex-danger-bg hover:text-codex-danger`}
             >
               <Trash2 className="w-4 h-4" />
               Delete
             </button>
 
-            <div className="h-px bg-codex-border my-1" />
+            <div className="mx-2 my-1 h-px bg-codex-border" />
 
-            <div className="px-3 py-1.5 text-xs font-semibold text-codex-muted uppercase tracking-wider">
-              Turn into
-            </div>
+            <div className={MENU_LABEL}>Turn into</div>
             <button
+              type="button"
               onClick={() => turnInto("paragraph")}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <Type className="w-4 h-4" /> Text
             </button>
             <button
+              type="button"
               onClick={() => turnInto("heading", 1)}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <Heading1 className="w-4 h-4" /> Heading 1
             </button>
             <button
+              type="button"
               onClick={() => turnInto("heading", 2)}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <Heading2 className="w-4 h-4" /> Heading 2
             </button>
             <button
+              type="button"
               onClick={() => turnInto("heading", 3)}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <Heading3 className="w-4 h-4" /> Heading 3
             </button>
             <button
+              type="button"
               onClick={() => turnInto("taskList")}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <ListTodo className="w-4 h-4" /> To-do list
             </button>
             <button
+              type="button"
               onClick={() => turnInto("bulletList")}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <List className="w-4 h-4" /> Bullet list
             </button>
             <button
+              type="button"
               onClick={() => turnInto("orderedList")}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <ListOrdered className="w-4 h-4" /> Numbered list
             </button>
             <button
+              type="button"
               onClick={() => turnInto("blockquote")}
-              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background text-codex-foreground"
+              className={MENU_ITEM_DEFAULT}
             >
               <Quote className="w-4 h-4" /> Quote
             </button>

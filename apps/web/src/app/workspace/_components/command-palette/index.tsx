@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { FileText, Home, Keyboard, Plus, Search, Upload } from "lucide-react";
 import type { Page } from "@tatalaku/shared";
 import { AnimatePresence, m, useIsPresent } from "motion/react";
-import { SPRING, SPRING_SOFT } from "@/components/motion";
+import { TWEEN_FAST } from "@/components/motion";
 import { useUIStore } from "@/stores/ui-store";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -16,6 +16,12 @@ import { searchPages, type PageSearchResult } from "@/services/page/search-pages
 import { filterPages, getParentPath } from "./filter-pages";
 
 const RESULT_LIMIT = 20;
+
+/** Keyboard key chip for the inline hints */
+const KBD =
+  "rounded-codex-sm border border-codex-border-strong px-1.5 font-mono text-xs text-codex-muted";
+/** Label voice for the footer hints */
+const HINT = "font-mono text-xs uppercase tracking-label text-codex-muted/80";
 
 interface PaletteItem {
   id: string;
@@ -238,25 +244,27 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
       aria-modal="true"
       aria-label="Search pages and commands"
     >
+      {/* Backdrop: a dense scrim instead of a blur */}
       <m.div
-        className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-codex-background/80"
         onClick={onClose}
         aria-hidden="true"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.18 }}
+        transition={TWEEN_FAST}
       />
 
+      {/* Elevated panel set off by a strong border: fades in with a 4px drop */}
       <m.div
-        initial={{ opacity: 0, y: -10, scale: 0.97, filter: "blur(6px)" }}
-        animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-        exit={{ opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.14 } }}
-        transition={SPRING_SOFT}
-        className="glass-surface relative z-10 flex flex-col w-full max-w-xl max-h-96 self-start overflow-hidden rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10"
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, transition: { duration: 0.12 } }}
+        transition={TWEEN_FAST}
+        className="glass-surface relative z-10 flex w-full max-w-xl max-h-96 flex-col self-start overflow-hidden rounded-codex-lg border border-codex-border-strong text-codex-foreground"
       >
         {/* Search input */}
-        <div className="flex items-center gap-2 px-4 border-b border-codex-border">
+        <div className="flex items-center gap-2.5 border-b border-codex-border px-4">
           <Search className="w-4 h-4 shrink-0 text-codex-muted" />
           <input
             ref={inputRef}
@@ -273,9 +281,9 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
             aria-controls={listboxId}
             aria-activedescendant={activeItem ? `${listboxId}-${activeItem.id}` : undefined}
             aria-autocomplete="list"
-            className="flex-1 h-12 bg-transparent text-sm outline-none placeholder:text-codex-muted"
+            className="h-12 flex-1 bg-transparent text-sm text-codex-foreground outline-none placeholder:text-codex-muted/70"
           />
-          <kbd className="shrink-0 font-sans text-xs text-codex-muted">esc</kbd>
+          <kbd className={`${KBD} shrink-0`}>esc</kbd>
         </div>
 
         {/* Results */}
@@ -286,7 +294,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
             return (
               <li key={item.id} role="presentation">
                 {showGroupLabel && (
-                  <div className="px-3 pt-2 pb-1 text-xs font-medium text-codex-muted">
+                  <div className="px-2.5 pt-2.5 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80">
                     {item.group}
                   </div>
                 )}
@@ -297,30 +305,34 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                   data-index={index}
                   onMouseMove={() => setActiveIndex(index)}
                   onClick={() => runItem(item)}
-                  className="relative flex items-center gap-3 px-3 py-2 pointer-coarse:py-3 rounded-codex-md text-sm cursor-pointer"
+                  className={`relative flex h-9 cursor-pointer items-center gap-2.5 rounded-codex-md px-2.5 text-sm transition-colors duration-150 pointer-coarse:h-11 ${
+                    isActive ? "text-codex-foreground" : "text-codex-muted"
+                  }`}
                 >
                   {/* Shared highlight glides between rows instead of jumping */}
                   {isActive && (
                     <m.span
                       layoutId={`${listboxId}-highlight`}
-                      className="absolute inset-0 rounded-codex-md bg-codex-surface-secondary"
-                      transition={SPRING}
+                      className="absolute inset-0 rounded-codex-md bg-codex-surface-raised"
+                      transition={TWEEN_FAST}
                       aria-hidden="true"
                     />
                   )}
                   <span
                     className={`relative w-5 flex justify-center shrink-0 transition-colors ${
-                      isActive ? "text-codex-accent" : "text-codex-muted"
+                      isActive ? "text-codex-foreground" : "text-codex-muted/70"
                     }`}
                   >
                     {item.icon}
                   </span>
                   <span className="relative flex-1 min-w-0 truncate">
                     {item.label}
-                    {item.hint && <span className="ml-2 text-codex-muted">{item.hint}</span>}
+                    {item.hint && <span className="ml-2 text-codex-muted/70">{item.hint}</span>}
                   </span>
                   {item.meta && (
-                    <span className="relative shrink-0 text-xs text-codex-muted">{item.meta}</span>
+                    <span className="relative shrink-0 font-mono text-xs uppercase tracking-label text-codex-muted/70">
+                      {item.meta}
+                    </span>
                   )}
                 </div>
               </li>
@@ -328,10 +340,16 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
           })}
         </ul>
 
-        {/* Footer hints */}
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-codex-border text-xs text-codex-muted select-none">
-          <span>↑↓ to navigate</span>
-          <span>↵ to open</span>
+        {/* Footer hints: key chips with mono labels */}
+        <div className="flex items-center gap-5 border-t border-codex-border px-4 py-2.5 select-none">
+          <span className="flex items-center gap-2">
+            <kbd className={KBD}>↑↓</kbd>
+            <span className={HINT}>to navigate</span>
+          </span>
+          <span className="flex items-center gap-2">
+            <kbd className={KBD}>↵</kbd>
+            <span className={HINT}>to open</span>
+          </span>
         </div>
       </m.div>
     </div>

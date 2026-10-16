@@ -10,6 +10,16 @@ type MermaidApi = (typeof import("mermaid"))["default"];
 let mermaidModule: Promise<MermaidApi> | null = null;
 let initializedTheme: "dark" | "default" | null = null;
 
+/**
+ * The UI font stack as resolved on <html>. next/font self-hosts Space Grotesk
+ * under a generated family name, so asking for "Space Grotesk" by name would
+ * silently fall back to the system font inside diagrams.
+ */
+function getUiFontFamily(): string {
+  const resolved = getComputedStyle(document.documentElement).getPropertyValue("--font-ui").trim();
+  return resolved || "system-ui, sans-serif";
+}
+
 async function getMermaid(): Promise<MermaidApi> {
   mermaidModule ??= import("mermaid").then((m) => m.default);
   const mermaid = await mermaidModule;
@@ -21,7 +31,7 @@ async function getMermaid(): Promise<MermaidApi> {
       // Diagrams are authored by any workspace member and injected as SVG:
       // "strict" sanitizes labels and disables click handlers (no stored XSS).
       securityLevel: "strict",
-      fontFamily: "Space Grotesk, system-ui, sans-serif",
+      fontFamily: getUiFontFamily(),
     });
     initializedTheme = theme;
   }
@@ -61,23 +71,25 @@ function MermaidPreview({ code }: { code: string }) {
 
   if (!code.trim()) {
     return (
-      <div className="flex items-center justify-center py-12 font-mono text-xs uppercase tracking-widest text-codex-muted">
-        [ ENTER MERMAID CODE ]
+      <div className="flex items-center justify-center py-12 font-mono text-xs uppercase tracking-label text-codex-muted">
+        [ Enter Mermaid code ]
       </div>
     );
   }
   if (error) {
     return (
       <div className="py-6 text-center">
-        <span className="font-mono text-xs text-codex-danger">[SYNTAX ERROR]</span>
-        <p className="mt-1 font-mono text-xs text-codex-muted">{error}</p>
+        <span className="font-mono text-xs uppercase tracking-label text-codex-danger">
+          [ Error: invalid syntax ]
+        </span>
+        <p className="mt-2 font-mono text-xs wrap-break-word text-codex-muted">{error}</p>
       </div>
     );
   }
   if (!svg) {
     return (
-      <div className="flex items-center justify-center py-12 font-mono text-xs uppercase tracking-widest text-codex-muted">
-        [ RENDERING... ]
+      <div className="flex items-center justify-center py-12 font-mono text-xs uppercase tracking-label text-codex-muted">
+        [ Rendering... ]
       </div>
     );
   }
@@ -135,11 +147,12 @@ export function MermaidNodeView(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper className="mermaid-block-wrapper my-4">
-      <div className="group relative w-full rounded-codex-lg border border-codex-border bg-codex-surface">
+      {/* Hairline frame on the page itself: no fill, the header ruled off below */}
+      <div className="group relative w-full rounded-codex-md border border-codex-border">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-codex-border px-4 py-2 bg-codex-background/50 rounded-t-codex-lg">
-          <span className="font-mono text-xs uppercase tracking-[0.08em] text-codex-muted">
-            MERMAID
+        <div className="flex items-center justify-between border-b border-codex-border px-4 py-2">
+          <span className="font-mono text-xs uppercase tracking-label text-codex-muted">
+            Mermaid
           </span>
           {editor.isEditable && (
             <div className="flex gap-2">
@@ -148,25 +161,25 @@ export function MermaidNodeView(props: NodeViewProps) {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-muted transition-colors hover:text-codex-foreground"
+                    className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-label text-codex-muted transition-colors hover:text-codex-foreground"
                   >
-                    CANCEL
+                    Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="rounded-full bg-codex-accent px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-background transition-opacity hover:opacity-80"
+                    className="rounded-full bg-codex-accent px-3 py-1 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity hover:opacity-85"
                   >
-                    SAVE
+                    Save
                   </button>
                 </>
               ) : (
                 <button
                   type="button"
                   onClick={handleStartEdit}
-                  className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-muted opacity-0 transition-all hover:text-codex-foreground group-hover:opacity-100"
+                  className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-label text-codex-muted opacity-0 transition-[opacity,color] hover:text-codex-foreground group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
                 >
-                  EDIT
+                  Edit
                 </button>
               )}
             </div>
@@ -181,7 +194,8 @@ export function MermaidNodeView(props: NodeViewProps) {
               value={editCode}
               onChange={(e) => setEditCode(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="min-h-[160px] w-full resize-y rounded-codex-md border border-codex-border bg-codex-background p-4 font-mono text-sm leading-relaxed text-codex-foreground focus:border-codex-accent focus:ring-1 focus:ring-codex-accent focus:outline-none"
+              aria-label="Mermaid code"
+              className="min-h-40 w-full resize-y rounded-codex-md border border-codex-border-strong bg-codex-background p-4 font-mono text-sm leading-relaxed text-codex-foreground outline-none transition-colors placeholder:text-codex-muted/70 focus:border-codex-foreground"
               placeholder={"graph TD\n    A[Start] --> B[End]"}
               spellCheck={false}
             />

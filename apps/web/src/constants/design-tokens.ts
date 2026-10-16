@@ -8,10 +8,13 @@
 export const THEME_VARIABLES = {
   surface: "var(--color-surface)",
   surfaceSecondary: "var(--color-surface-secondary)",
+  surfaceRaised: "var(--color-surface-raised)",
   border: "var(--color-border)",
+  borderStrong: "var(--color-border-strong)",
   ink: "var(--color-ink)",
   muted: "var(--color-muted)",
   accent: "var(--color-accent)",
+  signal: "var(--color-signal)",
   danger: "var(--color-danger)",
   dangerBg: "var(--color-danger-bg)",
   success: "var(--color-success)",
@@ -53,4 +56,5 @@ export const STATUS_CLASSES: Record<StatusTone, { bg: string; text: string; bord
 export const FONT_VARIABLES = {
   ui: "var(--font-ui)",
   code: "var(--font-code)",
+  display: "var(--font-doto)",
 } as const;

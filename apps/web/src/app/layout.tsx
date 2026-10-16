@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
-// Self-hosted Geist (bundled woff2 via next/font/local) — no build-time or
-// runtime request to Google Fonts, so the UI font is the same offline,
-// behind proxies, and in CI. Exposes --font-geist-sans / --font-geist-mono.
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+// Space Grotesk (UI), Space Mono (labels, code) and Doto (hero numbers),
+// self-hosted via next/font/local. Exposes --font-space-grotesk,
+// --font-space-mono and --font-doto.
+import { fontDisplay, fontMono, fontSans } from "./fonts";
 import "./globals.css";
 import Script from "next/script";
 import { AppProvider } from "@/components/app";
@@ -27,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
+      className={`${fontSans.variable} ${fontMono.variable} ${fontDisplay.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

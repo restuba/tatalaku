@@ -1,5 +1,52 @@
 /* eslint-disable no-restricted-syntax */
-import { ThemeConfig } from "@tatalaku/shared";
+import type { ThemeConfig } from "@tatalaku/shared";
+
+/**
+ * Monochrome default: OLED black / white, the ink doubles as the accent and
+ * structure is drawn with hairlines. Red only appears as a signal. The CSS
+ * side (signal, muted mix, status colors) lives in globals.css.
+ */
+export const lightNothing: ThemeConfig = {
+  codeThemeId: "nothing-light",
+  variant: "light",
+  theme: {
+    accent: "#000000",
+    contrast: 50,
+    fonts: {
+      code: null,
+      ui: null,
+    },
+    ink: "#1a1a1a",
+    opaqueWindows: true,
+    semanticColors: {
+      diffAdded: "#2f7d43",
+      diffRemoved: "#d71921",
+      skill: "#0062cc",
+    },
+    surface: "#ffffff",
+  },
+};
+
+export const darkNothing: ThemeConfig = {
+  codeThemeId: "nothing-dark",
+  variant: "dark",
+  theme: {
+    accent: "#ffffff",
+    contrast: 92,
+    fonts: {
+      code: null,
+      ui: null,
+    },
+    ink: "#ececec",
+    opaqueWindows: true,
+    semanticColors: {
+      diffAdded: "#4a9e5c",
+      diffRemoved: "#e5484d",
+      skill: "#5b9bf6",
+    },
+    surface: "#000000",
+  },
+};
 
 export const lightGithub: ThemeConfig = {
   codeThemeId: "github-light",
@@ -111,12 +158,18 @@ export const darkLobster: ThemeConfig = {
 };
 
 export const presets: ThemeConfig[] = [
+  lightNothing,
   lightGithub,
   lightEverforest,
+  darkNothing,
   darkGithub,
   darkEverforest,
   darkLobster,
 ];
+
+/** Presets picked when nothing is stored yet */
+export const DEFAULT_LIGHT_THEME_ID = lightNothing.codeThemeId;
+export const DEFAULT_DARK_THEME_ID = darkNothing.codeThemeId;
 
 /**
  * Maps a ThemeConfig to a record of CSS custom properties.

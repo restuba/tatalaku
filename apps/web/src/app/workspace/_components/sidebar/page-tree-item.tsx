@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, m } from "motion/react";
-import { SPRING } from "@/components/motion";
+import { TWEEN } from "@/components/motion";
 import { PopPanel } from "@/components/motion/pop-panel";
-import { SIDEBAR_ACTIVE_LAYOUT_ID } from "./constants";
+import { SidebarActivePill } from "./active-pill";
 import { useParams, useRouter } from "next/navigation";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page-store";
@@ -22,9 +22,20 @@ import {
   GripVertical,
 } from "lucide-react";
 
-// Matches `w-48`; height is an estimate of the 3-item menu, used for flipping
-const MENU_WIDTH = 192;
+// Matches `w-52`; height is an estimate of the 3-item menu, used for flipping
+const MENU_WIDTH = 208;
 const MENU_HEIGHT_ESTIMATE = 110;
+
+/** Horizontal step per nesting level (px) */
+const INDENT_STEP = 14;
+/**
+ * Where a level's tree guide line sits: under the center of the page icon,
+ * past the 2px inset and the 12px drag-grip slot.
+ */
+const GUIDE_OFFSET = 21;
+
+const MENU_ITEM =
+  "w-full flex h-8 items-center gap-2 px-2.5 rounded-codex-md text-left transition-colors";
 
 interface PageTreeItemProps {
   page: Page;
@@ -99,12 +110,11 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         .querySelectorAll<HTMLElement>("[data-drag-grip], [data-drag-actions], [data-drop-line]")
         .forEach((el) => el.remove());
 
+      // Flat chip: raised surface and a strong border, no shadow or tilt
       ghost.className =
-        "glass-surface flex items-center gap-1.5 pl-2 pr-3 py-1 rounded-codex-md " +
-        "border border-codex-border text-sm text-codex-foreground pointer-events-none";
-      ghost.style.cssText =
-        `position:fixed;top:-9999px;left:0;width:${Math.round(rect.width)}px;` +
-        "transform:rotate(-1.5deg);box-shadow:0 12px 28px rgba(0,0,0,0.28);";
+        "flex items-center gap-1.5 pl-2 pr-3 h-8 rounded-codex-md bg-codex-surface-raised " +
+        "border border-codex-border-strong text-sm text-codex-foreground pointer-events-none";
+      ghost.style.cssText = `position:fixed;top:-9999px;left:0;width:${Math.round(rect.width)}px;`;
 
       document.body.appendChild(ghost);
       e.dataTransfer.setDragImage(ghost, 16, Math.round(rect.height / 2));
@@ -270,7 +280,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         <button
           type="button"
           onClick={() => void handleUndo()}
-          className="shrink-0 font-medium text-codex-accent hover:underline focus-visible:underline outline-none"
+          className="shrink-0 font-mono text-xs uppercase tracking-label text-codex-foreground underline-offset-4 hover:underline focus-visible:underline outline-none"
         >
           Undo
         </button>
@@ -300,27 +310,19 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`group isolate flex items-center justify-between py-0.5 pointer-coarse:py-1.5 pr-2 rounded-codex-md text-sm transition-colors duration-150 relative ${
-          isDragging ? "opacity-40 cursor-grabbing" : "cursor-grab"
-        } ${
+        // Each row is its own stacking context (isolate), so the rows below
+        // would paint over this row's fixed menu: lift the row while it's open
+        className={`group isolate relative flex h-8 items-center justify-between pr-1 rounded-codex-md text-sm transition-colors duration-150 pointer-coarse:h-11 ${
+          isMenuOpen ? "z-10" : ""
+        } ${isDragging ? "opacity-40 cursor-grabbing" : "cursor-grab"} ${
           isActive
             ? "text-codex-foreground font-medium"
-            : "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground"
-        } ${
-          dropZone === "inside" ? "ring-2 ring-inset ring-codex-accent/70 bg-codex-accent/10" : ""
-        }`}
-        style={{ paddingLeft: `${Math.max(level * 14 + 2, 2)}px` }}
+            : "text-codex-foreground/80 hover:bg-codex-surface-raised/60 hover:text-codex-foreground"
+        } ${dropZone === "inside" ? "bg-codex-surface-raised ring-1 ring-inset ring-codex-accent" : ""}`}
+        style={{ paddingLeft: `${Math.max(level * INDENT_STEP + 2, 2)}px` }}
       >
-        {/* Active-page pill shared with the nav items: glides to the new page */}
-        {isActive && (
-          <m.span
-            layoutId={SIDEBAR_ACTIVE_LAYOUT_ID}
-            data-drop-line
-            className="absolute inset-0 -z-10 rounded-codex-md bg-codex-border/60"
-            transition={SPRING}
-            aria-hidden="true"
-          />
-        )}
+        {/* Active-page highlight shared with the nav items: glides to the new page */}
+        {isActive && <SidebarActivePill />}
         {/* Sibling drop indicators: a line with a leading dot */}
         {dropZone === "before" && (
           <div
@@ -328,7 +330,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             className="absolute left-2 right-2 -top-px flex items-center pointer-events-none"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-codex-accent -ml-0.5" />
-            <span className="flex-1 h-0.5 bg-codex-accent rounded-full" />
+            <span className="flex-1 h-0.5 bg-codex-accent" />
           </div>
         )}
         {dropZone === "after" && (
@@ -337,7 +339,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             className="absolute left-2 right-2 -bottom-px flex items-center pointer-events-none"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-codex-accent -ml-0.5" />
-            <span className="flex-1 h-0.5 bg-codex-accent rounded-full" />
+            <span className="flex-1 h-0.5 bg-codex-accent" />
           </div>
         )}
 
@@ -363,7 +365,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             }}
             aria-label={isExpanded ? "Collapse" : "Expand"}
             aria-expanded={isExpanded}
-            className="relative w-4 h-4 shrink-0 flex items-center justify-center rounded-codex-sm text-codex-muted hover:bg-codex-border/60"
+            className="relative w-4 h-4 shrink-0 flex items-center justify-center rounded-codex-sm text-codex-muted hover:bg-codex-border"
           >
             {/* Icon: visible at rest, hidden on hover (or while expanded) */}
             <span
@@ -374,12 +376,12 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
               {page.icon ? (
                 <span className="text-sm leading-none">{page.icon}</span>
               ) : (
-                <FileText className="w-4 h-4" />
+                <FileText className="w-4 h-4 text-codex-muted/80" />
               )}
             </span>
             {/* Chevron: hidden at rest, revealed on hover (or while expanded) */}
             <ChevronRight
-              className={`absolute inset-0 m-auto w-3.5 h-3.5 transition-all duration-150 ${
+              className={`absolute inset-0 m-auto w-3.5 h-3.5 transition-[opacity,rotate] duration-150 ${
                 isExpanded ? "opacity-100 rotate-90" : "opacity-0 group-hover:opacity-100 rotate-0"
               }`}
             />
@@ -390,6 +392,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             <input
               ref={inputRef}
               type="text"
+              aria-label="Page title"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onBlur={handleSaveTitle}
@@ -401,7 +404,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 }
               }}
               onClick={(e) => e.stopPropagation()}
-              className="px-1 py-0.5 text-xs bg-codex-background border border-codex-accent rounded-codex-sm outline-none w-full text-codex-foreground"
+              className="h-6 w-full min-w-0 rounded-codex-sm border border-codex-border-strong bg-codex-background px-1.5 text-sm text-codex-foreground outline-none focus:border-codex-foreground"
             />
           ) : (
             <Link
@@ -418,13 +421,14 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         {!isEditing && (
           <div
             data-drag-actions
-            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity shrink-0 ml-1"
+            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100 transition-opacity shrink-0 ml-1"
           >
             {/* Quick Add Subpage */}
             <button
               type="button"
               onClick={handleAddSubpage}
-              className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-border/60 transition-colors"
+              className="flex size-6 items-center justify-center rounded-codex-sm text-codex-muted transition-colors hover:bg-codex-border hover:text-codex-foreground pointer-coarse:size-9"
+              aria-label="Add a page inside"
               title="Add a page inside"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -446,7 +450,9 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                   setMenuPos({ top, left: Math.max(8, rect.right - MENU_WIDTH) });
                   setIsMenuOpen(!isMenuOpen);
                 }}
-                className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-border/60 transition-colors"
+                className="flex size-6 items-center justify-center rounded-codex-sm text-codex-muted transition-colors hover:bg-codex-border hover:text-codex-foreground pointer-coarse:size-9"
+                aria-label="Page options"
+                aria-expanded={isMenuOpen}
                 title="Page options"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
@@ -456,7 +462,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 open={isMenuOpen && menuPos !== null}
                 origin="top right"
                 position={menuPos ?? undefined}
-                className="fixed z-50 glass-surface border border-codex-border rounded-codex-md p-1 w-48 text-xs"
+                className="fixed z-50 w-52 glass-surface rounded-codex-lg border border-codex-border-strong p-1 text-sm cursor-default"
               >
                 <button
                   type="button"
@@ -467,7 +473,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                     setEditTitle(page.title);
                     setIsEditing(true);
                   }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
+                  className={`${MENU_ITEM} text-codex-muted hover:bg-codex-surface-raised hover:text-codex-foreground`}
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                   <span>Rename</span>
@@ -475,7 +481,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 <button
                   type="button"
                   onClick={handleToggleFavorite}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
+                  className={`${MENU_ITEM} text-codex-muted hover:bg-codex-surface-raised hover:text-codex-foreground`}
                 >
                   {page.isFavorite ? (
                     <>
@@ -492,7 +498,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 <button
                   type="button"
                   onClick={handleArchive}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-danger-bg/10 text-codex-danger transition-colors text-left"
+                  className={`${MENU_ITEM} text-codex-muted hover:bg-codex-danger-bg hover:text-codex-danger`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete</span>
@@ -503,7 +509,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         )}
       </div>
 
-      {/* Recursive Subpages — height springs open/closed instead of popping */}
+      {/* Recursive Subpages — the height eases open/closed instead of popping */}
       <AnimatePresence initial={false}>
         {isExpanded && (
           <m.div
@@ -511,19 +517,26 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={SPRING}
-            className="overflow-hidden"
+            transition={TWEEN}
+            className="relative overflow-hidden"
           >
+            {/* Tree guide line under this page's icon (the grip slot is absent on touch) */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-1 w-px bg-codex-border pointer-coarse:hidden"
+              style={{ left: `${level * INDENT_STEP + GUIDE_OFFSET}px` }}
+            />
             {hasChildren ? (
-              <div className="space-y-0.5 mt-0.5">
+              <div className="space-y-px mt-px">
                 {childPages.map((child) => (
                   <PageTreeItem key={child.id} page={child} level={level + 1} />
                 ))}
               </div>
             ) : (
               <p
-                className="mt-0.5 py-0.5 text-xs italic text-codex-muted/70 select-none"
-                style={{ paddingLeft: `${Math.max((level + 1) * 14 + 8, 8)}px` }}
+                className="flex h-8 items-center text-xs text-codex-muted/70 select-none pointer-coarse:h-11"
+                // Lines up with where a child page's icon would sit
+                style={{ paddingLeft: `${(level + 1) * INDENT_STEP + 14}px` }}
               >
                 No pages inside
               </p>

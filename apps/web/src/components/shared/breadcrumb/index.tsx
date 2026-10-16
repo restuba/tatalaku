@@ -31,7 +31,7 @@ export function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="flex min-w-0 items-center gap-1.5 rounded-codex-sm px-1.5 py-0.5 hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
+                  className="flex min-w-0 items-center gap-1.5 rounded-codex-sm px-1.5 py-0.5 transition-colors hover:text-codex-foreground"
                 >
                   {item.icon && <span className="shrink-0">{item.icon}</span>}
                   <span className="max-w-40 truncate">{item.label}</span>

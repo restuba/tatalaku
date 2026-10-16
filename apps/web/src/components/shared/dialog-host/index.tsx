@@ -72,7 +72,10 @@ function PromptBody({
       <Modal.Content className="space-y-2">
         {request.description && <p className="text-codex-muted">{request.description}</p>}
         {request.label && (
-          <label htmlFor={inputId} className="block text-xs font-medium text-codex-foreground">
+          <label
+            htmlFor={inputId}
+            className="block pt-1 font-mono text-xs uppercase tracking-label text-codex-muted"
+          >
             {request.label}
           </label>
         )}
@@ -92,6 +95,7 @@ function PromptBody({
         />
         {error && (
           <p id={errorId} role="alert" className="text-xs text-codex-danger">
+            <span className="mr-1.5 font-mono uppercase tracking-label">[Error]</span>
             {error}
           </p>
         )}

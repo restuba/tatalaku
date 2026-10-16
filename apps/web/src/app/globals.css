@@ -33,17 +33,36 @@ html[data-motion="reduce"] *::after {
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
-:root {
-  /* Common definitions that apply to all themes */
-  /* Self-hosted Geist via next/font/local (see app/layout.tsx); the generated
-     family names differ from "Geist", so reference the variables instead. */
-  --font-ui: var(--font-geist-sans), Inter, system-ui, sans-serif;
-  --font-code: var(--font-geist-mono), ui-monospace, SFMono-Regular;
 
-  /* Derived colors via color-mix based on contrast */
+/* ─────────────────────────────────────────────────────────────
+   Theme tokens
+   Every preset sets the same base variables (surface, ink, accent, signal,
+   contrast, muted mix, status colors). The secondary surfaces and the lines
+   are derived from them, so a preset only picks its colors and how strongly
+   its lines read. "Nothing" (monochrome, structure drawn with hairlines) is
+   the default; GitHub, Everforest and Lobster stay selectable in Settings.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  /* Self-hosted via next/font/local (see app/fonts.ts); the generated family
+     names differ from the real ones, so reference the variables instead. */
+  --font-ui: var(--font-space-grotesk), "DM Sans", system-ui, sans-serif;
+  /* Real monospace fonts come before the generic fallback, so code never lands
+     on a proportional face. Space Mono's subset has no box-drawing glyphs;
+     plain-text blocks switch to the system stack (see .tiptap pre). */
+  --font-code:
+    var(--font-space-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  /* Ink mixed into the surface, scaled by the preset's contrast. From light
+     to strong: elevated panels → hovered/active rows → hairlines → borders. */
   --color-surface-secondary: color-mix(
     in srgb,
     var(--color-ink) calc(var(--theme-contrast) * 0.1%),
+    var(--color-surface)
+  );
+  --color-surface-raised: color-mix(
+    in srgb,
+    var(--color-ink) calc(var(--theme-contrast) * 0.17%),
     var(--color-surface)
   );
   --color-border: color-mix(
@@ -51,9 +70,46 @@ html[data-motion="reduce"] *::after {
     var(--color-ink) calc(var(--theme-contrast) * 0.25%),
     var(--color-surface)
   );
-  --color-muted: color-mix(in srgb, var(--color-ink) 50%, transparent);
+  --color-border-strong: color-mix(
+    in srgb,
+    var(--color-ink) calc(var(--theme-contrast) * 0.35%),
+    var(--color-surface)
+  );
+  --color-muted: color-mix(in srgb, var(--color-ink) var(--theme-muted), transparent);
+}
 
-  /* Fallback status colors */
+/* Default Theme (LIGHT - nothing). The accent is the ink itself, so primary
+   actions read black on white; red is kept for the signal (active row,
+   caret, live dot) and for errors. */
+:root,
+html[data-code-theme="nothing-light"] {
+  --color-surface: #ffffff;
+  --color-ink: #1a1a1a;
+  --color-accent: #000000;
+  --color-signal: #d71921;
+  --color-code-accent: var(--color-info);
+  --theme-contrast: 50;
+  --theme-muted: 62%;
+  --color-diff-added: #2f7d43;
+  --color-diff-removed: #d71921;
+  --color-skill: #0062cc;
+
+  --color-danger: #d71921;
+  --color-danger-bg: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  --color-success: #2f7d43;
+  --color-success-bg: color-mix(in srgb, var(--color-success) 12%, transparent);
+  --color-info: #0062cc;
+  --color-info-bg: color-mix(in srgb, var(--color-info) 12%, transparent);
+}
+
+/* LIGHT - github & everforest: shared status colors; the accent doubles as
+   the signal */
+html[data-code-theme="github-light"],
+html[data-code-theme="everforest-light"] {
+  --color-signal: var(--color-accent);
+  --color-code-accent: var(--color-accent);
+  --theme-muted: 50%;
+
   --color-danger: #ef4444;
   --color-danger-bg: #fee2e2;
   --color-success: #22c55e;
@@ -62,8 +118,7 @@ html[data-motion="reduce"] *::after {
   --color-info-bg: #dbeafe;
 }
 
-/* Default Theme (LIGHT - github) */
-:root,
+/* LIGHT - github */
 html[data-code-theme="github-light"] {
   --color-accent: #0969da;
   --theme-contrast: 40;
@@ -86,7 +141,8 @@ html[data-code-theme="everforest-light"] {
 }
 
 @theme inline {
-  /* Hapus semua namespace warna, radius, dan shadow bawaan Tailwind v4 */
+  /* Drop Tailwind's built-in color, radius and shadow scales: only the tokens
+     registered below exist. */
   --color-*: initial;
   --radius-*: initial;
   --shadow-*: initial;
@@ -94,25 +150,35 @@ html[data-code-theme="everforest-light"] {
   --color-background: var(--color-surface);
   --color-foreground: var(--color-ink);
 
-  /* Mendaftarkan token baru dari ThemeConfig */
+  /* Tokens from ThemeConfig */
   --color-accent: var(--color-accent);
   --color-ink: var(--color-ink);
   --color-surface: var(--color-surface);
   --color-surface-secondary: var(--color-surface-secondary);
+  --color-surface-raised: var(--color-surface-raised);
   --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
   --color-muted: var(--color-muted);
+  --color-signal: var(--color-signal);
   --color-diff-added: var(--color-diff-added);
   --color-diff-removed: var(--color-diff-removed);
   --color-skill: var(--color-skill);
 
-  /* Backward compatibility for Codex tokens during migration */
+  /* Codex tokens — the names to use in class names */
   --color-codex-background: var(--color-surface);
   --color-codex-foreground: var(--color-ink);
   --color-codex-sidebar: var(--color-surface-secondary);
   --color-codex-surface: var(--color-surface);
   --color-codex-surface-secondary: var(--color-surface-secondary);
+  /* Hovered / active rows on the sidebar and on elevated panels */
+  --color-codex-surface-raised: var(--color-surface-raised);
+  /* Hairlines: dividers, section rules, card outlines */
   --color-codex-border: var(--color-border);
+  /* Intentional borders: dialogs, menus, inputs, hovered cards */
+  --color-codex-border-strong: var(--color-border-strong);
   --color-codex-accent: var(--color-accent);
+  /* The one "look here" color: active indicator, caret, live dot */
+  --color-codex-signal: var(--color-signal);
   --color-codex-muted: var(--color-muted);
   --color-codex-skill: var(--color-skill);
 
@@ -131,21 +197,62 @@ html[data-code-theme="everforest-light"] {
   --radius-codex-xl: 1rem;
   --radius-codex-2xl: 1.5rem;
 
-  --font-sans: var(--font-ui), var(--font-geist-sans);
-  /* Real monospace system fonts sit before the generic fallback. next/font's
-     "Geist Mono Fallback" is metric-adjusted Arial (proportional), so if the
-     webfont fails to load it must never be reached, or ASCII art misaligns. */
-  --font-mono:
-    var(--font-code), Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+  /* Dot-matrix face for hero numbers (36px and up only) */
+  --font-display: var(--font-doto), var(--font-space-mono), monospace;
+
+  /* Letter spacing for ALL CAPS mono labels */
+  --tracking-label: 0.08em;
 }
 
-/* Modal and Popover Surface Styles */
+/* Elevated surface for dialogs, menus and popovers: flat and opaque, set off
+   from the page by a border-codex-border-strong outline, never blur or shadow. */
 .glass-surface {
-  background-color: var(--color-surface);
+  background-color: var(--color-surface-secondary);
 }
 
-/* Default Theme (DARK - github) */
+/* Default Theme (DARK - nothing): OLED black, white accent, red signal */
 html.dark,
+html.dark[data-code-theme="nothing-dark"] {
+  --color-surface: #000000;
+  --color-ink: #ececec;
+  --color-accent: #ffffff;
+  --color-signal: #d71921;
+  --color-code-accent: var(--color-info);
+  --theme-contrast: 92;
+  --theme-muted: 62%;
+  --color-diff-added: #4a9e5c;
+  --color-diff-removed: #e5484d;
+  --color-skill: #5b9bf6;
+
+  /* Brighter than the signal red so error text stays legible on black */
+  --color-danger: #e5484d;
+  --color-danger-bg: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  --color-success: #4a9e5c;
+  --color-success-bg: color-mix(in srgb, var(--color-success) 15%, transparent);
+  --color-info: #5b9bf6;
+  --color-info-bg: color-mix(in srgb, var(--color-info) 15%, transparent);
+}
+
+/* DARK - github, everforest & lobster: shared status colors; the accent
+   doubles as the signal */
+html.dark[data-code-theme="github-dark"],
+html.dark[data-code-theme="everforest-dark"],
+html.dark[data-code-theme="lobster-dark"] {
+  --color-signal: var(--color-accent);
+  --color-code-accent: var(--color-accent);
+  --theme-muted: 50%;
+
+  --color-danger: #f85149;
+  --color-danger-bg: #7f1d1d;
+  --color-success: #3fb950;
+  --color-success-bg: #14532d;
+  --color-info: #58a6ff;
+  --color-info-bg: #1e3a8a;
+}
+
+/* DARK - github */
 html.dark[data-code-theme="github-dark"] {
   --color-accent: #1f6feb;
   --theme-contrast: 44;
@@ -154,14 +261,6 @@ html.dark[data-code-theme="github-dark"] {
   --color-diff-added: #3fb950;
   --color-diff-removed: #f85149;
   --color-skill: #1f6feb;
-
-  /* Fallback status colors */
-  --color-danger: #f85149;
-  --color-danger-bg: #7f1d1d;
-  --color-success: #3fb950;
-  --color-success-bg: #14532d;
-  --color-info: #58a6ff;
-  --color-info-bg: #1e3a8a;
 }
 
 /* DARK - everforest */
@@ -202,6 +301,34 @@ body {
   background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
 }
 
+/* Visible focus ring by default: a 1px ink outline. Wrapped in :where() and
+   the base layer, so a component's own focus utilities always win. */
+@layer base {
+  :where(
+    a,
+    button,
+    [role="button"],
+    [role="option"],
+    [role="menuitem"],
+    [role="tab"],
+    [role="switch"],
+    input,
+    textarea,
+    select,
+    summary,
+    [tabindex]:not([tabindex="-1"])
+  ):where(:focus-visible) {
+    outline: 1px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+/* Scrollbars: thin, quiet, drawn in the border color */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
 button,
 [role="button"] {
   cursor: pointer;
@@ -215,6 +342,8 @@ button:disabled,
 /* Tiptap Editor Typography & Blocks */
 .tiptap {
   outline: none;
+  /* The caret is the one signal-colored thing on a writing screen */
+  caret-color: var(--color-signal);
 }
 
 .tiptap p {
@@ -230,9 +359,11 @@ button:disabled,
   pointer-events: none;
 }
 
+/* Headings: tight and confident */
 .tiptap h1 {
   font-size: 1.875rem;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1.25;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
@@ -241,6 +372,7 @@ button:disabled,
 .tiptap h2 {
   font-size: 1.5rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1.3;
   margin-top: 1.25rem;
   margin-bottom: 0.375rem;
@@ -249,6 +381,7 @@ button:disabled,
 .tiptap h3 {
   font-size: 1.25rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.4;
   margin-top: 1rem;
   margin-bottom: 0.25rem;
@@ -306,16 +439,11 @@ button:disabled,
 }
 
 .tiptap blockquote {
-  border-left: 3px solid var(--color-border);
+  border-left: 2px solid var(--color-border-strong);
   padding-left: 1rem;
   margin: 0.75rem 0;
   color: var(--color-muted);
   font-style: italic;
-}
-
-.dark .tiptap blockquote {
-  border-left-color: var(--color-border);
-  color: var(--color-muted);
 }
 
 .tiptap hr {
@@ -324,39 +452,22 @@ button:disabled,
   margin: 1.5rem 0;
 }
 
-.dark .tiptap hr {
-  border-top-color: var(--color-border);
-}
-
-/* Inline code (mark):
-   - Red text (#eb5757)
-   - Neutral warm translucent gray background in light mode (rgba(135, 131, 120, 0.15))
-   - Neutral translucent light gray background in dark mode (rgba(255, 255, 255, 0.08))
-   - Clean, borderless rendering (border: none)
-   - Subtle 3px rounded corners (border-radius: 3px)
-   - 85% font size with 0.2em 0.4em padding
-   - Monospace font stack with box-decoration-break clone for wrapping
-*/
+/* Inline code: a small outlined chip in red text, so it reads as code at a
+   glance even inside prose. box-decoration-break keeps the chip intact when
+   it wraps across lines. */
 .tiptap code:not(pre code),
 .tiptap :not(pre) > code {
-  background: rgba(135, 131, 120, 0.15);
-  color: #eb5757;
-  font-family:
-    "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", var(--font-mono), monospace;
-  font-size: 85%;
-  padding: 0.2em 0.4em;
-  border-radius: 3px;
-  border: none;
+  background: var(--color-surface-secondary);
+  color: var(--color-danger);
+  font-family: var(--font-code);
+  font-size: 0.85em;
+  padding: 0.12em 0.4em;
+  border-radius: var(--radius-codex-sm);
+  border: 1px solid var(--color-border);
   white-space: break-spaces;
   word-break: break-word;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
-}
-
-.dark .tiptap code:not(pre code),
-.dark .tiptap :not(pre) > code {
-  background: rgba(255, 255, 255, 0.08);
-  color: #eb5757;
 }
 
 /* Allow custom text / background color overrides if applied via textStyle */
@@ -373,9 +484,10 @@ button:disabled,
 .tiptap pre {
   background: var(--color-surface-secondary);
   color: var(--color-ink);
-  font-family: var(--font-mono), monospace;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  font-family: var(--font-code);
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-codex-md);
   margin: 0.75rem 0;
   overflow-x: auto;
   font-size: 0.875rem;
@@ -389,13 +501,17 @@ button:disabled,
   font-size: inherit;
 }
 
-/* Plain-text blocks (ASCII trees, diagrams): use the font's natural line
-   height so box-drawing glyphs (│ ├ └) join into continuous lines. */
+/* Plain-text blocks (ASCII trees, diagrams): system monospace fonts at their
+   natural line height. Space Mono's subset lacks box-drawing glyphs (│ ├ └);
+   taking every glyph from one font keeps them joined into continuous lines. */
 .tiptap pre[data-plaintext] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   line-height: normal;
 }
 
-/* Highlight.js syntax highlighting adapted to current theme */
+/* Highlight.js syntax highlighting adapted to current theme. Keywords use
+   --color-code-accent: the accent, except in monochrome presets where the
+   accent is the ink itself and keywords would vanish into plain code. */
 .tiptap pre .hljs-comment,
 .tiptap pre .hljs-quote {
   color: var(--color-muted);
@@ -405,7 +521,7 @@ button:disabled,
 .tiptap pre .hljs-doctag,
 .tiptap pre .hljs-keyword,
 .tiptap pre .hljs-formula {
-  color: var(--color-accent);
+  color: var(--color-code-accent);
 }
 
 .tiptap pre .hljs-section,
@@ -436,7 +552,7 @@ button:disabled,
 .tiptap pre .hljs-selector-attr,
 .tiptap pre .hljs-selector-pseudo,
 .tiptap pre .hljs-number {
-  color: var(--color-accent);
+  color: var(--color-code-accent);
 }
 
 .tiptap pre .hljs-symbol,
@@ -451,7 +567,7 @@ button:disabled,
 .tiptap pre .hljs-built_in,
 .tiptap pre .hljs-title.class_,
 .tiptap pre .hljs-class .hljs-title {
-  color: var(--color-accent);
+  color: var(--color-code-accent);
 }
 
 .tiptap pre .hljs-emphasis {
@@ -469,11 +585,11 @@ button:disabled,
 .tiptap img {
   max-width: 100%;
   height: auto;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-codex-md);
   margin: 0.75rem 0;
 }
 
-/* Table styles */
+/* Table styles: a full 1px grid in the border color */
 .tiptap table {
   border-collapse: collapse;
   margin: 0;
@@ -483,7 +599,7 @@ button:disabled,
 }
 .tiptap table td,
 .tiptap table th {
-  border: 1.5px solid color-mix(in srgb, var(--color-ink) 15%, var(--color-surface));
+  border: 1px solid var(--color-border-strong);
   box-sizing: border-box;
   min-width: 1em;
   padding: 0.75rem 1rem;
@@ -491,7 +607,7 @@ button:disabled,
   vertical-align: top;
 }
 .tiptap table th {
-  background-color: color-mix(in srgb, var(--color-ink) 6%, var(--color-surface));
+  background-color: var(--color-surface-secondary);
   font-weight: 600;
   text-align: left;
 }
@@ -540,7 +656,7 @@ button:disabled,
 /* Toggle block styles */
 .tiptap-toggle {
   margin: 0.35rem 0;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-codex-sm);
 }
 
 .tiptap-toggle summary {
@@ -680,6 +796,30 @@ button:disabled,
   }
 }
 
+/* Flat dot-matrix fill for placeholders (card banners, empty states). The
+   faded .dot-grid above is for decorative backdrops. */
+@utility dot-matrix {
+  background-image: radial-gradient(circle, var(--color-border-strong) 1px, transparent 1.5px);
+  background-size: 12px 12px;
+}
+
+/* List rows settling in: a short fade with a 4px rise, ease-out and no
+   overshoot. `both` keeps a row hidden during its stagger delay. */
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-row-in {
+  animation: rowIn 0.32s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+
 /* Landing ribbon: endless horizontal drift, faded at both ends */
 @keyframes marquee {
   from {
@@ -791,26 +931,24 @@ button:disabled,
   display: block;
 }
 
+/* A flat 2px rule with a leading dot: no glow */
 .tiptap-drop-indicator::before {
   content: "";
   position: absolute;
-  top: -1.5px;
+  top: -1px;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background-color: var(--color-accent);
-  border-radius: 9999px;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 60%, transparent);
 }
 
 .tiptap-drop-indicator::after {
   content: "";
   position: absolute;
-  top: -3.5px;
-  left: -5px;
-  width: 7px;
-  height: 7px;
+  top: -3px;
+  left: -4px;
+  width: 6px;
+  height: 6px;
   background-color: var(--color-accent);
   border-radius: 50%;
-  box-shadow: 0 0 6px color-mix(in srgb, var(--color-accent) 80%, transparent);
 }

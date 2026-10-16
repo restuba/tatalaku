@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { m } from "motion/react";
-import { EASE_OUT } from "@/components/motion";
+import { TWEEN } from "@/components/motion";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
@@ -12,7 +12,7 @@ import { CommandPalette } from "@/app/workspace/_components/command-palette";
 import { ImportMarkdownModal } from "@/app/workspace/_components/import-markdown";
 import { DialogHost } from "@/components/shared/dialog-host";
 import { KeyboardShortcuts } from "@/app/workspace/_components/keyboard-shortcuts";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { WorkspaceShellSkeleton } from "./_components/workspace-skeleton";
 
@@ -88,13 +88,22 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   // If auth has an error (e.g. backend down), show the error UI
   if (isAuthInit && error) {
     return (
-      <div className="h-dvh w-full flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-codex-surface border border-codex-border rounded-codex-2xl p-8 text-center">
-          <h1 className="text-xl font-bold text-codex-danger mb-2">Connection Error</h1>
-          <p className="text-sm text-codex-muted mb-6">{error}</p>
+      <div className="h-dvh w-full flex items-center justify-center p-4 bg-codex-background">
+        <div
+          role="alert"
+          className="w-full max-w-md glass-surface rounded-codex-xl border border-codex-border-strong p-8"
+        >
+          <p className="font-mono text-xs uppercase tracking-label text-codex-danger">
+            [ Error: connection failed ]
+          </p>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-codex-foreground">
+            Can&apos;t reach Tatalaku
+          </h1>
+          <p className="mt-2 text-sm text-codex-muted">{error}</p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 transition-all"
+            className="mt-8 inline-flex h-11 items-center justify-center rounded-full bg-codex-accent px-6 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity hover:opacity-85"
           >
             Retry
           </button>
@@ -110,67 +119,62 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   // If user has no workspaces at all, show friendly Onboarding screen
   if (isWsInit && workspaces.length === 0) {
     return (
-      <div className="relative min-h-dvh w-full flex items-center justify-center p-4 bg-codex-surface/10 overflow-hidden">
-        {/* Soft Organic Orbs (Zen Canvas) */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div
-            className="absolute -top-[5%] -left-[10%] w-[70%] h-[70%] rounded-full bg-codex-accent opacity-60 dark:opacity-40 blur-[120px] animate-pulse"
-            style={{ animationDuration: "12s" }}
-          />
-          <div className="absolute top-[30%] -right-[15%] w-[80%] h-[80%] rounded-full bg-codex-info opacity-50 dark:opacity-30 blur-[130px]" />
-          <div
-            className="absolute -bottom-[10%] left-[10%] w-[60%] h-[60%] rounded-full bg-codex-skill opacity-50 dark:opacity-30 blur-[100px] animate-pulse"
-            style={{ animationDuration: "18s" }}
-          />
-        </div>
+      <div className="relative min-h-dvh w-full flex items-center justify-center p-6 bg-codex-background overflow-hidden">
+        {/* Dot-matrix backdrop, fading out from the top left */}
+        <div aria-hidden="true" className="dot-grid pointer-events-none absolute inset-0" />
 
-        {/* Frosted Glass Overlay */}
-        <div className="absolute inset-0 backdrop-blur-[80px] bg-codex-surface/30 dark:bg-codex-surface/50 pointer-events-none" />
-
-        <div className="relative z-10 max-w-md w-full p-8 text-center">
-          <div
-            className="w-16 h-16 bg-codex-accent/10 text-codex-accent rounded-full flex items-center justify-center mx-auto mb-6 opacity-0 animate-slide-up-fade"
-            style={{ animationDelay: "100ms" }}
+        <div className="relative z-10 w-full max-w-md">
+          <p
+            className="flex items-center gap-2 font-mono text-xs uppercase tracking-label text-codex-muted animate-row-in"
+            style={{ animationDelay: "60ms" }}
           >
-            <Sparkles className="w-8 h-8" />
-          </div>
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-codex-signal" />
+            New workspace
+          </p>
           <h1
-            className="text-2xl font-bold text-codex-foreground opacity-0 animate-slide-up-fade"
-            style={{ animationDelay: "200ms" }}
+            className="mt-6 text-4xl font-semibold leading-tight tracking-tight text-codex-foreground text-balance animate-row-in"
+            style={{ animationDelay: "120ms" }}
           >
-            Welcome to Tatalaku!
+            Welcome to Tatalaku.
           </h1>
           <p
-            className="text-sm text-codex-muted mt-2 mb-8 opacity-0 animate-slide-up-fade"
-            style={{ animationDelay: "300ms" }}
+            className="mt-3 text-sm text-codex-muted text-pretty animate-row-in"
+            style={{ animationDelay: "180ms" }}
           >
             Let&apos;s create your first workspace to start taking notes and organizing docs.
           </p>
 
           <form
             onSubmit={handleCreateFirstWorkspace}
-            className="space-y-4 opacity-0 animate-slide-up-fade"
-            style={{ animationDelay: "400ms" }}
+            className="mt-10 animate-row-in"
+            style={{ animationDelay: "240ms" }}
           >
+            <label
+              htmlFor="first-workspace-name"
+              className="block font-mono text-xs uppercase tracking-label text-codex-muted"
+            >
+              Workspace name
+            </label>
             <input
+              id="first-workspace-name"
               type="text"
               autoFocus
               placeholder="e.g. My Notes, Personal, Acme Team"
               value={initialWorkspaceName}
               onChange={(e) => setInitialWorkspaceName(e.target.value)}
-              className="w-full px-4 py-3 text-sm rounded-codex-xl bg-codex-surface/50 dark:bg-codex-surface/30 text-codex-foreground outline-none focus:ring-2 focus:ring-codex-accent transition-all placeholder:text-codex-muted/50"
+              className="mt-2 w-full border-b border-codex-border-strong bg-transparent py-2.5 text-lg text-codex-foreground outline-none transition-colors placeholder:text-codex-muted/60 focus:border-codex-foreground"
             />
             <button
               type="submit"
               disabled={!initialWorkspaceName.trim() || isCreatingFirstWs}
-              className="w-full flex items-center justify-center h-[44px] rounded-codex-xl text-sm font-medium bg-codex-accent text-codex-background hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-codex-accent/20"
+              className="mt-8 inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-full bg-codex-accent px-6 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isCreatingFirstWs ? (
                 <LogoSpinner size="sm" className="w-5 h-5 opacity-80" />
               ) : (
                 <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  <span>Create Workspace</span>
+                  <Plus className="w-4 h-4" />
+                  <span>Create workspace</span>
                 </>
               )}
             </button>
@@ -188,14 +192,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       <KeyboardShortcuts />
       <DialogHost />
       <main className="flex-1 h-dvh overflow-y-auto flex flex-col relative z-10 bg-codex-background">
-        {/* Route transition: each page glides in. Opacity + translate only —
-            a lingering filter/transform would re-anchor fixed editor menus. */}
+        {/* Route transition: each page fades in. Opacity only, so no lingering
+            filter/transform can re-anchor the fixed editor menus. */}
         <m.div
           key={pathname}
           className="flex-1 flex flex-col"
-          initial={hasNavigated ? { opacity: 0, y: 12 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.42, ease: EASE_OUT }}
+          initial={hasNavigated ? { opacity: 0 } : false}
+          animate={{ opacity: 1 }}
+          transition={TWEEN}
         >
           {children}
         </m.div>

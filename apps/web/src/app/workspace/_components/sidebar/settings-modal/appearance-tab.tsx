@@ -14,6 +14,16 @@ const MOTION_OPTIONS: ReadonlyArray<{ value: MotionPreference; label: string; ic
     { value: "off", label: "Off", icon: CircleSlash },
   ];
 
+/** Section title in the label voice */
+const SECTION_LABEL = "block font-mono text-xs uppercase tracking-label text-codex-muted";
+
+/** Segmented control: an outlined group, the selected segment raised */
+const SEGMENT_GROUP = "grid grid-cols-3 gap-1 rounded-codex-lg border border-codex-border p-1";
+const SEGMENT =
+  "flex flex-col items-center rounded-codex-md px-2 font-mono text-xs uppercase tracking-label transition-colors duration-150";
+const SEGMENT_ACTIVE = "bg-codex-surface-raised text-codex-foreground";
+const SEGMENT_IDLE = "text-codex-muted hover:text-codex-foreground";
+
 export function AppearanceTab() {
   const { theme, setTheme } = useTheme();
   const { activeConfig, setCodeThemeId } = useThemeStore();
@@ -25,9 +35,9 @@ export function AppearanceTab() {
 
   if (!mounted) {
     return (
-      <div className="space-y-6">
-        <div className="h-6 w-32 bg-codex-muted/15 rounded-codex-sm animate-pulse" />
-        <div className="h-24 w-full bg-codex-muted/15 rounded-codex-xl animate-pulse" />
+      <div className="space-y-3">
+        <div className="h-4 w-28 bg-codex-muted/20 rounded-codex-sm animate-pulse" />
+        <div className="h-20 w-full bg-codex-muted/20 rounded-codex-lg animate-pulse" />
       </div>
     );
   }
@@ -36,80 +46,68 @@ export function AppearanceTab() {
   const currentPresets = presets.filter((p) => p.variant === currentVariant);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-8 animate-in fade-in duration-200">
       {/* Mode Picker */}
       <div className="space-y-3">
-        <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
-          Color Mode
-        </label>
-        <div className="grid grid-cols-3 gap-3 p-1 bg-codex-surface-secondary/50 rounded-codex-lg border border-codex-border/50">
+        <label className={SECTION_LABEL}>Color Mode</label>
+        <div className={SEGMENT_GROUP}>
           <button
+            type="button"
             onClick={() => setTheme("system")}
-            className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
-              theme === "system"
-                ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
-                : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
-            }`}
+            className={`${SEGMENT} gap-2 py-3 ${theme === "system" ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
           >
             <Monitor className="w-5 h-5" />
-            <span className="text-xs font-medium">System</span>
+            <span>System</span>
           </button>
           <button
+            type="button"
             onClick={() => setTheme("light")}
-            className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
-              theme === "light"
-                ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
-                : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
-            }`}
+            className={`${SEGMENT} gap-2 py-3 ${theme === "light" ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
           >
             <Sun className="w-5 h-5" />
-            <span className="text-xs font-medium">Light</span>
+            <span>Light</span>
           </button>
           <button
+            type="button"
             onClick={() => setTheme("dark")}
-            className={`flex flex-col items-center gap-2 py-3 px-2 rounded-codex-md transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
-              theme === "dark"
-                ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
-                : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
-            }`}
+            className={`${SEGMENT} gap-2 py-3 ${theme === "dark" ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
           >
             <Moon className="w-5 h-5" />
-            <span className="text-xs font-medium">Dark</span>
+            <span>Dark</span>
           </button>
         </div>
       </div>
 
-      {/* Theme Presets */}
+      {/* Theme Presets: outlined cards, the selected one outlined in ink */}
       <div className="space-y-3">
-        <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
-          Theme Palette
-        </label>
+        <label className={SECTION_LABEL}>Theme Palette</label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {currentPresets.map((preset) => {
             const isActive = activeConfig.codeThemeId === preset.codeThemeId;
 
             return (
               <button
+                type="button"
                 key={preset.codeThemeId}
                 onClick={() => setCodeThemeId(preset.codeThemeId, currentVariant)}
-                className={`flex items-center gap-3 p-3 rounded-codex-xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-95 border ${
+                className={`flex items-center gap-3 p-3 rounded-codex-lg text-left border transition-colors duration-150 ${
                   isActive
-                    ? "border-codex-accent bg-codex-surface/80 ring-1 ring-codex-accent/30 shadow-sm"
-                    : "border-codex-border/30 bg-codex-surface-secondary/20 hover:bg-codex-surface-secondary/50 hover:border-codex-border/50"
+                    ? "border-codex-foreground"
+                    : "border-codex-border hover:border-codex-border-strong"
                 }`}
               >
-                {/* Swatch Preview */}
+                {/* Swatch Preview: the preset's own colors, drawn as flat bars */}
                 <div
-                  className="w-10 h-10 rounded-codex-md flex items-center justify-center shadow-inner shrink-0 overflow-hidden border border-codex-border/50"
+                  className="w-10 h-10 rounded-codex-md flex items-center justify-center shrink-0 overflow-hidden border border-codex-border"
                   style={{ backgroundColor: preset.theme.surface }}
                 >
                   <div className="flex flex-col gap-1.5 w-full px-2">
                     <div
-                      className="h-1.5 rounded-full w-full"
+                      className="h-1.5 w-full"
                       style={{ backgroundColor: preset.theme.accent }}
                     />
                     <div
-                      className="h-1 rounded-full w-2/3 opacity-80"
+                      className="h-1 w-2/3 opacity-80"
                       style={{ backgroundColor: preset.theme.ink }}
                     />
                   </div>
@@ -125,24 +123,23 @@ export function AppearanceTab() {
 
       {/* Layout */}
       <div className="space-y-3">
-        <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
-          Layout
-        </label>
-        <label className="flex items-center justify-between gap-4 p-3 rounded-codex-xl border border-codex-border/30 bg-codex-surface-secondary/20 cursor-pointer">
+        <label className={SECTION_LABEL}>Layout</label>
+        <label className="flex items-center justify-between gap-4 p-4 rounded-codex-lg border border-codex-border cursor-pointer">
           <div className="min-w-0">
             <p className="text-sm font-medium text-codex-foreground">Full width pages</p>
             <p className="text-xs text-codex-muted mt-0.5">
               Use the entire window width for page content on this device.
             </p>
           </div>
+          {/* Switch: ink track when on, a strong-border track when off */}
           <button
             type="button"
             role="switch"
             aria-checked={isFullWidth}
             aria-label="Full width pages"
             onClick={() => setFullWidth(!isFullWidth)}
-            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-              isFullWidth ? "bg-codex-accent" : "bg-codex-border"
+            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-150 ${
+              isFullWidth ? "bg-codex-accent" : "bg-codex-border-strong"
             }`}
           >
             <span
@@ -156,18 +153,12 @@ export function AppearanceTab() {
 
       {/* Motion */}
       <fieldset className="space-y-3">
-        <legend className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
-          Motion
-        </legend>
+        <legend className={SECTION_LABEL}>Motion</legend>
         <p className="text-xs text-codex-muted -mt-1">
           Transitions and animations across the app. System follows your device&apos;s &ldquo;reduce
           motion&rdquo; setting.
         </p>
-        <div
-          role="radiogroup"
-          aria-label="Motion"
-          className="grid grid-cols-3 gap-1 p-1 bg-codex-surface-secondary/50 rounded-codex-lg border border-codex-border/50"
-        >
+        <div role="radiogroup" aria-label="Motion" className={SEGMENT_GROUP}>
           {MOTION_OPTIONS.map((option) => {
             const isActive = motion === option.value;
             return (
@@ -177,10 +168,8 @@ export function AppearanceTab() {
                 role="radio"
                 aria-checked={isActive}
                 onClick={() => setMotion(option.value)}
-                className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-codex-md text-xs font-medium transition-colors pointer-coarse:py-3.5 ${
-                  isActive
-                    ? "bg-codex-surface/80 shadow-sm text-codex-foreground ring-1 ring-codex-border/50"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/40"
+                className={`${SEGMENT} gap-1.5 py-2.5 pointer-coarse:py-3.5 ${
+                  isActive ? SEGMENT_ACTIVE : SEGMENT_IDLE
                 }`}
               >
                 <option.icon className="w-4 h-4" aria-hidden="true" />

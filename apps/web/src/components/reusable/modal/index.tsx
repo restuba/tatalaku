@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useId } from "react";
 import { AnimatePresence, m } from "motion/react";
-import { SPRING_SOFT } from "@/components/motion";
+import { TWEEN } from "@/components/motion";
 import { createPortal } from "react-dom";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { ModalAction } from "./modal-action";
@@ -82,8 +82,8 @@ function Modal({
 
   const widthClass = maxWidth ? (maxWidthClasses[maxWidth] ?? "max-w-md") : "";
 
-  // AnimatePresence keeps the dialog mounted while it animates out, so closing
-  // feels as considered as opening (backdrop fades, paper springs away).
+  // AnimatePresence keeps the dialog mounted while it fades out, so closing
+  // reads as deliberately as opening. Opacity only: flat surfaces, no motion blur.
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -96,26 +96,26 @@ function Modal({
             aria-modal="true"
             aria-label={ariaLabel}
           >
-            {/* Backdrop */}
+            {/* Backdrop: a dense scrim instead of a blur */}
             <m.div
-              className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm"
+              className="fixed inset-0 bg-codex-background/80"
               onClick={disableBackdropClick ? undefined : onClose}
               aria-hidden="true"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
+              transition={TWEEN}
             />
 
-            {/* Paper Container */}
+            {/* Paper Container: elevated surface set off by a strong border */}
             <m.div
-              className={`glass-surface relative z-10 flex flex-col w-full rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10 ${
+              className={`glass-surface relative z-10 flex flex-col w-full rounded-codex-xl border border-codex-border-strong text-codex-foreground ${
                 fullWidth ? "w-full" : ""
               } ${widthClass} ${scroll === "paper" ? "max-h-[calc(100vh-4rem)]" : ""} ${className}`}
-              initial={{ opacity: 0, y: 14, scale: 0.97, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: 8, scale: 0.98, filter: "blur(4px)" }}
-              transition={SPRING_SOFT}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={TWEEN}
             >
               {children}
             </m.div>
