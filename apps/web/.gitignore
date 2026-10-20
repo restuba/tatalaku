@@ -36,6 +36,12 @@ yarn-error.log*
 # ...except the template the README tells you to copy
 !.env.example
 
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # vercel
 .vercel
 

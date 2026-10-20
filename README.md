@@ -110,7 +110,23 @@ pnpm --filter @tatalaku/api start
 
 ---
 
-## 🧪 Linting, Formatting, & Type-Checking
+## 🧪 Testing
+
+```bash
+# Unit test seluruh workspace (API: Vitest + Supertest, web: Vitest + jsdom)
+pnpm test
+
+# End-to-end web (Playwright, terhadap build produksi; tanpa API):
+# tema terpasang sebelum paint pertama, hidrasi bersih, dan axe (WCAG 2.2 AA)
+pnpm --filter @tatalaku/web build
+pnpm --filter @tatalaku/web test:e2e
+```
+
+Lokal, e2e memakai Google Chrome yang terpasang. Di CI, Chromium milik Playwright dipasang dulu (`playwright install --with-deps chromium`).
+
+---
+
+## 🧹 Linting, Formatting, & Type-Checking
 
 ```bash
 # Type-check seluruh workspace

@@ -45,10 +45,23 @@ jobs:
       - name: Type-check
         run: pnpm -r type-check
 
-      # 8. Run the API test suite (only package with tests today).
+      # 8. Run the API test suite.
       - name: Test API
         run: pnpm --filter @tatalaku/api test
 
-      # 9. Build all packages to confirm everything compiles.
+      # 9. Run the web unit tests (themes, pre-paint script, stores, dates).
+      - name: Test web
+        run: pnpm --filter @tatalaku/web test
+
+      # 10. Build all packages to confirm everything compiles.
       - name: Build
         run: pnpm -r build
+
+      # 11. Browser for the web end-to-end checks.
+      - name: Install Playwright Chromium
+        run: pnpm --filter @tatalaku/web exec playwright install --with-deps chromium
+
+      # 12. End-to-end against the production build: theme before first
+      #     paint, hydration, and axe (WCAG 2.2 AA) on the public pages.
+      - name: E2E web
+        run: pnpm --filter @tatalaku/web test:e2e

@@ -20,6 +20,11 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 Fonts (Inter and Fraunces, OFL) are self-hosted from `src/app/fonts/` via `next/font/local`. The design system and the Parchment, Clarity and Nocturne themes are documented in [`docs/design-system.md`](../../docs/design-system.md); `/design-tokens` shows all three themes side by side.
 
+## Tests
+
+- `pnpm test`: Vitest unit tests (`src/**/*.test.ts`, jsdom) for the theme logic, the pre-paint script, the stores and date formatting.
+- `pnpm test:e2e`: Playwright checks in `e2e/` against the production build (run `pnpm build` first). They cover the theme being set before the first paint, clean hydration (public pages and the workspace shell), and axe (WCAG 2.2 AA) on the public pages in every theme. No API is needed. Locally they use your installed Google Chrome.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
