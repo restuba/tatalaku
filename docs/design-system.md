@@ -81,6 +81,7 @@ Nama variabel `--color-ink`, `--color-surface`, `--color-accent`, `--color-dange
 
 - Definisi & logika: `apps/web/src/lib/themes.ts`; store: `apps/web/src/stores/theme-store.ts` (localStorage `tatalaku-theme`).
 - Pilihan: Parchment, Clarity, Nocturne, atau Match system (Parchment terang / Nocturne gelap).
+- Diganti dari Settings → Appearance (tombol Settings di sidebar) atau command palette (⌘K → "theme"). Top bar sengaja hanya berisi aksi halaman.
 - `lib/prepaint.ts` memasang `data-theme`, `data-motion`, dan `data-reading-size` sebelum paint pertama; `ThemeSync` menerapkan perubahan tanpa reload dan menyinkronkan antar tab.
 - Ganti tema hanya mengubah atribut pada `<html>` — editor tidak di-remount.
 - Subtree dengan `data-theme="…"` dirender dengan palet tema tersebut (dipakai preview di Settings dan landing).

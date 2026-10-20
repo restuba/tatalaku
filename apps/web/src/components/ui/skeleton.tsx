@@ -58,7 +58,7 @@ function SidebarToggleSlot() {
   return <Skeleton className={`${TOP_BAR_BUTTON} ${isSidebarOpen ? "md:hidden" : ""}`} />;
 }
 
-/** Mirrors `TopBar` + `Breadcrumb`: 28px crumbs split by a 12px chevron, then the menus */
+/** Mirrors `TopBar` + `Breadcrumb`: 28px crumbs split by a 12px chevron, then the page actions */
 function TopBarSkeleton({
   crumbs,
   hasActions = false,
@@ -84,12 +84,12 @@ function TopBarSkeleton({
         </div>
       </div>
 
-      {/* Page options, theme menu, account (sm+) */}
-      <div className="flex shrink-0 items-center gap-1">
-        {hasActions && <Skeleton className={TOP_BAR_BUTTON} />}
-        <Skeleton className={TOP_BAR_BUTTON} />
-        <Skeleton className="hidden size-7 rounded-full sm:block" />
-      </div>
+      {/* Page options (pages only; Home has no top-bar actions) */}
+      {hasActions && (
+        <div className="flex shrink-0 items-center gap-1">
+          <Skeleton className={TOP_BAR_BUTTON} />
+        </div>
+      )}
     </header>
   );
 }

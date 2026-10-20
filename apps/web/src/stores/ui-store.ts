@@ -69,7 +69,7 @@ interface UIState {
 interface UIActions {
   setMotion: (motion: MotionPreference) => void;
   setReadingSize: (readingSize: ReadingSize) => void;
-  /** Open Settings (from the sidebar, the account menu or the command palette) */
+  /** Open Settings (from the sidebar or the command palette) */
   openSettings: (tab?: SettingsTab) => void;
   setSettingsTab: (tab: SettingsTab) => void;
   closeSettings: () => void;

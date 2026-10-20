@@ -4,8 +4,6 @@ import type { ReactNode } from "react";
 import { PanelLeft } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 import { Breadcrumb, type BreadcrumbItem } from "@/components/shared/breadcrumb";
-import { AccountMenu } from "./account-menu";
-import { ThemeMenu } from "./theme-menu";
 import { TOP_BAR_ICON_BUTTON } from "./constants";
 
 export { TOP_BAR_ICON_BUTTON };
@@ -18,8 +16,9 @@ interface TopBarProps {
 }
 
 /**
- * Sticky top bar for workspace pages: where you are on the left, page actions
- * plus the theme and account menus on the right.
+ * Sticky top bar for workspace pages: where you are on the left, the page's
+ * own actions on the right. Account and preferences (theme included) live in
+ * the sidebar's Settings and the command palette, so they aren't repeated here.
  */
 export function TopBar({ items, actions, showScrollProgress = false }: TopBarProps) {
   const { isSidebarOpen, setSidebarOpen, peekSidebar, unpeekSidebar } = useUIStore();
@@ -44,14 +43,7 @@ export function TopBar({ items, actions, showScrollProgress = false }: TopBarPro
         <Breadcrumb items={items} />
       </div>
 
-      <div className="flex shrink-0 items-center gap-1">
-        {actions}
-        <ThemeMenu />
-        {/* Phones reach the account through the sidebar */}
-        <div className="hidden sm:block">
-          <AccountMenu />
-        </div>
-      </div>
+      {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
 
       {/* Scroll-driven in CSS (no listeners); hidden where unsupported */}
       {showScrollProgress && (
