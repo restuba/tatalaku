@@ -11,7 +11,6 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
-import { Check } from "lucide-react";
 import { PopPanel } from "@/components/motion/pop-panel";
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -49,7 +48,7 @@ interface MenuContextValue {
 
 const MenuContext = createContext<MenuContextValue | null>(null);
 
-const ITEM_SELECTOR = '[role="menuitem"]:not([aria-disabled="true"]), [role="menuitemradio"]';
+const ITEM_SELECTOR = '[role="menuitem"]:not([aria-disabled="true"])';
 
 function getMenuItems(root: HTMLElement | null): HTMLElement[] {
   return Array.from(root?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? []);
@@ -104,8 +103,7 @@ export function DropdownMenu({
     if (!isOpen) return undefined;
     const frame = window.requestAnimationFrame(() => {
       const items = getMenuItems(rootRef.current);
-      const checked = items.find((item) => item.getAttribute("aria-checked") === "true");
-      const target = focusOnOpen === "last" ? items[items.length - 1] : (checked ?? items[0]);
+      const target = focusOnOpen === "last" ? items[items.length - 1] : items[0];
       target?.focus();
     });
     return () => window.cancelAnimationFrame(frame);
@@ -205,11 +203,9 @@ interface DropdownItemProps {
   /** Destructive actions read in the danger color */
   danger?: boolean;
   disabled?: boolean;
-  /** Trailing hint, e.g. a shortcut */
-  hint?: ReactNode;
 }
 
-function DropdownItem({ icon, children, onSelect, danger, disabled, hint }: DropdownItemProps) {
+function DropdownItem({ icon, children, onSelect, danger, disabled }: DropdownItemProps) {
   const menu = useContext(MenuContext);
   return (
     <button
@@ -238,57 +234,8 @@ function DropdownItem({ icon, children, onSelect, danger, disabled, hint }: Drop
         </span>
       )}
       <span className="min-w-0 flex-1 truncate">{children}</span>
-      {hint && <span className="shrink-0 text-xs text-codex-muted">{hint}</span>}
     </button>
   );
-}
-
-interface DropdownRadioItemProps {
-  checked: boolean;
-  children: ReactNode;
-  description?: ReactNode;
-  /** Leading visual, e.g. a theme swatch */
-  icon?: ReactNode;
-  onSelect: () => void;
-}
-
-function DropdownRadioItem({
-  checked,
-  children,
-  description,
-  icon,
-  onSelect,
-}: DropdownRadioItemProps) {
-  const menu = useContext(MenuContext);
-  return (
-    <button
-      type="button"
-      role="menuitemradio"
-      aria-checked={checked}
-      tabIndex={-1}
-      onClick={() => {
-        menu?.close();
-        onSelect();
-      }}
-      className={`${ITEM_BASE} text-codex-foreground hover:bg-codex-hover ${checked ? "font-medium" : ""}`}
-    >
-      {icon && <span className="flex shrink-0 items-center">{icon}</span>}
-      <span className="min-w-0 flex-1">
-        <span className="block truncate">{children}</span>
-        {description && (
-          <span className="block truncate text-xs font-normal text-codex-muted">{description}</span>
-        )}
-      </span>
-      <Check
-        aria-hidden="true"
-        className={`size-4 shrink-0 text-codex-accent ${checked ? "opacity-100" : "opacity-0"}`}
-      />
-    </button>
-  );
-}
-
-function DropdownLabel({ children }: { children: ReactNode }) {
-  return <div className="eyebrow px-2.5 pt-2 pb-1.5 text-codex-muted">{children}</div>;
 }
 
 function DropdownSeparator() {
@@ -296,8 +243,6 @@ function DropdownSeparator() {
 }
 
 DropdownMenu.Item = DropdownItem;
-DropdownMenu.RadioItem = DropdownRadioItem;
-DropdownMenu.Label = DropdownLabel;
 DropdownMenu.Separator = DropdownSeparator;
 
 export default DropdownMenu;
