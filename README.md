@@ -69,6 +69,8 @@ _Sesuaikan nilai `MONGODB_URI` dan `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` ji
 cp apps/web/.env.example apps/web/.env.local
 ```
 
+> **macOS:** port 5000 dipakai AirPlay Receiver (proses `ControlCenter`), jadi API tidak bisa listen di port default. Pakai port lain, mis. `PORT=5001` di `apps/api/.env` dan `NEXT_PUBLIC_API_URL=http://localhost:5001/api` di `apps/web/.env.local`, atau matikan AirPlay Receiver di System Settings → General → AirDrop & Handoff.
+
 ### 3. Menjalankan Mode Development
 
 Jalankan seluruh workspace secara bersamaan:
@@ -83,7 +85,7 @@ Atau jalankan aplikasi secara terpisah:
 # Menjalankan Web saja (http://localhost:3000)
 pnpm --filter @tatalaku/web dev
 
-# Menjalankan API saja (http://localhost:5000)
+# Menjalankan API saja (http://localhost:5000, atau port dari PORT di apps/api/.env)
 pnpm --filter @tatalaku/api dev
 
 # Menjalankan Shared watch build
@@ -129,6 +131,6 @@ pnpm format:check
 ## 📐 Konvensi Proyek
 
 - **Backend Modules**: Mengikuti arsitektur domain-driven di `apps/api/src/modules/<domain>/` yang terdiri dari `controller`, `service`, `model`, `routes`, dan `validation`.
-- **Frontend Features**: Terisolasi per fitur di `apps/web/src/features/<domain>/`.
+- **Frontend Structure**: Route di `apps/web/src/app/`; komponen yang hanya dipakai satu halaman tinggal di `_components/` di sebelah halamannya. Komponen bersama di `apps/web/src/components/` (`reusable/`, `shared/`, `editor/`, `ui/`), state Zustand per domain di `src/stores/`, pemanggilan API di `src/services/`. Design system: [`docs/design-system.md`](docs/design-system.md).
 - **Shared Schemas**: Semua tipe domain didefinisikan sekali di `packages/shared` menggunakan Zod (`z.infer`).
 - **Git Hooks**: Pre-commit hook otomatis memformat kode yang di-stage dengan Prettier menggunakan Husky dan `lint-staged`.
