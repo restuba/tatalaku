@@ -13,7 +13,12 @@ import { isReadingSize, type ReadingSize } from "@/lib/reading-size";
 export type MotionPreference = "system" | "on" | "off";
 
 /** Sections of the Settings dialog */
-export type SettingsTab = "account" | "appearance" | "general" | "members";
+export const SETTINGS_TABS = ["account", "appearance", "general", "members"] as const;
+export type SettingsTab = (typeof SETTINGS_TABS)[number];
+
+export function isSettingsTab(value: unknown): value is SettingsTab {
+  return typeof value === "string" && (SETTINGS_TABS as ReadonlyArray<string>).includes(value);
+}
 
 /** localStorage key of the persisted UI store (also read by the pre-paint script) */
 export { UI_STORE_KEY };
@@ -55,6 +60,8 @@ interface UIState {
   isShortcutsOpen: boolean;
   /** Transient: the open Settings section, or null while Settings is closed */
   settingsTab: SettingsTab | null;
+  /** The section Settings reopens on when no section is asked for (persisted) */
+  lastSettingsTab: SettingsTab;
   /**
    * Transient: floating "peek" of the collapsed sidebar (hover the left edge
    * or the open-sidebar button). `leaving` keeps the floating layout while it
@@ -69,7 +76,10 @@ interface UIState {
 interface UIActions {
   setMotion: (motion: MotionPreference) => void;
   setReadingSize: (readingSize: ReadingSize) => void;
-  /** Open Settings (from the sidebar or the command palette) */
+  /**
+   * Open Settings (from the sidebar or the command palette): on `tab` when
+   * given, otherwise on the section that was open last.
+   */
   openSettings: (tab?: SettingsTab) => void;
   setSettingsTab: (tab: SettingsTab) => void;
   closeSettings: () => void;
@@ -102,6 +112,7 @@ export const useUIStore = create<UIState & UIActions>()(
       isImportMarkdownOpen: false,
       isShortcutsOpen: false,
       settingsTab: null,
+      lastSettingsTab: "account",
       sidebarPeek: "hidden",
       hasUsedCommandPalette: false,
       isOnboardingDismissed: false,
@@ -114,12 +125,13 @@ export const useUIStore = create<UIState & UIActions>()(
         set({ readingSize });
       },
 
-      openSettings: (tab = "account") => {
-        set({ settingsTab: tab });
+      openSettings: (tab) => {
+        const next = tab ?? get().lastSettingsTab;
+        set({ settingsTab: next, lastSettingsTab: next });
       },
 
       setSettingsTab: (tab) => {
-        set({ settingsTab: tab });
+        set({ settingsTab: tab, lastSettingsTab: tab });
       },
 
       closeSettings: () => {
@@ -211,7 +223,20 @@ export const useUIStore = create<UIState & UIActions>()(
         isFullWidth: state.isFullWidth,
         hasUsedCommandPalette: state.hasUsedCommandPalette,
         isOnboardingDismissed: state.isOnboardingDismissed,
+        lastSettingsTab: state.lastSettingsTab,
       }),
+      // Shallow merge (the default), but an unknown saved section falls back
+      // to the default instead of opening Settings on nothing
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<UIState>;
+        return {
+          ...current,
+          ...saved,
+          lastSettingsTab: isSettingsTab(saved.lastSettingsTab)
+            ? saved.lastSettingsTab
+            : current.lastSettingsTab,
+        };
+      },
       // The drawer always starts closed on small screens. Done at rehydration
       // (before the first render) so an "open" preference saved on a wide
       // screen never flashes the drawer open on load.

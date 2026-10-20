@@ -202,7 +202,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
         group: "Actions",
         label: "Open settings",
         icon: <Settings className="w-4 h-4" />,
-        onSelect: () => useUIStore.getState().openSettings("account"),
+        onSelect: () => useUIStore.getState().openSettings(),
       },
       {
         id: "action-appearance",

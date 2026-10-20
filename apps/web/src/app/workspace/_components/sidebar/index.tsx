@@ -422,7 +422,7 @@ export function Sidebar() {
             <NavItem
               icon={<Settings className="size-4" />}
               label="Settings"
-              onClick={() => openSettings("account")}
+              onClick={() => openSettings()}
             />
             <div className="pt-1">
               <WorkspaceSwitcher />

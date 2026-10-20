@@ -3,8 +3,9 @@
 import { useEffect, useRef, type ComponentType } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, m } from "motion/react";
-import { X, User, Palette, Building, Users } from "lucide-react";
+import { X, User, Palette, Building, Users, Keyboard } from "lucide-react";
 import { TWEEN } from "@/components/motion";
+import { Kbd } from "@/components/reusable/kbd";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -79,6 +80,7 @@ export function SettingsModal() {
 function SettingsDialog({ activeTab, onClose }: { activeTab: SettingsTab; onClose: () => void }) {
   const { activeWorkspace } = useWorkspaceStore();
   const setSettingsTab = useUIStore((s) => s.setSettingsTab);
+  const setShortcutsOpen = useUIStore((s) => s.setShortcutsOpen);
   const panelRef = useRef<HTMLDivElement>(null);
   useFocusTrap(panelRef);
 
@@ -175,6 +177,21 @@ function SettingsDialog({ activeTab, onClose }: { activeTab: SettingsTab; onClos
               </div>
             ))}
           </nav>
+
+          {/* Not a section: hands over to the shortcuts sheet, which has no
+              other mouse entry point besides the command palette */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              setShortcutsOpen(true);
+            }}
+            className="mt-2 hidden h-8 shrink-0 items-center gap-2.5 rounded-codex-md px-2 text-sm text-codex-muted transition-colors duration-150 hover:bg-codex-hover hover:text-codex-foreground pointer-coarse:h-11 sm:flex"
+          >
+            <Keyboard className="size-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1 text-left">Keyboard shortcuts</span>
+            <Kbd className="pointer-coarse:hidden">⌘/</Kbd>
+          </button>
         </aside>
 
         {/* Content */}
