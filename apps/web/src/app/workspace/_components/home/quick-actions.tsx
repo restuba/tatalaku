@@ -1,8 +1,8 @@
 "use client";
 
-import { m } from "motion/react";
 import { Plus, Search, Upload } from "lucide-react";
-import { TWEEN } from "@/components/motion";
+import { Button } from "@/components/reusable/button";
+import { Kbd } from "@/components/reusable/kbd";
 import { useUIStore } from "@/stores/ui-store";
 
 interface QuickActionsProps {
@@ -10,41 +10,38 @@ interface QuickActionsProps {
   disabled?: boolean;
 }
 
-/** The one primary action on the screen: solid accent pill */
-const PRIMARY =
-  "inline-flex h-11 items-center gap-2 rounded-full bg-codex-accent px-6 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity duration-150 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-12";
-/** Everything else: outlined pill */
-const SECONDARY =
-  "inline-flex h-11 items-center gap-2.5 rounded-full border border-codex-border-strong px-5 font-mono text-xs uppercase tracking-label text-codex-foreground transition-colors duration-150 hover:border-codex-muted disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-12";
-
+/** The one primary action (new page) plus two quiet secondary ones */
 export function QuickActions({ onCreatePage, disabled }: QuickActionsProps) {
   const { setCommandPaletteOpen, setImportMarkdownOpen } = useUIStore();
 
   return (
-    <m.div
-      className="mt-10 flex flex-wrap items-center gap-3"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ ...TWEEN, delay: 0.25 }}
-    >
-      <button type="button" onClick={onCreatePage} disabled={disabled} className={PRIMARY}>
-        <Plus className="w-4 h-4" aria-hidden="true" />
+    <div className="mt-9 flex flex-wrap items-center gap-2.5">
+      <Button
+        btnType="primary"
+        onClick={onCreatePage}
+        disabled={disabled}
+        icon={<Plus className="size-4" />}
+      >
         New page
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
         onClick={() => setImportMarkdownOpen(true)}
         disabled={disabled}
-        className={SECONDARY}
+        icon={<Upload className="size-4" />}
       >
-        <Upload className="w-4 h-4" aria-hidden="true" />
         Import
-      </button>
-      <button type="button" onClick={() => setCommandPaletteOpen(true)} className={SECONDARY}>
-        <Search className="w-4 h-4" aria-hidden="true" />
-        Search
-        <kbd className="font-mono text-xs text-codex-muted pointer-coarse:hidden">⌘K</kbd>
-      </button>
-    </m.div>
+      </Button>
+      <Button
+        onClick={() => setCommandPaletteOpen(true)}
+        icon={<Search className="size-4" />}
+        iconPlacement="start"
+        aria-keyshortcuts="Meta+K Control+K"
+      >
+        <span className="flex items-center gap-2">
+          Search
+          <Kbd className="pointer-coarse:hidden">⌘K</Kbd>
+        </span>
+      </Button>
+    </div>
   );
 }

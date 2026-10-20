@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next";
-// Space Grotesk (UI), Space Mono (labels, code) and Doto (hero numbers),
-// self-hosted via next/font/local. Exposes --font-space-grotesk,
-// --font-space-mono and --font-doto.
-import { fontDisplay, fontMono, fontSans } from "./fonts";
+// Inter (interface and prose) and Fraunces (editorial headings), self-hosted
+// via next/font/local. Exposes --font-inter and --font-fraunces.
+import { fontSans, fontSerif } from "./fonts";
 import "./globals.css";
-import Script from "next/script";
+import { LucideProvider } from "lucide-react";
 import { AppProvider } from "@/components/app";
-import { ThemeProvider, MotionSync, MOTION_PREPAINT_SCRIPT } from "@/components/providers";
+import { MotionSync, ThemeSync } from "@/components/providers";
 import { MotionProvider } from "@/components/motion";
+import { PREPAINT_SCRIPT } from "@/lib/prepaint";
 
 export const metadata: Metadata = {
   title: "Tatalaku",
-  description: "A modern block-based workspace",
+  description: "A calm, block-based workspace for reading and writing",
 };
 
 export const viewport: Viewport = {
@@ -26,19 +26,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${fontSans.variable} ${fontMono.variable} ${fontDisplay.variable} h-full antialiased`}
+      className={`${fontSans.variable} ${fontSerif.variable} h-full antialiased`}
+      // The pre-paint script adds data-theme / data-motion before hydration
       suppressHydrationWarning
     >
+      <head>
+        {/* Must stay a plain inline script so it runs before the first paint */}
+        <script id="tatalaku-prepaint" dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
-        <Script id="motion-prepaint" strategy="beforeInteractive">
-          {MOTION_PREPAINT_SCRIPT}
-        </Script>
-        <ThemeProvider>
-          <MotionSync />
+        <ThemeSync />
+        <MotionSync />
+        {/* A slightly finer stroke than lucide's default suits the type */}
+        <LucideProvider strokeWidth={1.75}>
           <MotionProvider>
             <AppProvider>{children}</AppProvider>
           </MotionProvider>
-        </ThemeProvider>
+        </LucideProvider>
       </body>
     </html>
   );

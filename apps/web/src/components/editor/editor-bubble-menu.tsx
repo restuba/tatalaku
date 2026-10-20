@@ -52,7 +52,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     setOpenPicker(null);
   };
 
-  // Active marks (and an open picker) sit on the raised surface; no scaling
+  // Active marks (and an open picker) sit on the selected fill; no scaling
   const markButton = (
     label: string,
     isActive: boolean,
@@ -64,12 +64,13 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
       type="button"
       onClick={onClick}
       title={title ?? label}
-      className={`p-1.5 rounded-codex-sm transition-colors duration-150 ${
+      className={`flex size-8 items-center justify-center rounded-codex-md transition-colors duration-150 pointer-coarse:size-10 ${
         isActive
-          ? "bg-codex-surface-raised text-codex-foreground"
-          : "text-codex-muted hover:bg-codex-surface-raised hover:text-codex-foreground"
+          ? "bg-codex-selected text-codex-foreground"
+          : "text-codex-muted hover:bg-codex-hover hover:text-codex-foreground"
       }`}
       aria-label={label}
+      aria-pressed={isActive}
     >
       {icon}
     </button>
@@ -78,10 +79,15 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
   return (
     <BubbleMenu
       editor={editor}
-      // Flat elevated toolbar outlined by a strong border: no blur or shadow
-      className="flex items-center gap-1 glass-surface rounded-codex-lg border border-codex-border-strong p-1 animate-in fade-in duration-150"
+      // Elevated toolbar; fades in without scaling so text doesn't jump
+      className="surface-popover flex items-center gap-0.5 rounded-codex-lg p-1 animate-in fade-in duration-150"
     >
-      <div ref={containerRef} className="flex items-center gap-1">
+      <div
+        ref={containerRef}
+        role="toolbar"
+        aria-label="Formatting"
+        className="flex items-center gap-0.5"
+      >
         {markButton(
           "Bold",
           editor.isActive("bold"),
@@ -104,7 +110,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
           "Strikethrough (⌘⇧S / Ctrl+Shift+S)",
         )}
 
-        <div className="mx-1 w-px self-stretch bg-codex-border" />
+        <div aria-hidden="true" className="mx-1 w-px self-stretch bg-codex-border" />
 
         {markButton(
           "Mark as code",
@@ -114,7 +120,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
           "Mark as code (⌘E / Ctrl+E)",
         )}
 
-        <div className="mx-1 w-px self-stretch bg-codex-border" />
+        <div aria-hidden="true" className="mx-1 w-px self-stretch bg-codex-border" />
 
         {/* Text color */}
         <div className="relative">
@@ -172,19 +178,16 @@ interface ColorPopoverProps {
 function ColorPopover({ title, options, activeValue, swatchKind, onSelect }: ColorPopoverProps) {
   return (
     // mt-2 clears the toolbar's own padding and border below the trigger
-    <div className="absolute left-0 top-full z-30 mt-2 w-44 glass-surface rounded-codex-lg border border-codex-border-strong p-1 text-sm animate-in fade-in duration-150">
-      <div className="px-2.5 pt-2 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80">
-        {title}
-      </div>
+    <div className="surface-popover absolute left-0 top-full z-30 mt-2 w-44 rounded-codex-lg p-1 text-sm animate-in fade-in duration-150">
+      <div className="eyebrow px-2.5 pt-2 pb-1.5 text-codex-muted">{title}</div>
       {options.map((option) => (
         <button
           key={option.key}
           type="button"
           onClick={() => onSelect(option.value)}
-          className={`flex h-8 w-full items-center gap-2 rounded-codex-md px-2.5 text-left transition-colors ${
-            activeValue === option.value
-              ? "bg-codex-surface-raised text-codex-foreground"
-              : "text-codex-muted hover:bg-codex-surface-raised hover:text-codex-foreground"
+          aria-pressed={activeValue === option.value}
+          className={`flex h-8 w-full items-center gap-2 rounded-codex-md px-2.5 text-left text-codex-foreground transition-colors ${
+            activeValue === option.value ? "bg-codex-selected" : "hover:bg-codex-hover"
           }`}
         >
           {/* Swatch values are the user-selectable colors themselves */}
@@ -202,7 +205,7 @@ function ColorPopover({ title, options, activeValue, swatchKind, onSelect }: Col
             {swatchKind === "text" ? "A" : ""}
           </span>
           <span className="flex-1">{option.label}</span>
-          {activeValue === option.value && <Check className="h-4 w-4 text-codex-foreground" />}
+          {activeValue === option.value && <Check className="h-4 w-4 text-codex-accent" />}
         </button>
       ))}
     </div>

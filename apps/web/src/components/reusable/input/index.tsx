@@ -16,9 +16,9 @@ import type {
 
 function getSizeClasses(size: InputSize): { wrapper: string; input: string } {
   const map: Record<InputSize, { wrapper: string; input: string }> = {
-    small: { wrapper: "h-8 px-2.5 text-xs", input: "text-xs" },
-    medium: { wrapper: "h-9 px-3 text-sm", input: "text-sm" },
-    large: { wrapper: "h-11 px-3.5 text-base", input: "text-base" },
+    small: { wrapper: "h-8 px-2.5 pointer-coarse:h-10", input: "text-sm" },
+    medium: { wrapper: "h-9 px-3 pointer-coarse:h-11", input: "text-sm" },
+    large: { wrapper: "h-11 px-3.5 pointer-coarse:h-12", input: "text-base" },
   };
   return map[size];
 }
@@ -29,12 +29,12 @@ function getVariantClasses(
   focused: boolean,
   disabled: boolean,
 ): string {
-  // Lines carry every state: the border brightens to ink on focus and turns
-  // red on error. No rings, no glow.
+  // Focus is a border in the accent plus a soft accent ring; errors and
+  // warnings recolor both, and the message below the field says why.
   if (disabled) {
     return variant === "borderless"
-      ? "bg-transparent text-codex-muted cursor-not-allowed"
-      : "border border-codex-border bg-codex-surface-secondary text-codex-muted cursor-not-allowed";
+      ? "bg-transparent text-codex-faint cursor-not-allowed"
+      : "border border-codex-border bg-codex-surface-secondary text-codex-faint cursor-not-allowed";
   }
 
   const isError = status === "error";
@@ -42,21 +42,23 @@ function getVariantClasses(
 
   if (variant === "borderless") {
     if (isError) return "bg-transparent border border-codex-danger";
-    if (isWarning) return "bg-transparent border border-codex-accent";
+    if (isWarning) return "bg-transparent border border-codex-warning";
     return "bg-transparent border border-transparent";
   }
 
+  if (isError) return "border border-codex-danger bg-codex-elevated ring-2 ring-codex-danger-bg";
+  if (isWarning)
+    return "border border-codex-warning bg-codex-elevated ring-2 ring-codex-warning-bg";
+
   if (variant === "filled") {
-    if (isError) return "bg-codex-danger-bg border border-codex-danger";
-    if (focused) return "bg-codex-surface-raised border border-codex-foreground";
-    return "bg-codex-surface-raised border border-transparent hover:border-codex-border-strong";
+    if (focused)
+      return "bg-codex-elevated border border-codex-accent ring-2 ring-codex-accent-soft";
+    return "bg-codex-hover border border-transparent hover:bg-codex-selected";
   }
 
   // outlined (default)
-  if (isError) return "border border-codex-danger bg-codex-background";
-  if (isWarning) return "border border-codex-accent bg-codex-background";
-  if (focused) return "border border-codex-foreground bg-codex-background";
-  return "border border-codex-border-strong bg-codex-background hover:border-codex-muted";
+  if (focused) return "border border-codex-accent bg-codex-elevated ring-2 ring-codex-accent-soft";
+  return "border border-codex-border-strong bg-codex-elevated hover:border-codex-faint";
 }
 
 // ─── Input Component ────────────────────────────────────────────────
@@ -132,18 +134,15 @@ const Input = forwardRef<InputRef, InputProps>(
     return (
       <div className={className}>
         {label && (
-          <label
-            htmlFor={id}
-            className="mb-2 block font-mono text-xs uppercase tracking-label text-codex-muted"
-          >
+          <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-codex-foreground">
             {label}
           </label>
         )}
         <div
-          className={`inline-flex w-full items-center gap-2 rounded-codex-md transition-colors duration-150 ${sizeStyles.wrapper} ${variantStyles}`}
+          className={`inline-flex w-full items-center gap-2 rounded-codex-md transition-[border-color,box-shadow,background-color] duration-150 ${sizeStyles.wrapper} ${variantStyles}`}
           onClick={() => inputRef.current?.focus()}
         >
-          {prefix && <span className="shrink-0 text-codex-muted">{prefix}</span>}
+          {prefix && <span className="flex shrink-0 text-codex-muted">{prefix}</span>}
 
           <input
             ref={inputRef}
@@ -153,7 +152,7 @@ const Input = forwardRef<InputRef, InputProps>(
             disabled={disabled}
             maxLength={maxLength}
             placeholder={placeholder}
-            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-codex-muted/70 disabled:cursor-not-allowed ${sizeStyles.input} text-codex-foreground`}
+            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-codex-faint disabled:cursor-not-allowed ${sizeStyles.input} text-codex-foreground`}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={(e) => {
@@ -180,11 +179,11 @@ const Input = forwardRef<InputRef, InputProps>(
             </button>
           )}
 
-          {suffix && <span className="shrink-0 text-codex-muted">{suffix}</span>}
+          {suffix && <span className="flex shrink-0 text-codex-muted">{suffix}</span>}
         </div>
 
         {showCount && maxLength && (
-          <div className="mt-1 text-right text-xs text-codex-muted">
+          <div className="mt-1 text-right text-xs tabular-nums text-codex-muted">
             {currentValue.length}/{maxLength}
           </div>
         )}
@@ -230,7 +229,7 @@ const Search = forwardRef<InputRef, SearchProps>(
     }, [handleSearch, onPressEnter]);
 
     const btnSizeMap: Record<InputSize, string> = {
-      small: "h-8 px-2.5 text-xs",
+      small: "h-8 px-2.5 text-sm",
       medium: "h-9 px-3.5 text-sm",
       large: "h-11 px-4 text-base",
     };
@@ -251,7 +250,7 @@ const Search = forwardRef<InputRef, SearchProps>(
             type="button"
             onClick={handleSearch}
             disabled={loading || rest.disabled}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-r-codex-md border border-l-0 border-codex-accent bg-codex-accent font-mono uppercase tracking-label text-codex-background transition-opacity hover:opacity-85 disabled:pointer-events-none disabled:opacity-40 cursor-pointer ${btnSizeMap[size]}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-r-codex-md border border-l-0 border-codex-accent bg-codex-accent font-medium text-codex-background transition-colors hover:bg-codex-accent-hover disabled:pointer-events-none disabled:opacity-50 ${btnSizeMap[size]}`}
           >
             {loading ? <SpinnerIcon size={14} /> : null}
             {buttonContent}

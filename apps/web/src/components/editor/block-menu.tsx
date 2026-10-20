@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Editor } from "@tiptap/react";
 import {
   GripVertical,
+  Plus,
   Copy,
   Trash2,
   Type,
@@ -18,15 +19,18 @@ import {
 import { startBlockDrag, endBlockDrag, countBlocksInRange } from "./extensions/drag-drop-block";
 import { getBlockRange, blockSelectionKey } from "./extensions/block-selection";
 
-/** Group heading inside the menu, in the mono label voice */
-const MENU_LABEL =
-  "px-2.5 pt-2 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80";
+/** Group heading inside the menu */
+const MENU_LABEL = "eyebrow px-2.5 pt-2 pb-1.5 text-codex-muted";
 
 const MENU_ITEM =
-  "flex h-8 w-full items-center gap-2 rounded-codex-md px-2.5 text-left text-sm text-codex-muted transition-colors";
+  "flex h-8 w-full items-center gap-2.5 rounded-codex-md px-2.5 text-left text-sm transition-colors [&>svg]:size-4 [&>svg]:shrink-0";
 
-/** Regular action: lifts to the raised surface on hover */
-const MENU_ITEM_DEFAULT = `${MENU_ITEM} hover:bg-codex-surface-raised hover:text-codex-foreground`;
+/** Regular action */
+const MENU_ITEM_DEFAULT = `${MENU_ITEM} text-codex-foreground hover:bg-codex-hover [&>svg]:text-codex-muted`;
+
+/** Handle buttons beside a block: 24px on mouse */
+const HANDLE_BUTTON =
+  "flex size-6 items-center justify-center rounded-codex-sm transition-colors duration-150";
 
 interface BlockMenuProps {
   editor: Editor | null;
@@ -60,8 +64,9 @@ export function BlockMenu({ editor }: BlockMenuProps) {
       }
 
       const editorRect = view.dom.getBoundingClientRect();
+      // 64px of slack on the left covers the handle and the "+" beside it
       const isOutsideEditor =
-        e.clientX < editorRect.left - 40 ||
+        e.clientX < editorRect.left - 64 ||
         e.clientX > editorRect.right + 40 ||
         e.clientY < editorRect.top ||
         e.clientY > editorRect.bottom;
@@ -193,8 +198,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     // 4. Dispatch startBlockDrag to BlockDragDrop plugin
     startBlockDrag(view, { from, to });
 
-    // 5. Create clean drag preview badge: a flat chip (raised surface, strong
-    //    border, mono label), no shadow
+    // 5. Create a clean drag preview: a small chip with the block count
     const count = countBlocksInRange(view, from, to);
     const ghost = document.createElement("div");
     ghost.style.position = "absolute";
@@ -203,7 +207,7 @@ export function BlockMenu({ editor }: BlockMenuProps) {
     ghost.style.zIndex = "99999";
     ghost.style.pointerEvents = "none";
     ghost.innerHTML = `
-      <div class="inline-flex items-center gap-1.5 rounded-codex-sm border border-codex-border-strong bg-codex-surface-raised px-3 py-1.5 font-mono text-xs uppercase tracking-label text-codex-foreground">
+      <div class="inline-flex items-center gap-1.5 rounded-codex-md border border-codex-border bg-codex-elevated px-3 py-1.5 text-xs font-medium text-codex-foreground">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="9" cy="12" r="1.5"></circle>
           <circle cx="9" cy="5" r="1.5"></circle>
@@ -240,6 +244,32 @@ export function BlockMenu({ editor }: BlockMenuProps) {
         .chain()
         .focus()
         .insertContentAt(hoveredPos + node.nodeSize, newNodeJSON)
+        .run();
+    }
+    setIsOpen(false);
+    setMenuPos(null);
+  };
+
+  /** "+" beside the handle: a new block below (or this one, if empty), with the block menu open */
+  const insertBlockBelow = () => {
+    const node = editor.state.doc.nodeAt(hoveredPos);
+    if (!node) return;
+    const isEmptyParagraph = node.type.name === "paragraph" && node.content.size === 0;
+    if (isEmptyParagraph) {
+      editor
+        .chain()
+        .focus()
+        .setTextSelection(hoveredPos + 1)
+        .insertContent("/")
+        .run();
+    } else {
+      const insertAt = hoveredPos + node.nodeSize;
+      editor
+        .chain()
+        .focus()
+        .insertContentAt(insertAt, { type: "paragraph" })
+        .setTextSelection(insertAt + 1)
+        .insertContent("/")
         .run();
     }
     setIsOpen(false);
@@ -323,11 +353,25 @@ export function BlockMenu({ editor }: BlockMenuProps) {
       }}
     >
       <div className="relative">
+        {/* Insert: mouse only — touch users type "/" (the handle stays reachable) */}
+        <button
+          type="button"
+          onClick={insertBlockBelow}
+          className={`${HANDLE_BUTTON} absolute top-1/2 right-full mr-0.5 -translate-y-1/2 text-codex-faint hover:bg-codex-hover hover:text-codex-foreground pointer-coarse:hidden`}
+          aria-label="Add a block below"
+          title="Add a block below"
+        >
+          <Plus className="size-4" />
+        </button>
         <div
-          className={`p-1 rounded-codex-sm cursor-grab active:cursor-grabbing select-none transition-colors duration-150 ${
+          role="button"
+          tabIndex={-1}
+          aria-label="Block menu"
+          aria-expanded={isOpen}
+          className={`${HANDLE_BUTTON} cursor-grab select-none active:cursor-grabbing ${
             isOpen
-              ? "bg-codex-surface-raised text-codex-foreground"
-              : "text-codex-muted/70 hover:bg-codex-surface-raised hover:text-codex-foreground"
+              ? "bg-codex-selected text-codex-foreground"
+              : "text-codex-faint hover:bg-codex-hover hover:text-codex-foreground"
           }`}
           draggable
           onDragStart={handleDragStart}
@@ -352,43 +396,47 @@ export function BlockMenu({ editor }: BlockMenuProps) {
               setIsOpen(!isOpen);
             }
           }}
-          title="Click to open menu, drag to move (Shift+Click to select blocks)"
+          title="Click for options, drag to move (Shift+Click to select blocks)"
         >
-          <GripVertical className="w-4 h-4" />
+          <GripVertical className="size-4" />
         </div>
 
         {isOpen && (
-          <div className="absolute left-0 mt-1 w-56 max-h-[60vh] overflow-y-auto glass-surface rounded-codex-lg border border-codex-border-strong p-1 text-sm animate-in fade-in duration-150">
+          <div
+            role="menu"
+            aria-label="Block options"
+            className="surface-popover absolute left-0 z-50 mt-1 max-h-[60vh] w-56 overflow-y-auto rounded-codex-lg p-1 text-sm animate-in fade-in duration-150"
+          >
             <div className={MENU_LABEL}>Actions</div>
             <button type="button" onClick={copyLinkToBlock} className={MENU_ITEM_DEFAULT}>
               {isCopied ? (
                 <>
-                  <Check className="w-4 h-4 text-codex-success" />
-                  <span className="font-mono text-xs uppercase tracking-label text-codex-success">
-                    [ Link copied ]
+                  <Check className="text-codex-success" />
+                  <span className="text-codex-success" role="status">
+                    Link copied
                   </span>
                 </>
               ) : (
                 <>
-                  <Link2 className="w-4 h-4" />
+                  <Link2 />
                   <span>Copy link to block</span>
                 </>
               )}
             </button>
             <button type="button" onClick={duplicateNode} className={MENU_ITEM_DEFAULT}>
-              <Copy className="w-4 h-4" />
+              <Copy />
               Duplicate
             </button>
             <button
               type="button"
               onClick={deleteNode}
-              className={`${MENU_ITEM} hover:bg-codex-danger-bg hover:text-codex-danger`}
+              className={`${MENU_ITEM} text-codex-danger hover:bg-codex-danger-bg`}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 />
               Delete
             </button>
 
-            <div className="mx-2 my-1 h-px bg-codex-border" />
+            <div role="separator" className="mx-1.5 my-1 h-px bg-codex-border" />
 
             <div className={MENU_LABEL}>Turn into</div>
             <button
@@ -396,56 +444,56 @@ export function BlockMenu({ editor }: BlockMenuProps) {
               onClick={() => turnInto("paragraph")}
               className={MENU_ITEM_DEFAULT}
             >
-              <Type className="w-4 h-4" /> Text
+              <Type /> Text
             </button>
             <button
               type="button"
               onClick={() => turnInto("heading", 1)}
               className={MENU_ITEM_DEFAULT}
             >
-              <Heading1 className="w-4 h-4" /> Heading 1
+              <Heading1 /> Heading 1
             </button>
             <button
               type="button"
               onClick={() => turnInto("heading", 2)}
               className={MENU_ITEM_DEFAULT}
             >
-              <Heading2 className="w-4 h-4" /> Heading 2
+              <Heading2 /> Heading 2
             </button>
             <button
               type="button"
               onClick={() => turnInto("heading", 3)}
               className={MENU_ITEM_DEFAULT}
             >
-              <Heading3 className="w-4 h-4" /> Heading 3
+              <Heading3 /> Heading 3
             </button>
             <button
               type="button"
               onClick={() => turnInto("taskList")}
               className={MENU_ITEM_DEFAULT}
             >
-              <ListTodo className="w-4 h-4" /> To-do list
+              <ListTodo /> To-do list
             </button>
             <button
               type="button"
               onClick={() => turnInto("bulletList")}
               className={MENU_ITEM_DEFAULT}
             >
-              <List className="w-4 h-4" /> Bullet list
+              <List /> Bullet list
             </button>
             <button
               type="button"
               onClick={() => turnInto("orderedList")}
               className={MENU_ITEM_DEFAULT}
             >
-              <ListOrdered className="w-4 h-4" /> Numbered list
+              <ListOrdered /> Numbered list
             </button>
             <button
               type="button"
               onClick={() => turnInto("blockquote")}
               className={MENU_ITEM_DEFAULT}
             >
-              <Quote className="w-4 h-4" /> Quote
+              <Quote /> Quote
             </button>
           </div>
         )}

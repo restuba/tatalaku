@@ -26,7 +26,7 @@ export function Skeleton({ className = "", ...props }: SkeletonProps) {
   return (
     <div
       aria-hidden="true"
-      className={`animate-pulse bg-codex-muted/20 ${radius} ${className}`}
+      className={`animate-pulse bg-codex-selected ${radius} ${className}`}
       {...props}
     />
   );
@@ -58,7 +58,7 @@ function SidebarToggleSlot() {
   return <Skeleton className={`${TOP_BAR_BUTTON} ${isSidebarOpen ? "md:hidden" : ""}`} />;
 }
 
-/** Mirrors `TopBar` + `Breadcrumb`: crumbs are px-1.5 py-0.5 text-sm, split by a 12px chevron */
+/** Mirrors `TopBar` + `Breadcrumb`: 28px crumbs split by a 12px chevron, then the menus */
 function TopBarSkeleton({
   crumbs,
   hasActions = false,
@@ -70,17 +70,13 @@ function TopBarSkeleton({
     <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between gap-3 border-b border-codex-border bg-codex-background px-3 select-none pointer-coarse:h-14">
       <div className="flex min-w-0 items-center gap-1">
         <SidebarToggleSlot />
-        <div className="flex min-w-0 items-center gap-1 text-sm">
+        <div className="flex min-w-0 items-center gap-0.5 text-sm">
           {crumbs.map((width, i) => (
             <Fragment key={`${width}-${i}`}>
               {i > 0 && (
-                <ChevronRight
-                  aria-hidden="true"
-                  size={12}
-                  className="shrink-0 text-codex-muted/60"
-                />
+                <ChevronRight aria-hidden="true" size={12} className="shrink-0 text-codex-faint" />
               )}
-              <div className="px-1.5 py-0.5">
+              <div className="flex h-7 items-center px-1.5">
                 <TextLine className={width} />
               </div>
             </Fragment>
@@ -88,14 +84,18 @@ function TopBarSkeleton({
         </div>
       </div>
 
-      {/* Page options button */}
-      {hasActions && <Skeleton className={TOP_BAR_BUTTON} />}
+      {/* Page options, theme menu, account (sm+) */}
+      <div className="flex shrink-0 items-center gap-1">
+        {hasActions && <Skeleton className={TOP_BAR_BUTTON} />}
+        <Skeleton className={TOP_BAR_BUTTON} />
+        <Skeleton className="hidden size-7 rounded-full sm:block" />
+      </div>
     </header>
   );
 }
 
-const PAGE_CRUMBS = ["w-12", "w-24"] as const;
-const HOME_CRUMBS = ["w-10"] as const;
+const PAGE_CRUMBS = ["w-24", "w-28"] as const;
+const HOME_CRUMBS = ["w-14"] as const;
 
 /** Skeleton for the sticky top bar of a page (breadcrumb + options button) */
 export function PageHeaderSkeleton() {
@@ -108,28 +108,26 @@ export function PageHeaderSkeleton() {
  */
 export function EditorBodySkeleton() {
   return (
-    <div className="space-y-6 py-4">
-      <div className="space-y-2.5">
-        <Skeleton className="w-full h-4 rounded-codex-sm" />
-        <Skeleton className="w-11/12 h-4 rounded-codex-sm" />
-        <Skeleton className="w-4/5 h-4 rounded-codex-sm" />
+    <div className="space-y-7 py-2">
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-full rounded-codex-sm" />
+        <Skeleton className="h-4 w-11/12 rounded-codex-sm" />
+        <Skeleton className="h-4 w-4/5 rounded-codex-sm" />
       </div>
-      <div className="pt-2">
-        <Skeleton className="w-1/3 max-w-xs h-6 rounded-codex-md" />
-      </div>
-      <div className="space-y-3 pt-1">
+      <Skeleton className="h-7 w-1/3 max-w-xs rounded-codex-md" />
+      <div className="space-y-3.5">
         <div className="flex items-center gap-3">
-          <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
-          <Skeleton className="w-1/2 h-4 rounded-codex-sm" />
+          <Skeleton className="size-4 shrink-0 rounded-codex-sm" />
+          <Skeleton className="h-4 w-1/2 rounded-codex-sm" />
         </div>
         <div className="flex items-center gap-3">
-          <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
-          <Skeleton className="w-3/5 h-4 rounded-codex-sm" />
+          <Skeleton className="size-4 shrink-0 rounded-codex-sm" />
+          <Skeleton className="h-4 w-3/5 rounded-codex-sm" />
         </div>
       </div>
-      <div className="space-y-2.5 pt-2">
-        <Skeleton className="w-full h-4 rounded-codex-sm" />
-        <Skeleton className="w-5/6 h-4 rounded-codex-sm" />
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-full rounded-codex-sm" />
+        <Skeleton className="h-4 w-5/6 rounded-codex-sm" />
       </div>
     </div>
   );
@@ -144,18 +142,21 @@ export function PageContentSkeleton() {
 
   return (
     <div
-      className={`flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pt-12 sm:pt-20 pb-24 ${
+      className={`mx-auto flex w-full flex-1 flex-col pt-8 pr-6 pb-24 pl-10 sm:px-12 sm:pt-12 ${
         isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"
       }`}
     >
       <div className="mb-2">
-        {/* "Add cover": hidden at rest on desktop, but it still takes its row */}
-        <div className="h-8 mb-1 pointer-coarse:h-11" />
-        {/* "Add icon" */}
-        <Skeleton className="w-24 h-8 mb-1 pointer-coarse:h-11" />
-        {/* Title textarea: text-4xl, leading-tight */}
-        <div className="text-4xl leading-tight">
+        {/* "Add cover" and "Add icon": hidden at rest on desktop, but they take their rows */}
+        <div className="mb-1 h-8 pointer-coarse:h-11" />
+        <div className="mb-1 h-8 pointer-coarse:h-11" />
+        {/* Title: Fraunces 36/42px on a 1.15 line height */}
+        <div className="text-4xl leading-[1.15] sm:text-[2.625rem]">
           <TextLine className="w-2/5 max-w-md" />
+        </div>
+        {/* Byline */}
+        <div className="eyebrow mt-3">
+          <TextLine className="w-28" />
         </div>
       </div>
 
@@ -170,8 +171,8 @@ export function PageContentSkeleton() {
 /** Same shape as a sidebar `NavItem` (h-8, 16px icon slot, gap-2.5; taller on touch) */
 function NavRowSkeleton({ width }: { width: string }) {
   return (
-    <div className="flex items-center gap-2.5 h-8 pointer-coarse:h-11 px-2">
-      <Skeleton className="w-4 h-4 shrink-0 rounded-codex-sm" />
+    <div className="flex h-8 items-center gap-2.5 px-2 pointer-coarse:h-11">
+      <Skeleton className="size-4 shrink-0 rounded-codex-sm" />
       <Skeleton className={`${width} h-3 rounded-codex-sm`} />
     </div>
   );
@@ -190,9 +191,9 @@ export function PageTreeSkeleton() {
       {TREE_WIDTHS.map((width) => (
         <div
           key={width}
-          className="flex h-8 items-center gap-1.5 pl-3.5 pointer-coarse:h-11 pointer-coarse:pl-0.5 pr-1 text-sm"
+          className="flex h-8 items-center gap-1.5 pr-1 pl-3.5 text-sm pointer-coarse:h-11 pointer-coarse:pl-0.5"
         >
-          <Skeleton className="w-4 h-4 shrink-0 rounded-codex-sm" />
+          <Skeleton className="size-4 shrink-0 rounded-codex-sm" />
           <div className="py-0.5 leading-snug">
             <TextLine className={width} />
           </div>
@@ -207,58 +208,57 @@ export function SidebarSkeleton() {
   return (
     <aside
       aria-hidden="true"
-      className="w-60 h-dvh bg-codex-sidebar border-r border-codex-border flex flex-col select-none shrink-0 overflow-hidden"
+      className="flex h-dvh w-60 shrink-0 flex-col overflow-hidden border-r border-codex-border bg-codex-sidebar select-none"
     >
-      {/* Workspace switcher: 28px tile, name over a mono label */}
-      <div className="flex h-14 shrink-0 items-center px-2">
-        <div className="flex h-11 w-full items-center gap-2.5 px-2">
-          <Skeleton className="size-7 shrink-0 rounded-codex-md" />
-          <div className="min-w-0 flex-1">
-            <div className="text-sm leading-tight">
-              <TextLine className="w-24" />
-            </div>
-            <div className="font-mono text-xs">
-              <TextLine className="w-16" />
-            </div>
-          </div>
+      {/* Brand */}
+      <div className="flex h-12 shrink-0 items-center gap-2 pr-2 pl-3 pointer-coarse:h-14">
+        <Skeleton className="size-5 shrink-0 rounded-full" />
+        <div className="text-base">
+          <TextLine className="w-20" />
         </div>
       </div>
 
-      {/* Search, Home */}
-      <div className="shrink-0 px-2 pb-2 space-y-px">
+      {/* Search field + Home */}
+      <div className="shrink-0 space-y-2 px-2">
+        <Skeleton className="h-8 w-full pointer-coarse:h-11" />
+        <NavRowSkeleton width="w-12" />
+      </div>
+
+      {/* "Pages" section: label row, then the tree */}
+      <div className="flex-1 px-2 pb-3">
+        <div className="flex h-7 items-center px-2 pt-3 text-xs">
+          <TextLine className="w-16" />
+        </div>
+        <div className="pt-3.5">
+          <PageTreeSkeleton />
+        </div>
+      </div>
+
+      {/* Import, Trash, Settings, then the workspace row */}
+      <div className="shrink-0 space-y-px border-t border-codex-border px-2 pt-2 pb-2">
         <NavRowSkeleton width="w-14" />
         <NavRowSkeleton width="w-12" />
-      </div>
-
-      {/* "Pages" section: mono label at the bottom of an h-9 row, then the tree */}
-      <div className="flex-1 px-2 pb-3">
-        <div className="flex h-9 items-end pb-1">
-          <div className="flex h-7 items-center px-2 font-mono text-xs">
-            <TextLine className="w-16" />
+        <NavRowSkeleton width="w-16" />
+        <div className="pt-1">
+          <div className="flex h-10 items-center gap-2.5 px-2 pointer-coarse:h-12">
+            <Skeleton className="size-6 shrink-0" />
+            <Skeleton className="h-3 w-28 rounded-codex-sm" />
           </div>
         </div>
-        <PageTreeSkeleton />
-      </div>
-
-      {/* Settings, Import Markdown, Trash */}
-      <div className="shrink-0 border-t border-codex-border px-2 py-2 space-y-px">
-        <NavRowSkeleton width="w-16" />
-        <NavRowSkeleton width="w-28" />
-        <NavRowSkeleton width="w-12" />
       </div>
     </aside>
   );
 }
 
-const STAT_WIDTHS = ["w-12", "w-28", "w-20"] as const;
-const ACTION_WIDTHS = ["w-36", "w-28", "w-36"] as const;
+const STAT_WIDTHS = ["w-12", "w-24", "w-20"] as const;
+const ACTION_WIDTHS = ["w-28", "w-24", "w-32"] as const;
 const CHECKLIST_WIDTHS = ["w-44", "w-36", "w-32", "w-40", "w-44"] as const;
 const ALL_PAGES_WIDTHS = ["w-40", "w-32", "w-48", "w-28"] as const;
 
-/** Mirrors `SectionHeading`: a mono label over a hairline */
+/** Mirrors `SectionHeading`: a small caps label on a 28px row */
 function SectionHeadingSkeleton({ width }: { width: string }) {
   return (
-    <div className="border-b border-codex-border pb-3 font-mono text-xs">
+    <div className="flex min-h-7 items-center text-xs">
       <TextLine className={width} />
     </div>
   );
@@ -270,73 +270,69 @@ export function WorkspaceHomeSkeleton() {
   const isOnboardingDismissed = useHydratedUIValue((s) => s.isOnboardingDismissed, false);
 
   return (
-    <div className="flex-1 flex flex-col relative w-full">
+    <div className="relative flex w-full flex-1 flex-col">
       <TopBarSkeleton crumbs={HOME_CRUMBS} />
 
-      <div className="flex-1 w-full">
+      <div className="w-full flex-1">
         <div
-          className={`w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 ${
+          className={`mx-auto w-full px-6 pt-10 pb-24 sm:px-12 sm:pt-16 ${
             isFullWidth ? "max-w-none" : "max-w-3xl"
           }`}
         >
           {/* Hero: eyebrow, greeting (usually wraps on phones), ruled stats */}
-          <div className="flex items-center gap-2 font-mono text-xs">
+          <div className="flex items-center gap-2 text-xs">
             <Skeleton className="size-1.5 shrink-0 rounded-full" />
             <TextLine className="w-48" />
           </div>
-          <div className="mt-6 text-4xl sm:text-6xl leading-[1.05]">
+          <div className="mt-5 text-4xl leading-[1.1] sm:text-5xl">
             <TextLine className="w-72 sm:w-md" />
             <div className="sm:hidden">
               <TextLine className="w-36" />
             </div>
           </div>
-          <div className="mt-10 grid max-w-lg grid-cols-3 gap-4 sm:gap-6">
+          <div className="mt-10 grid max-w-md grid-cols-3 gap-4 sm:gap-6">
             {STAT_WIDTHS.map((width) => (
-              <div key={width} className="border-t border-codex-border-strong pt-3">
-                <div className="font-mono text-xs">
+              <div key={width} className="border-t border-codex-border pt-3">
+                <div className="min-h-8 text-xs sm:min-h-0">
                   <TextLine className={width} />
                 </div>
-                <div className="mt-2 text-4xl sm:text-5xl leading-none">
-                  <TextLine className="w-14 sm:w-16" />
+                <div className="mt-2 text-3xl leading-none">
+                  <TextLine className="w-12" />
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Quick action pills */}
-          <div className="mt-10 flex flex-wrap gap-3">
+          {/* Quick actions */}
+          <div className="mt-9 flex flex-wrap gap-2.5">
             {ACTION_WIDTHS.map((width, i) => (
               <Skeleton
                 key={`${width}-${i}`}
-                className={`h-11 pointer-coarse:h-12 rounded-full ${width}`}
+                className={`h-9 rounded-full pointer-coarse:h-11 ${width}`}
               />
             ))}
           </div>
 
           {/* Recently edited */}
-          <section className="mt-16">
+          <section className="mt-14">
             <SectionHeadingSkeleton width="w-28" />
-            <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
               {[0, 1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-40 rounded-codex-xl" />
+                <Skeleton key={i} className="h-40 rounded-codex-lg" />
               ))}
             </div>
           </section>
 
           {/* Getting started: shown until dismissed (or completed) */}
           {!isOnboardingDismissed && (
-            <section className="mt-16">
+            <section className="mt-14">
               <SectionHeadingSkeleton width="w-28" />
-              <div className="mt-4 flex gap-0.5">
+              <div className="mt-3 h-1 rounded-full bg-codex-border" />
+              <div className="mt-2">
                 {CHECKLIST_WIDTHS.map((width, i) => (
-                  <div key={`${width}-${i}`} className="h-2 flex-1 bg-codex-border" />
-                ))}
-              </div>
-              <div className="mt-3 divide-y divide-codex-border">
-                {CHECKLIST_WIDTHS.map((width, i) => (
-                  <div key={`${width}-${i}`} className="flex items-center gap-3 px-2 py-3">
-                    <Skeleton className="w-4 h-4 shrink-0 rounded-full" />
-                    <div className="flex-1 min-w-0">
+                  <div key={`${width}-${i}`} className="flex items-center gap-3 px-2 py-2.5">
+                    <Skeleton className="size-5 shrink-0 rounded-full" />
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm">
                         <TextLine className={width} />
                       </div>
@@ -351,13 +347,13 @@ export function WorkspaceHomeSkeleton() {
           )}
 
           {/* All pages */}
-          <section className="mt-16">
+          <section className="mt-14">
             <SectionHeadingSkeleton width="w-20" />
-            <div className="divide-y divide-codex-border">
+            <div className="mt-2 divide-y divide-codex-border">
               {ALL_PAGES_WIDTHS.map((width) => (
                 <div key={width} className="flex items-center gap-3 px-2 py-2.5 text-sm">
-                  <div className="w-5 flex justify-center shrink-0">
-                    <Skeleton className="w-4 h-4 rounded-codex-sm" />
+                  <div className="flex w-5 shrink-0 justify-center">
+                    <Skeleton className="size-4 rounded-codex-sm" />
                   </div>
                   <TextLine className={width} />
                 </div>

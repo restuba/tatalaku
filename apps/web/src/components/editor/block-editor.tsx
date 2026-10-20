@@ -15,7 +15,6 @@ import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls } from "./table";
 import { TableOfContents, scrollToTargetNode } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
-import { Logo } from "@/components/ui/logo";
 import { EditorBodySkeleton } from "@/components/ui/skeleton";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -63,8 +62,13 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
     immediatelyRender: true,
     extensions: [
       ...createContentExtensions(),
+      // Shown on the empty document, and on the empty block holding the caret
+      // (globals.css), so block insertion stays discoverable while writing
       Placeholder.configure({
-        placeholder: "Type '/' for commands, or just start writing...",
+        placeholder: ({ editor: current, node }) => {
+          if (node.type.name === "heading") return `Heading ${String(node.attrs["level"] ?? "")}`;
+          return current.isEmpty ? "Start writing, or press / for blocks…" : "Press / for blocks";
+        },
       }),
       // Adds `.has-focus` to the focused node. CSS scopes the visible outline to
       // table cells only, so clicking a cell shows a thin accent border around
@@ -79,8 +83,9 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
     ],
     editorProps: {
       attributes: {
-        class:
-          "prose dark:prose-invert max-w-none focus:outline-none min-h-[400px] text-codex-foreground leading-relaxed text-sm sm:text-base",
+        // Typography lives in globals.css (.tiptap) so Text size can scale it
+        class: "min-h-[50vh] focus:outline-none",
+        "aria-label": "Page content",
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
@@ -213,16 +218,9 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
             <EditorBodySkeleton />
           ) : (
             <div
-              className="relative min-h-[500px] cursor-text"
+              className="relative min-h-[50vh] cursor-text"
               onClick={() => editor?.commands.focus()}
             >
-              {/* Brand Watermark for entirely empty document */}
-              {editor?.getText().trim().length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] grayscale transition-opacity duration-1000 select-none z-0">
-                  <Logo variant="icon-only" size="xl" className="w-64 h-64 scale-150" />
-                </div>
-              )}
-
               <div className="relative z-10">
                 <BlockMenu editor={editor} />
                 <EditorBubbleMenu editor={editor} />

@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { useAuthStore } from "@/stores/auth-store";
-import { UserMinus, ShieldAlert, Users, Mail, Check } from "lucide-react";
+import { AlertCircle, UserMinus, ShieldAlert, Mail, Check } from "lucide-react";
 import { Modal } from "@/components/reusable/modal";
 import { Button } from "@/components/reusable/button";
 import { Input } from "@/components/reusable/input";
 import { Badge } from "@/components/reusable/badge";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { useApp } from "@/components/app";
 import { confirmDialog } from "@/stores/dialog-store";
 
@@ -108,16 +109,11 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
       aria-label="Workspace Members"
     >
       <Modal.Header showClose divider>
-        <div className="flex items-center gap-3">
-          <Users className="w-4 h-4 shrink-0 text-codex-muted" />
-          <div className="min-w-0">
-            <h2 className="text-lg font-medium leading-tight tracking-tight text-codex-foreground">
-              Members
-            </h2>
-            <p className="mt-1 truncate font-mono text-xs uppercase tracking-label text-codex-muted/80">
-              {activeWorkspace?.name}
-            </p>
-          </div>
+        <div className="min-w-0">
+          <h2 className="leading-tight">Members</h2>
+          <p className="mt-1 truncate font-sans text-sm font-normal text-codex-muted">
+            {activeWorkspace?.name}
+          </p>
         </div>
       </Modal.Header>
 
@@ -132,7 +128,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                 value={inviteEmail}
                 onChange={(val: string) => setInviteEmail(val)}
                 size="small"
-                prefix={<Mail className="w-3.5 h-3.5 text-codex-muted" />}
+                prefix={<Mail className="size-4" />}
               />
             </div>
             <Button
@@ -147,13 +143,15 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
           </div>
           {inviteStatus && (
             <p
-              className={`text-xs mt-2 flex items-center gap-1.5 ${
+              role={inviteStatus.type === "error" ? "alert" : "status"}
+              className={`mt-2 flex items-start gap-1.5 text-sm ${
                 inviteStatus.type === "success" ? "text-codex-success" : "text-codex-danger"
               }`}
             >
-              {inviteStatus.type === "success" && <Check className="w-3.5 h-3.5 shrink-0" />}
-              {inviteStatus.type === "error" && (
-                <span className="font-mono uppercase tracking-label">[Error]</span>
+              {inviteStatus.type === "success" ? (
+                <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               )}
               <span>{inviteStatus.message}</span>
             </p>
@@ -165,36 +163,32 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
           bleed past the text column while the text stays aligned with the title. */}
       <Modal.Content className="overflow-y-auto min-h-[160px] max-h-[50vh]">
         {!activeWorkspaceMembers || activeWorkspaceMembers.length === 0 ? (
-          <div className="flex items-center justify-center h-32 font-mono text-xs uppercase tracking-label text-codex-muted">
-            [ Loading members ]
+          <div className="flex h-32 items-center justify-center text-sm text-codex-muted">
+            Loading members…
           </div>
         ) : (
           <div className="-mx-2 divide-y divide-codex-border">
             {activeWorkspaceMembers.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between gap-3 px-2 py-2.5 hover:bg-codex-surface-raised/60 transition-colors group"
+                className="group flex items-center justify-between gap-3 rounded-codex-md px-2 py-2.5 transition-colors hover:bg-codex-hover"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-codex-border-strong font-mono text-xs font-bold text-codex-foreground">
-                    {member.name.charAt(0).toUpperCase()}
-                  </div>
+                  <UserAvatar name={member.name || member.email} size="md" />
                   <div className="min-w-0">
                     <p className="text-sm text-codex-foreground truncate">
                       {member.name}{" "}
                       {user?.id === member.id && (
-                        <span className="font-mono text-xs uppercase tracking-label text-codex-muted/70">
-                          (You)
-                        </span>
+                        <span className="text-xs text-codex-muted">(you)</span>
                       )}
                     </p>
-                    <p className="font-mono text-xs text-codex-muted truncate">{member.email}</p>
+                    <p className="truncate text-xs text-codex-muted">{member.email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge
-                    status={member.role === "owner" ? "warning" : "default"}
+                    status={member.role === "owner" ? "primary" : "default"}
                     variant="subtle"
                     size="small"
                   >
@@ -210,6 +204,7 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
                       disabled={isRemoving === member.id}
                       className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
                       title="Remove member"
+                      aria-label={`Remove ${member.name || member.email}`}
                       icon={<UserMinus className="w-3.5 h-3.5" />}
                     />
                   )}
@@ -222,8 +217,8 @@ export function WorkspaceMembersModal({ isOpen, onClose }: WorkspaceMembersModal
 
       {/* Footer info for non-owners: set off by a hairline, no tint */}
       {!isOwner && (
-        <div className="px-6 py-3.5 border-t border-codex-border flex items-center gap-2 text-xs text-codex-muted">
-          <ShieldAlert className="w-4 h-4 shrink-0 text-codex-muted" />
+        <div className="flex items-center gap-2 border-t border-codex-border px-6 py-3.5 text-sm text-codex-muted">
+          <ShieldAlert className="size-4 shrink-0" aria-hidden="true" />
           <span>Only the workspace owner can invite or remove members.</span>
         </div>
       )}

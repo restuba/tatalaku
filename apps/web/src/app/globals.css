@@ -3,7 +3,7 @@
 @import "tw-animate-css";
 
 /* Motion preference (Settings → Appearance → Motion). `data-motion` on <html>
-   is set before first paint (MOTION_PREPAINT_SCRIPT) and kept in sync by
+   is set before first paint (lib/prepaint.ts) and kept in sync by
    MotionSync. Animations are collapsed to ~0ms instead of removed, so
    elements that start at opacity-0 still land on their final state. The
    media query covers the brief moment before the attribute exists, unless the
@@ -32,112 +32,234 @@ html[data-motion="reduce"] *::after {
   }
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* `dark:` targets the dark theme. Components should rarely need it: theme
+   differences belong in the tokens below, not in component classes. */
+@custom-variant dark (&:where([data-theme="nocturne"], [data-theme="nocturne"] *));
 
 /* ─────────────────────────────────────────────────────────────
-   Theme tokens
-   Every preset sets the same base variables (surface, ink, accent, signal,
-   contrast, muted mix, status colors). The secondary surfaces and the lines
-   are derived from them, so a preset only picks its colors and how strongly
-   its lines read. "Nothing" (monochrome, structure drawn with hairlines) is
-   the default; GitHub, Everforest and Lobster stay selectable in Settings.
+   Themes
+   One design language (Warm Editorial), three palettes. Every theme sets the
+   same base colors with literal values; the interactive and status fills,
+   scrim and shadows are derived from them further down, so a palette never
+   restates them. Layout, type and spacing never change between themes.
+
+   The selectors match any element, not just <html>: a [data-theme] subtree
+   (the previews in Settings → Appearance) renders with that palette.
+   :root falls back to Parchment when the attribute is missing.
+
+   Contrast (WCAG 2.2): ink, muted and status text ≥ 4.5:1 on every surface
+   they sit on (canvas, sidebar, elevated, wells, hovered rows); accent ≥ 4.5:1
+   against the canvas both ways (links, and labels on accent buttons); faint,
+   focus and control borders ≥ 3:1. accent-secondary is for large text, icons
+   and indicators only (≥ 3:1).
+
+   Keep these variable names stable: documents store text and cell colors as
+   var(--color-ink | -surface | -accent | -danger | -success | -info).
+   ───────────────────────────────────────────────────────────── */
+
+/* Parchment — Warm Editorial (default) */
+:root,
+[data-theme="parchment"] {
+  color-scheme: light;
+
+  /* Surfaces */
+  --color-surface: #f5f0e7; /* page canvas */
+  --color-sidebar: #ede6d8; /* navigation column */
+  --color-surface-secondary: #ede6d8; /* wells: code, table headers, tracks */
+  --color-elevated: #fbf8f2; /* cards, menus, dialogs */
+
+  /* Text */
+  --color-ink: #29271f;
+  --color-muted: #615e55;
+  --color-faint: #868072;
+
+  /* Lines */
+  --color-border: #ddd5c8;
+  --color-border-strong: #cbc1b0;
+
+  /* Accents: olive for actions, terracotta for selected emphasis */
+  --color-accent: #5e6a4f;
+  --color-accent-secondary: #b07250;
+
+  /* Status */
+  --color-danger: #a3412c;
+  --color-success: #4a6f43;
+  --color-warning: #8c5f17;
+  --color-info: #3c6585;
+
+  /* Code */
+  --color-code-inline: #8a4a2e;
+  --color-code-keyword: #8a4a2e;
+  --color-code-string: #4f6638;
+  --color-code-number: #8c5a14;
+  --color-code-function: #3d5d77;
+  --color-code-comment: #67635a;
+  --color-code-tag: #a3412c;
+  --color-code-attribute: #6b5a2c;
+
+  /* Depth: shadow tint and the strength of every derived fill */
+  --color-shadow: #4a3b22;
+  --theme-hover: 6%;
+  --theme-selected: 9%;
+  --theme-accent-soft: 14%;
+  --theme-status-soft: 12%;
+  --theme-shadow: 12%;
+  --theme-scrim: 26%;
+}
+
+/* Clarity — Quiet Minimalism */
+[data-theme="clarity"] {
+  color-scheme: light;
+
+  --color-surface: #f7f8f8;
+  --color-sidebar: #eef0f2;
+  --color-surface-secondary: #eef0f2;
+  --color-elevated: #ffffff;
+
+  --color-ink: #252b30;
+  --color-muted: #5c656d;
+  --color-faint: #808991;
+
+  --color-border: #e0e4e7;
+  --color-border-strong: #cdd3d8;
+
+  --color-accent: #46607a;
+  --color-accent-secondary: #7b8894;
+
+  --color-danger: #ae3838;
+  --color-success: #2d714d;
+  --color-warning: #8a5b00;
+  --color-info: #2e64a2;
+
+  --color-code-inline: #3e5a78;
+  --color-code-keyword: #7a3e9d;
+  --color-code-string: #2d714d;
+  --color-code-number: #9a4f00;
+  --color-code-function: #2e5c99;
+  --color-code-comment: #5c656d;
+  --color-code-tag: #ae3838;
+  --color-code-attribute: #7a5500;
+
+  --color-shadow: #1c2833;
+  --theme-hover: 5%;
+  --theme-selected: 8%;
+  --theme-accent-soft: 12%;
+  --theme-status-soft: 10%;
+  --theme-shadow: 10%;
+  --theme-scrim: 24%;
+}
+
+/* Nocturne — Soft Contrast */
+[data-theme="nocturne"] {
+  color-scheme: dark;
+
+  --color-surface: #222320;
+  --color-sidebar: #292a27;
+  --color-surface-secondary: #292a27;
+  --color-elevated: #30312d;
+
+  --color-ink: #eae7df;
+  --color-muted: #aaa99f;
+  --color-faint: #83827a;
+
+  --color-border: #41423c;
+  --color-border-strong: #55564f;
+
+  --color-accent: #a5aa8c;
+  --color-accent-secondary: #c7b486;
+
+  --color-danger: #e8988a;
+  --color-success: #9bbe8e;
+  --color-warning: #ddb66e;
+  --color-info: #9bb9d7;
+
+  --color-code-inline: #d8c59a;
+  --color-code-keyword: #d9a37a;
+  --color-code-string: #a9c08a;
+  --color-code-number: #d8c080;
+  --color-code-function: #9db8d6;
+  --color-code-comment: #949389;
+  --color-code-tag: #e3907f;
+  --color-code-attribute: #c7b486;
+
+  --color-shadow: #000000;
+  --theme-hover: 6%;
+  --theme-selected: 10%;
+  --theme-accent-soft: 18%;
+  --theme-status-soft: 13%;
+  --theme-shadow: 40%;
+  --theme-scrim: 55%;
+}
+
+/* Derived tokens. Declared on every themed element so a [data-theme] subtree
+   recomputes them from its own palette (custom properties inherit resolved). */
+:root,
+[data-theme] {
+  /* Translucent fills: work on any surface below them */
+  --color-hover: color-mix(in srgb, var(--color-ink) var(--theme-hover), transparent);
+  --color-selected: color-mix(in srgb, var(--color-ink) var(--theme-selected), transparent);
+  --color-accent-soft: color-mix(
+    in srgb,
+    var(--color-accent) var(--theme-accent-soft),
+    transparent
+  );
+  /* Pressed/hovered accent: toward the ink, so the label's contrast only grows */
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 86%, var(--color-ink));
+  --color-focus: var(--color-accent);
+
+  --color-danger-bg: color-mix(in srgb, var(--color-danger) var(--theme-status-soft), transparent);
+  --color-success-bg: color-mix(
+    in srgb,
+    var(--color-success) var(--theme-status-soft),
+    transparent
+  );
+  --color-warning-bg: color-mix(
+    in srgb,
+    var(--color-warning) var(--theme-status-soft),
+    transparent
+  );
+  --color-info-bg: color-mix(in srgb, var(--color-info) var(--theme-status-soft), transparent);
+
+  --color-code-text: var(--color-ink);
+  --color-scrim: color-mix(in srgb, var(--color-shadow) var(--theme-scrim), transparent);
+
+  /* Shadows: fixed geometry, theme-tinted color. Only elevated layers use them. */
+  --shadow-tint: color-mix(in srgb, var(--color-shadow) var(--theme-shadow), transparent);
+  --shadow-tint-soft: color-mix(
+    in srgb,
+    var(--color-shadow) calc(var(--theme-shadow) * 0.5),
+    transparent
+  );
+  --shadow-card: 0 1px 2px var(--shadow-tint-soft);
+  --shadow-popover: 0 1px 2px var(--shadow-tint-soft), 0 10px 28px -10px var(--shadow-tint);
+  --shadow-dialog: 0 2px 6px var(--shadow-tint-soft), 0 28px 56px -16px var(--shadow-tint);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Typography (identical in every theme)
+   Inter for the interface and prose, Fraunces for display text and document
+   headings, the system monospace stack for code.
    ───────────────────────────────────────────────────────────── */
 :root {
-  /* Self-hosted via next/font/local (see app/fonts.ts); the generated family
-     names differ from the real ones, so reference the variables instead. */
-  --font-ui: var(--font-space-grotesk), "DM Sans", system-ui, sans-serif;
-  /* Real monospace fonts come before the generic fallback, so code never lands
-     on a proportional face. Space Mono's subset has no box-drawing glyphs;
-     plain-text blocks switch to the system stack (see .tiptap pre). */
-  --font-code:
-    var(--font-space-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
-    monospace;
+  /* next/font exposes the self-hosted families as variables (app/fonts.ts) */
+  --font-ui-stack:
+    var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-serif-stack: var(--font-fraunces), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-code-stack:
+    ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
-  /* Ink mixed into the surface, scaled by the preset's contrast. From light
-     to strong: elevated panels → hovered/active rows → hairlines → borders. */
-  --color-surface-secondary: color-mix(
-    in srgb,
-    var(--color-ink) calc(var(--theme-contrast) * 0.1%),
-    var(--color-surface)
-  );
-  --color-surface-raised: color-mix(
-    in srgb,
-    var(--color-ink) calc(var(--theme-contrast) * 0.17%),
-    var(--color-surface)
-  );
-  --color-border: color-mix(
-    in srgb,
-    var(--color-ink) calc(var(--theme-contrast) * 0.25%),
-    var(--color-surface)
-  );
-  --color-border-strong: color-mix(
-    in srgb,
-    var(--color-ink) calc(var(--theme-contrast) * 0.35%),
-    var(--color-surface)
-  );
-  --color-muted: color-mix(in srgb, var(--color-ink) var(--theme-muted), transparent);
+  /* Document prose: 17px on a 1.7 line height, adjustable in Appearance */
+  --reading-size: 1.0625rem;
+  --reading-leading: 1.7;
 }
 
-/* Default Theme (LIGHT - nothing). The accent is the ink itself, so primary
-   actions read black on white; red is kept for the signal (active row,
-   caret, live dot) and for errors. */
-:root,
-html[data-code-theme="nothing-light"] {
-  --color-surface: #ffffff;
-  --color-ink: #1a1a1a;
-  --color-accent: #000000;
-  --color-signal: #d71921;
-  --color-code-accent: var(--color-info);
-  --theme-contrast: 50;
-  --theme-muted: 62%;
-  --color-diff-added: #2f7d43;
-  --color-diff-removed: #d71921;
-  --color-skill: #0062cc;
-
-  --color-danger: #d71921;
-  --color-danger-bg: color-mix(in srgb, var(--color-danger) 12%, transparent);
-  --color-success: #2f7d43;
-  --color-success-bg: color-mix(in srgb, var(--color-success) 12%, transparent);
-  --color-info: #0062cc;
-  --color-info-bg: color-mix(in srgb, var(--color-info) 12%, transparent);
+html[data-reading-size="small"] {
+  --reading-size: 1rem;
 }
 
-/* LIGHT - github & everforest: shared status colors; the accent doubles as
-   the signal */
-html[data-code-theme="github-light"],
-html[data-code-theme="everforest-light"] {
-  --color-signal: var(--color-accent);
-  --color-code-accent: var(--color-accent);
-  --theme-muted: 50%;
-
-  --color-danger: #ef4444;
-  --color-danger-bg: #fee2e2;
-  --color-success: #22c55e;
-  --color-success-bg: #dcfce7;
-  --color-info: #3b82f6;
-  --color-info-bg: #dbeafe;
-}
-
-/* LIGHT - github */
-html[data-code-theme="github-light"] {
-  --color-accent: #0969da;
-  --theme-contrast: 40;
-  --color-ink: #1f2328;
-  --color-surface: #ffffff;
-  --color-diff-added: #1a7f37;
-  --color-diff-removed: #cf222e;
-  --color-skill: #0969da;
-}
-
-/* LIGHT - everforest */
-html[data-code-theme="everforest-light"] {
-  --color-accent: #708d44;
-  --theme-contrast: 35;
-  --color-ink: #3c474d;
-  --color-surface: #f7f5ed;
-  --color-diff-added: #6c854c;
-  --color-diff-removed: #d65d5b;
-  --color-skill: #708d44;
+html[data-reading-size="large"] {
+  --reading-size: 1.1875rem;
 }
 
 @theme inline {
@@ -147,321 +269,403 @@ html[data-code-theme="everforest-light"] {
   --radius-*: initial;
   --shadow-*: initial;
 
-  --color-background: var(--color-surface);
-  --color-foreground: var(--color-ink);
-
-  /* Tokens from ThemeConfig */
-  --color-accent: var(--color-accent);
-  --color-ink: var(--color-ink);
-  --color-surface: var(--color-surface);
-  --color-surface-secondary: var(--color-surface-secondary);
-  --color-surface-raised: var(--color-surface-raised);
-  --color-border: var(--color-border);
-  --color-border-strong: var(--color-border-strong);
-  --color-muted: var(--color-muted);
-  --color-signal: var(--color-signal);
-  --color-diff-added: var(--color-diff-added);
-  --color-diff-removed: var(--color-diff-removed);
-  --color-skill: var(--color-skill);
-
-  /* Codex tokens — the names to use in class names */
+  /* Surfaces */
   --color-codex-background: var(--color-surface);
-  --color-codex-foreground: var(--color-ink);
-  --color-codex-sidebar: var(--color-surface-secondary);
   --color-codex-surface: var(--color-surface);
+  --color-codex-sidebar: var(--color-sidebar);
   --color-codex-surface-secondary: var(--color-surface-secondary);
-  /* Hovered / active rows on the sidebar and on elevated panels */
-  --color-codex-surface-raised: var(--color-surface-raised);
-  /* Hairlines: dividers, section rules, card outlines */
-  --color-codex-border: var(--color-border);
-  /* Intentional borders: dialogs, menus, inputs, hovered cards */
-  --color-codex-border-strong: var(--color-border-strong);
-  --color-codex-accent: var(--color-accent);
-  /* The one "look here" color: active indicator, caret, live dot */
-  --color-codex-signal: var(--color-signal);
-  --color-codex-muted: var(--color-muted);
-  --color-codex-skill: var(--color-skill);
+  --color-codex-elevated: var(--color-elevated);
+  /* Interactive fills (translucent): hovered rows, selected/pressed items */
+  --color-codex-hover: var(--color-hover);
+  --color-codex-selected: var(--color-selected);
+  --color-codex-scrim: var(--color-scrim);
 
-  /* Status Colors */
+  /* Text */
+  --color-codex-foreground: var(--color-ink);
+  --color-codex-muted: var(--color-muted);
+  /* Placeholders, disabled text, decorative marks (≥ 3:1) */
+  --color-codex-faint: var(--color-faint);
+
+  /* Lines */
+  --color-codex-border: var(--color-border);
+  --color-codex-border-strong: var(--color-border-strong);
+
+  /* Accents */
+  --color-codex-accent: var(--color-accent);
+  --color-codex-accent-hover: var(--color-accent-hover);
+  --color-codex-accent-soft: var(--color-accent-soft);
+  --color-codex-accent-secondary: var(--color-accent-secondary);
+  --color-codex-focus: var(--color-focus);
+
+  /* Status */
   --color-codex-danger: var(--color-danger);
   --color-codex-danger-bg: var(--color-danger-bg);
   --color-codex-success: var(--color-success);
   --color-codex-success-bg: var(--color-success-bg);
+  --color-codex-warning: var(--color-warning);
+  --color-codex-warning-bg: var(--color-warning-bg);
   --color-codex-info: var(--color-info);
   --color-codex-info-bg: var(--color-info-bg);
 
-  /* Border Radius */
-  --radius-codex-sm: 0.375rem;
-  --radius-codex-md: 0.5rem;
-  --radius-codex-lg: 0.75rem;
-  --radius-codex-xl: 1rem;
-  --radius-codex-2xl: 1.5rem;
+  /* Radius: restrained, so content stays the shape on screen */
+  --radius-codex-sm: 0.25rem;
+  --radius-codex-md: 0.375rem;
+  --radius-codex-lg: 0.5rem;
+  --radius-codex-xl: 0.75rem;
+  --radius-codex-2xl: 1rem;
 
-  --font-sans: var(--font-ui);
-  --font-mono: var(--font-code);
-  /* Dot-matrix face for hero numbers (36px and up only) */
-  --font-display: var(--font-doto), var(--font-space-mono), monospace;
+  /* Shadows: cards (sm), menus and popovers (md), dialogs (lg) */
+  --shadow-codex-sm: var(--shadow-card);
+  --shadow-codex-md: var(--shadow-popover);
+  --shadow-codex-lg: var(--shadow-dialog);
 
-  /* Letter spacing for ALL CAPS mono labels */
+  --font-sans: var(--font-ui-stack);
+  --font-serif: var(--font-serif-stack);
+  --font-mono: var(--font-code-stack);
+
+  /* Letter spacing for small ALL CAPS labels */
   --tracking-label: 0.08em;
 }
 
-/* Elevated surface for dialogs, menus and popovers: flat and opaque, set off
-   from the page by a border-codex-border-strong outline, never blur or shadow. */
-.glass-surface {
-  background-color: var(--color-surface-secondary);
-}
-
-/* Default Theme (DARK - nothing): OLED black, white accent, red signal */
-html.dark,
-html.dark[data-code-theme="nothing-dark"] {
-  --color-surface: #000000;
-  --color-ink: #ececec;
-  --color-accent: #ffffff;
-  --color-signal: #d71921;
-  --color-code-accent: var(--color-info);
-  --theme-contrast: 92;
-  --theme-muted: 62%;
-  --color-diff-added: #4a9e5c;
-  --color-diff-removed: #e5484d;
-  --color-skill: #5b9bf6;
-
-  /* Brighter than the signal red so error text stays legible on black */
-  --color-danger: #e5484d;
-  --color-danger-bg: color-mix(in srgb, var(--color-danger) 15%, transparent);
-  --color-success: #4a9e5c;
-  --color-success-bg: color-mix(in srgb, var(--color-success) 15%, transparent);
-  --color-info: #5b9bf6;
-  --color-info-bg: color-mix(in srgb, var(--color-info) 15%, transparent);
-}
-
-/* DARK - github, everforest & lobster: shared status colors; the accent
-   doubles as the signal */
-html.dark[data-code-theme="github-dark"],
-html.dark[data-code-theme="everforest-dark"],
-html.dark[data-code-theme="lobster-dark"] {
-  --color-signal: var(--color-accent);
-  --color-code-accent: var(--color-accent);
-  --theme-muted: 50%;
-
-  --color-danger: #f85149;
-  --color-danger-bg: #7f1d1d;
-  --color-success: #3fb950;
-  --color-success-bg: #14532d;
-  --color-info: #58a6ff;
-  --color-info-bg: #1e3a8a;
-}
-
-/* DARK - github */
-html.dark[data-code-theme="github-dark"] {
-  --color-accent: #1f6feb;
-  --theme-contrast: 44;
-  --color-ink: #e6edf3;
-  --color-surface: #0d1117;
-  --color-diff-added: #3fb950;
-  --color-diff-removed: #f85149;
-  --color-skill: #1f6feb;
-}
-
-/* DARK - everforest */
-html.dark[data-code-theme="everforest-dark"] {
-  --color-accent: #a7c080;
-  --theme-contrast: 44;
-  --color-ink: #d3c6aa;
-  --color-surface: #2d353b;
-  --color-diff-added: #a7c080;
-  --color-diff-removed: #e67e80;
-  --color-skill: #d699b6;
-}
-
-/* DARK - lobster */
-html.dark[data-code-theme="lobster-dark"] {
-  --color-accent: #ff5c5c;
-  --theme-contrast: 44;
-  --color-ink: #e4e4e7;
-  --color-surface: #111827;
-  --color-diff-added: #4ade80;
-  --color-diff-removed: #f87171;
-  --color-skill: #ff5c5c;
-}
-
+/* ─────────────────────────────────────────────────────────────
+   Base
+   ───────────────────────────────────────────────────────────── */
 body {
-  background: var(--color-surface);
+  background-color: var(--color-surface);
   color: var(--color-ink);
-  font-family:
-    var(--font-sans),
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: var(--font-ui-stack);
+  text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background-color: color-mix(in srgb, var(--color-accent) 24%, transparent);
 }
 
-/* Visible focus ring by default: a 1px ink outline. Wrapped in :where() and
-   the base layer, so a component's own focus utilities always win. */
 @layer base {
+  /* One focus indicator everywhere: a 2px accent outline off the element.
+     Wrapped in :where() and the base layer, so a component's own focus
+     utilities always win. */
   :where(
     a,
     button,
     [role="button"],
     [role="option"],
     [role="menuitem"],
+    [role="menuitemradio"],
     [role="tab"],
     [role="switch"],
+    [role="radio"],
+    [role="checkbox"],
     input,
     textarea,
     select,
     summary,
     [tabindex]:not([tabindex="-1"])
   ):where(:focus-visible) {
-    outline: 1px solid var(--color-ink);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }
 
-/* Scrollbars: thin, quiet, drawn in the border color */
+/* Scrollbars: thin and quiet */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border-strong) transparent;
 }
 
-button,
-[role="button"] {
-  cursor: pointer;
+/* ─────────────────────────────────────────────────────────────
+   Shared utilities
+   ───────────────────────────────────────────────────────────── */
+
+/* Small ALL CAPS label: section headings, metadata, timestamps */
+@utility eyebrow {
+  font-family: var(--font-ui-stack);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
 }
 
-button:disabled,
-[role="button"]:disabled {
-  cursor: default; /* Tailwind utility classes will override this to not-allowed where needed */
+/* Menus, popovers, toasts: an elevated sheet with a hairline and soft shadow */
+@utility surface-popover {
+  background-color: var(--color-elevated);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-popover);
+  color: var(--color-ink);
 }
 
-/* Tiptap Editor Typography & Blocks */
+/* Dialogs: same sheet, deeper shadow */
+@utility surface-dialog {
+  background-color: var(--color-elevated);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-dialog);
+  color: var(--color-ink);
+}
+
+/* Reading progress along the top bar's bottom edge (scroll-driven, no JS).
+   It tracks the scroll position rather than playing an animation, so it stays
+   on with motion off; unsupported browsers simply don't show it. */
+@keyframes scrollProgress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.scroll-progress {
+  display: none;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    display: block;
+    animation: scrollProgress linear both;
+    animation-timeline: scroll(nearest block);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Editor (Tiptap)
+   Sizes are in em of the prose size, so Appearance → Text size scales the
+   whole document proportionally.
+   ───────────────────────────────────────────────────────────── */
 .tiptap {
   outline: none;
-  /* The caret is the one signal-colored thing on a writing screen */
-  caret-color: var(--color-signal);
+  caret-color: var(--color-accent);
+  color: var(--color-ink);
+  font-family: var(--font-ui-stack);
+  font-size: var(--reading-size);
+  line-height: var(--reading-leading);
+  overflow-wrap: break-word;
+  font-kerning: normal;
+}
+
+.tiptap > :first-child {
+  margin-top: 0;
 }
 
 .tiptap p {
-  margin: 0.25rem 0;
-  line-height: 1.6;
+  margin: 0.5em 0;
 }
 
-.tiptap p.is-editor-empty:first-child::before {
-  color: var(--color-muted);
+.tiptap strong {
+  font-weight: 600;
+}
+
+.tiptap a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.tiptap a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Placeholders: the empty document, and the empty block holding the caret */
+.tiptap p.is-editor-empty:first-child::before,
+.tiptap.ProseMirror-focused .is-empty::before {
   content: attr(data-placeholder);
   float: left;
   height: 0;
   pointer-events: none;
+  color: var(--color-faint);
 }
 
-/* Headings: tight and confident */
+/* Headings: Fraunces for the two large levels, Inter for the third so dense
+   documents stay easy to scan */
+.tiptap h1,
+.tiptap h2 {
+  font-family: var(--font-serif-stack);
+  font-optical-sizing: auto;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
 .tiptap h1 {
-  font-size: 1.875rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.76em;
+  line-height: 1.2;
+  margin: 1.6em 0 0.35em;
 }
 
 .tiptap h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  margin-top: 1.25rem;
-  margin-bottom: 0.375rem;
+  font-size: 1.41em;
+  line-height: 1.25;
+  margin: 1.5em 0 0.35em;
 }
 
 .tiptap h3 {
-  font-size: 1.25rem;
+  font-size: 1.12em;
   font-weight: 600;
-  letter-spacing: -0.01em;
   line-height: 1.4;
-  margin-top: 1rem;
-  margin-bottom: 0.25rem;
+  letter-spacing: -0.005em;
+  margin: 1.4em 0 0.3em;
+  color: var(--color-ink);
 }
 
+/* Lists */
 .tiptap ul:not([data-type="taskList"]) {
   list-style-type: disc;
-  padding-left: 1.5rem;
-  margin: 0.35rem 0;
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.tiptap ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
 }
 
 .tiptap ol {
   list-style-type: decimal;
-  padding-left: 1.5rem;
-  margin: 0.35rem 0;
+  padding-left: 1.6em;
+  margin: 0.5em 0;
 }
 
 .tiptap li {
-  margin: 0.15rem 0;
+  margin: 0.2em 0;
+  padding-left: 0.15em;
 }
 
+/* List text sits directly in the item (to-do items wrap it in a div) */
+.tiptap li > p,
+.tiptap li > div > p {
+  margin: 0;
+}
+
+.tiptap li::marker {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* To-do list: a drawn checkbox centered on the first line of its text */
 .tiptap ul[data-type="taskList"] {
   list-style: none;
   padding: 0;
-  margin: 0.35rem 0;
+  margin: 0.5em 0;
 }
 
 .tiptap ul[data-type="taskList"] li {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  margin: 0.25rem 0;
+  gap: 0.6em;
+  margin: 0.2em 0;
+  padding-left: 0;
 }
 
 .tiptap ul[data-type="taskList"] li > label {
-  margin-top: 0.2rem;
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: calc(1em * var(--reading-leading));
   user-select: none;
 }
 
 .tiptap ul[data-type="taskList"] li > label input[type="checkbox"] {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0;
+  border: 1.5px solid var(--color-faint);
+  border-radius: var(--radius-codex-sm);
+  background-color: var(--color-elevated);
   cursor: pointer;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 0.25rem;
-  accent-color: var(--color-accent);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.tiptap ul[data-type="taskList"] li > label input[type="checkbox"]::after {
+  content: "";
+  width: 0.55em;
+  height: 0.3em;
+  border-left: 2px solid var(--color-surface);
+  border-bottom: 2px solid var(--color-surface);
+  transform: translateY(-0.06em) rotate(-45deg);
+  opacity: 0;
+}
+
+.tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:hover {
+  border-color: var(--color-accent);
+}
+
+.tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked::after {
+  opacity: 1;
 }
 
 .tiptap ul[data-type="taskList"] li > div {
   flex: 1;
+  min-width: 0;
 }
 
+/* Done items: muted and struck through, so the state never rests on color */
 .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
-  text-decoration: line-through;
   color: var(--color-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--color-muted) 60%, transparent);
 }
 
+/* Quote: the editorial voice, set off by a secondary-accent rule */
 .tiptap blockquote {
-  border-left: 2px solid var(--color-border-strong);
-  padding-left: 1rem;
-  margin: 0.75rem 0;
-  color: var(--color-muted);
+  margin: 1em 0;
+  padding: 0.1em 0 0.1em 1.1em;
+  border-left: 2px solid var(--color-accent-secondary);
+  font-family: var(--font-serif-stack);
+  font-optical-sizing: auto;
   font-style: italic;
+  font-size: 1.06em;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.tiptap blockquote p {
+  margin: 0.35em 0;
 }
 
 .tiptap hr {
   border: none;
-  border-top: 1px solid var(--color-border);
-  margin: 1.5rem 0;
+  height: 1px;
+  background-color: var(--color-border);
+  margin: 2em 0;
 }
 
-/* Inline code: a small outlined chip in red text, so it reads as code at a
-   glance even inside prose. box-decoration-break keeps the chip intact when
-   it wraps across lines. */
+.tiptap hr.ProseMirror-selectednode {
+  background-color: var(--color-accent);
+}
+
+/* Inline code: a small chip in the theme's code ink. box-decoration-break
+   keeps the chip intact when it wraps across lines. */
 .tiptap code:not(pre code),
 .tiptap :not(pre) > code {
-  background: var(--color-surface-secondary);
-  color: var(--color-danger);
-  font-family: var(--font-code);
-  font-size: 0.85em;
-  padding: 0.12em 0.4em;
+  background-color: var(--color-surface-secondary);
+  color: var(--color-code-inline);
+  font-family: var(--font-code-stack);
+  font-size: 0.86em;
+  padding: 0.12em 0.36em;
   border-radius: var(--radius-codex-sm);
   border: 1px solid var(--color-border);
   white-space: break-spaces;
@@ -481,16 +685,19 @@ button:disabled,
   background-color: inherit;
 }
 
+/* Code block: a quiet well */
 .tiptap pre {
-  background: var(--color-surface-secondary);
-  color: var(--color-ink);
-  font-family: var(--font-code);
-  padding: 0.875rem 1rem;
+  background-color: var(--color-surface-secondary);
+  color: var(--color-code-text);
+  font-family: var(--font-code-stack);
+  font-size: 0.82em;
+  line-height: 1.65;
+  padding: 1rem 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-codex-md);
-  margin: 0.75rem 0;
+  border-radius: var(--radius-codex-lg);
+  margin: 1em 0;
   overflow-x: auto;
-  font-size: 0.875rem;
+  tab-size: 2;
 }
 
 .tiptap pre code {
@@ -501,73 +708,72 @@ button:disabled,
   font-size: inherit;
 }
 
-/* Plain-text blocks (ASCII trees, diagrams): system monospace fonts at their
-   natural line height. Space Mono's subset lacks box-drawing glyphs (│ ├ └);
-   taking every glyph from one font keeps them joined into continuous lines. */
+/* Plain-text blocks (ASCII trees, diagrams): natural line height, so
+   box-drawing characters (│ ├ └) join into continuous lines. */
 .tiptap pre[data-plaintext] {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   line-height: normal;
 }
 
-/* Highlight.js syntax highlighting adapted to current theme. Keywords use
-   --color-code-accent: the accent, except in monochrome presets where the
-   accent is the ink itself and keywords would vanish into plain code. */
+/* Syntax highlighting (highlight.js classes) from the theme's code palette */
 .tiptap pre .hljs-comment,
 .tiptap pre .hljs-quote {
-  color: var(--color-muted);
+  color: var(--color-code-comment);
   font-style: italic;
 }
 
-.tiptap pre .hljs-doctag,
 .tiptap pre .hljs-keyword,
-.tiptap pre .hljs-formula {
-  color: var(--color-code-accent);
-}
-
-.tiptap pre .hljs-section,
-.tiptap pre .hljs-name,
+.tiptap pre .hljs-doctag,
+.tiptap pre .hljs-formula,
 .tiptap pre .hljs-selector-tag,
-.tiptap pre .hljs-deletion,
-.tiptap pre .hljs-subst {
-  color: var(--color-danger);
-}
-
-.tiptap pre .hljs-literal {
-  color: var(--color-info);
+.tiptap pre .hljs-built_in {
+  color: var(--color-code-keyword);
 }
 
 .tiptap pre .hljs-string,
 .tiptap pre .hljs-regexp,
 .tiptap pre .hljs-addition,
-.tiptap pre .hljs-attribute,
 .tiptap pre .hljs-meta .hljs-string {
-  color: var(--color-success);
+  color: var(--color-code-string);
+}
+
+.tiptap pre .hljs-number,
+.tiptap pre .hljs-literal,
+.tiptap pre .hljs-symbol,
+.tiptap pre .hljs-bullet {
+  color: var(--color-code-number);
+}
+
+.tiptap pre .hljs-title,
+.tiptap pre .hljs-title.function_,
+.tiptap pre .hljs-title.class_,
+.tiptap pre .hljs-class .hljs-title,
+.tiptap pre .hljs-section,
+.tiptap pre .hljs-link {
+  color: var(--color-code-function);
+}
+
+.tiptap pre .hljs-name,
+.tiptap pre .hljs-tag,
+.tiptap pre .hljs-deletion,
+.tiptap pre .hljs-selector-id {
+  color: var(--color-code-tag);
 }
 
 .tiptap pre .hljs-attr,
+.tiptap pre .hljs-attribute,
 .tiptap pre .hljs-variable,
 .tiptap pre .hljs-template-variable,
 .tiptap pre .hljs-type,
+.tiptap pre .hljs-params,
 .tiptap pre .hljs-selector-class,
 .tiptap pre .hljs-selector-attr,
 .tiptap pre .hljs-selector-pseudo,
-.tiptap pre .hljs-number {
-  color: var(--color-code-accent);
+.tiptap pre .hljs-meta {
+  color: var(--color-code-attribute);
 }
 
-.tiptap pre .hljs-symbol,
-.tiptap pre .hljs-bullet,
-.tiptap pre .hljs-link,
-.tiptap pre .hljs-meta,
-.tiptap pre .hljs-selector-id,
-.tiptap pre .hljs-title {
-  color: var(--color-info);
-}
-
-.tiptap pre .hljs-built_in,
-.tiptap pre .hljs-title.class_,
-.tiptap pre .hljs-class .hljs-title {
-  color: var(--color-code-accent);
+.tiptap pre .hljs-subst {
+  color: var(--color-code-text);
 }
 
 .tiptap pre .hljs-emphasis {
@@ -575,7 +781,7 @@ button:disabled,
 }
 
 .tiptap pre .hljs-strong {
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .tiptap pre .hljs-link {
@@ -585,61 +791,81 @@ button:disabled,
 .tiptap img {
   max-width: 100%;
   height: auto;
-  border-radius: var(--radius-codex-md);
-  margin: 0.75rem 0;
+  border-radius: var(--radius-codex-lg);
+  margin: 1.25em 0;
 }
 
-/* Table styles: a full 1px grid in the border color */
+.tiptap img.ProseMirror-selectednode,
+.tiptap .ProseMirror-selectednode img {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Tables: a hairline grid, slightly smaller type for dense data */
+.tiptap .tableWrapper {
+  overflow-x: auto;
+  margin: 1.25em 0;
+}
+
 .tiptap table {
   border-collapse: collapse;
   margin: 0;
   overflow: hidden;
   table-layout: fixed;
   width: 100%;
+  font-size: 0.9em;
+  line-height: 1.55;
 }
+
 .tiptap table td,
 .tiptap table th {
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border);
   box-sizing: border-box;
   min-width: 1em;
-  padding: 0.75rem 1rem;
+  padding: 0.55em 0.75em;
   position: relative;
   vertical-align: top;
 }
+
 .tiptap table th {
   background-color: var(--color-surface-secondary);
   font-weight: 600;
   text-align: left;
 }
-.tiptap .tableWrapper {
-  overflow-x: auto;
-  margin: 1.5rem 0;
+
+.tiptap table td > p,
+.tiptap table th > p {
+  margin: 0;
 }
 
-/* When a whole column/row is selected via its handle, the active-state accent
-   border is drawn as an overlay by TableControls. We only suppress the native
-   text-selection color inside those cells so it doesn't compete with the
-   border indicator. */
+/* Selected cells (drag across cells, or a whole column/row from its handle):
+   a soft accent wash. TableControls adds the outline for column/row picks. */
+.tiptap table .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-accent-soft);
+  pointer-events: none;
+}
+
 .tiptap table .selectedCell ::selection,
 .tiptap table .selectedCell *::selection {
   background: transparent;
 }
 
-/* Focused single cell: thin accent border around just that cell.
-   Uses an inset ring so it sits inside the cell border without shifting layout.
-   Suppressed while a multi-cell selection is active (a whole column/row is
-   selected via the handle) to avoid competing indicators. */
+/* Focused single cell: an inset ring in the accent, no layout shift.
+   Suppressed while a multi-cell selection is active. */
 .tiptap table td.has-focus,
 .tiptap table th.has-focus {
-  box-shadow: inset 0 0 0 2px var(--color-info);
-  border-color: var(--color-info);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
   z-index: 3;
 }
+
 .tiptap table .selectedCell.has-focus {
   box-shadow: none;
 }
 
-/* Column resize handle from prosemirror-tables, themed to Codex tokens. */
+/* Column resize handle from prosemirror-tables */
 .tiptap table .column-resize-handle {
   position: absolute;
   right: -2px;
@@ -649,44 +875,60 @@ button:disabled,
   background-color: var(--color-accent);
   pointer-events: none;
 }
+
 .tiptap.resize-cursor {
   cursor: col-resize;
 }
 
-/* Toggle block styles */
+/* Toggle block: a drawn chevron that turns when open */
 .tiptap-toggle {
-  margin: 0.35rem 0;
-  border-radius: var(--radius-codex-sm);
+  margin: 0.4em 0;
 }
 
-.tiptap-toggle summary {
-  cursor: pointer;
-  list-style: none;
-  font-weight: 500;
+.tiptap-toggle > summary {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5em;
+  list-style: none;
+  cursor: pointer;
   user-select: none;
 }
 
-.tiptap-toggle summary::-webkit-details-marker {
+.tiptap-toggle > summary::-webkit-details-marker {
   display: none;
 }
 
-/* Multi-Block Selection */
-.tiptap .block-selected {
-  background-color: color-mix(in srgb, var(--color-accent) 30%, transparent) !important;
-  caret-color: transparent;
-  border-radius: 0.125rem;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 30%, transparent) !important;
+.tiptap-toggle > summary::before {
+  content: "";
+  flex: none;
+  width: 0.42em;
+  height: 0.42em;
+  margin-left: 0.2em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 150ms ease;
 }
+
+.tiptap-toggle[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+/* Multi-block selection */
+.tiptap .block-selected {
+  background-color: var(--color-accent-soft) !important;
+  caret-color: transparent;
+  border-radius: var(--radius-codex-sm);
+  box-shadow: 0 0 0 2px var(--color-accent-soft) !important;
+}
+
 .tiptap .block-selected ::selection,
 .tiptap .block-selected *::selection {
   background: transparent !important;
   color: inherit !important;
 }
 
-/* Hide native selection entirely when lasso is active or multi-block selection is active */
+/* Hide native selection while lasso or multi-block selection is active */
 .is-lassoing .tiptap ::selection,
 .is-lassoing .tiptap *::selection,
 .tiptap.is-multi-block ::selection,
@@ -695,217 +937,23 @@ button:disabled,
   color: inherit !important;
 }
 
-@keyframes slideUpFade {
-  0% {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-up-fade {
-  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Text rising out of a clipping parent (overflow-hidden). CSS-only so hero
-   copy shows up before hydration; `both` holds it below during the delay. */
-@keyframes riseIn {
-  from {
-    transform: translateY(105%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.animate-rise-in {
-  animation: riseIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* ── Ambient decoration (theme-token driven, motion-setting aware) ───────── */
-
-/* Gradient text that slowly drifts between theme colors */
-@keyframes gradientDrift {
-  from {
-    background-position: 0% 50%;
-  }
-  to {
-    background-position: 100% 50%;
-  }
-}
-
-@utility text-gradient-accent {
-  background-image: linear-gradient(
-    100deg,
-    var(--color-accent),
-    var(--color-info) 40%,
-    color-mix(in srgb, var(--color-accent) 55%, var(--color-ink)) 70%,
-    var(--color-accent)
-  );
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradientDrift 7s ease-in-out infinite alternate;
-}
-
-/* Soft accent light behind the home greeting */
-@keyframes glowDrift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(6%, 8%, 0) scale(1.12);
-  }
-}
-
-.home-hero-glow {
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--color-accent) 22%, transparent),
-    color-mix(in srgb, var(--color-info) 8%, transparent) 55%,
-    transparent
-  );
-  animation: glowDrift 14s ease-in-out infinite alternate;
-}
-
-/* Dot-matrix texture, faded out toward the edges */
-.dot-grid {
-  background-image: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-ink) 22%, transparent) 1px,
-    transparent 1.5px
-  );
-  background-size: 16px 16px;
-  /* Masks only read alpha; any opaque token works as the "visible" stop */
-  -webkit-mask-image: radial-gradient(ellipse at 30% 40%, var(--color-ink), transparent 70%);
-  mask-image: radial-gradient(ellipse at 30% 40%, var(--color-ink), transparent 70%);
-}
-
-/* Page cover: drifts slower than the content while the page scrolls.
-   Scroll-driven (no JS); browsers without support keep a static cover. */
-@keyframes coverParallax {
-  from {
-    transform: translate3d(0, 0, 0) scale(1.06);
-  }
-  to {
-    transform: translate3d(0, 22%, 0) scale(1.06);
-  }
-}
-
-/* Flat dot-matrix fill for placeholders (card banners, empty states). The
-   faded .dot-grid above is for decorative backdrops. */
-@utility dot-matrix {
-  background-image: radial-gradient(circle, var(--color-border-strong) 1px, transparent 1.5px);
-  background-size: 12px 12px;
-}
-
-/* List rows settling in: a short fade with a 4px rise, ease-out and no
-   overshoot. `both` keeps a row hidden during its stagger delay. */
-@keyframes rowIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.animate-row-in {
-  animation: rowIn 0.32s cubic-bezier(0.25, 0.1, 0.25, 1) both;
-}
-
-/* Landing ribbon: endless horizontal drift, faded at both ends */
-@keyframes marquee {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-.marquee-track {
-  animation: marquee 48s linear infinite;
-}
-
-.marquee-mask {
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    var(--color-ink) 12%,
-    var(--color-ink) 88%,
-    transparent
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    var(--color-ink) 12%,
-    var(--color-ink) 88%,
-    transparent
-  );
-}
-
-/* Reading progress along the top bar's bottom edge (scroll-driven, no JS).
-   It tracks the scroll position rather than playing an animation, so it stays
-   on with motion off; unsupported browsers simply don't show it. */
-@keyframes scrollProgress {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-.scroll-progress {
-  display: none;
-  transform-origin: left center;
-  /* Base state when the timeline is inactive (content too short to scroll) */
-  transform: scaleX(0);
-}
-
-@supports (animation-timeline: scroll()) {
-  .scroll-progress {
-    display: block;
-    animation: scrollProgress linear both;
-    animation-timeline: scroll(nearest block);
-  }
-
-  html:not([data-motion="reduce"]) .cover-parallax {
-    animation: coverParallax linear both;
-    animation-timeline: scroll(nearest block);
-    animation-range: 0 320px;
-  }
-}
-
-/* Block redirect flash highlight */
+/* Jump-to-block highlight (outline links, block links) */
 @keyframes blockFlash {
-  0% {
-    background-color: color-mix(in srgb, var(--color-accent) 28%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
-  }
+  0%,
   30% {
-    background-color: color-mix(in srgb, var(--color-accent) 22%, transparent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 15%, transparent);
+    background-color: var(--color-accent-soft);
   }
   100% {
     background-color: transparent;
-    box-shadow: 0 0 0 0 transparent;
   }
 }
 
 .block-highlight-flash {
-  animation: blockFlash 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: blockFlash 1.6s ease-out forwards;
   border-radius: var(--radius-codex-sm);
 }
 
-/* Smooth scroll offset for block navigation under sticky header */
+/* Smooth scroll offset for block navigation under the sticky top bar */
 .tiptap [data-id],
 .tiptap h1,
 .tiptap h2,
@@ -914,7 +962,7 @@ button:disabled,
   scroll-margin-top: 4.5rem;
 }
 
-/* Drag & Drop Block Reordering */
+/* Drag & drop block reordering */
 .is-dragging-source {
   opacity: 0.35 !important;
   pointer-events: none;
@@ -931,7 +979,7 @@ button:disabled,
   display: block;
 }
 
-/* A flat 2px rule with a leading dot: no glow */
+/* A 2px rule with a leading dot */
 .tiptap-drop-indicator::before {
   content: "";
   position: absolute;

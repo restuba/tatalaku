@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { AlertCircle } from "lucide-react";
 import { Modal } from "@/components/reusable/modal";
 import { Button } from "@/components/reusable/button";
 import { Input } from "@/components/reusable/input";
@@ -22,7 +23,9 @@ function ConfirmBody({
     <>
       <Modal.Header showClose={false}>{request.title}</Modal.Header>
       {request.description && (
-        <Modal.Content className="text-codex-muted">{request.description}</Modal.Content>
+        <Modal.Content className="pt-1 leading-relaxed text-codex-muted">
+          {request.description}
+        </Modal.Content>
       )}
       <Modal.Action>
         {/* Destructive actions start on Cancel so Enter can't delete by accident */}
@@ -70,12 +73,11 @@ function PromptBody({
     <form onSubmit={handleSubmit} noValidate>
       <Modal.Header showClose={false}>{request.title}</Modal.Header>
       <Modal.Content className="space-y-2">
-        {request.description && <p className="text-codex-muted">{request.description}</p>}
+        {request.description && (
+          <p className="leading-relaxed text-codex-muted">{request.description}</p>
+        )}
         {request.label && (
-          <label
-            htmlFor={inputId}
-            className="block pt-1 font-mono text-xs uppercase tracking-label text-codex-muted"
-          >
+          <label htmlFor={inputId} className="block pt-1 text-sm font-medium text-codex-foreground">
             {request.label}
           </label>
         )}
@@ -94,9 +96,13 @@ function PromptBody({
           }}
         />
         {error && (
-          <p id={errorId} role="alert" className="text-xs text-codex-danger">
-            <span className="mr-1.5 font-mono uppercase tracking-label">[Error]</span>
-            {error}
+          <p
+            id={errorId}
+            role="alert"
+            className="flex items-start gap-1.5 text-sm text-codex-danger"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
           </p>
         )}
       </Modal.Content>

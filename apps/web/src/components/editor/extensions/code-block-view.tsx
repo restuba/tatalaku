@@ -36,7 +36,7 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
         onKeyDown={stopPropagation}
         onKeyUp={stopPropagation}
         aria-label="Code language"
-        className="absolute right-2 top-2 z-10 cursor-pointer rounded-codex-sm border border-codex-border-strong bg-codex-background px-2 py-1 font-mono text-xs uppercase tracking-label text-codex-muted opacity-0 outline-none transition-[opacity,color,border-color] duration-150 group-hover:opacity-100 hover:text-codex-foreground focus:border-codex-foreground focus-visible:opacity-100 pointer-coarse:opacity-100"
+        className="absolute right-2 top-2 z-10 h-7 cursor-pointer rounded-codex-md border border-codex-border bg-codex-elevated px-2 text-xs text-codex-muted opacity-0 transition-[opacity,color,border-color] duration-150 group-hover:opacity-100 hover:text-codex-foreground focus-visible:opacity-100 pointer-coarse:h-9 pointer-coarse:opacity-100"
       >
         <option value="null">auto</option>
         <option disabled>—</option>
@@ -47,7 +47,7 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
         ))}
       </select>
       <pre
-        className="!m-0 !p-4"
+        className="!m-0"
         // Plain-text blocks often hold ASCII trees/diagrams; tighter leading lets
         // box-drawing characters (│ ├ └) connect vertically. See globals.css.
         data-plaintext={isPlainText ? "" : undefined}

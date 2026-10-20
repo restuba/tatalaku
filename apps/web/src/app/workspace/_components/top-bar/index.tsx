@@ -4,6 +4,11 @@ import type { ReactNode } from "react";
 import { PanelLeft } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 import { Breadcrumb, type BreadcrumbItem } from "@/components/shared/breadcrumb";
+import { AccountMenu } from "./account-menu";
+import { ThemeMenu } from "./theme-menu";
+import { TOP_BAR_ICON_BUTTON } from "./constants";
+
+export { TOP_BAR_ICON_BUTTON };
 
 interface TopBarProps {
   items: BreadcrumbItem[];
@@ -12,13 +17,9 @@ interface TopBarProps {
   showScrollProgress?: boolean;
 }
 
-/** Icon buttons in the top bar: 32px on mouse, 44px on touch */
-export const TOP_BAR_ICON_BUTTON =
-  "flex size-8 shrink-0 items-center justify-center rounded-codex-md text-codex-muted transition-colors duration-150 hover:bg-codex-surface-raised hover:text-codex-foreground pointer-coarse:size-11";
-
 /**
- * Sticky top bar for workspace pages. Its bottom hairline is always drawn, so
- * the header reads as part of the shell's structure, like the sidebar's edge.
+ * Sticky top bar for workspace pages: where you are on the left, page actions
+ * plus the theme and account menus on the right.
  */
 export function TopBar({ items, actions, showScrollProgress = false }: TopBarProps) {
   const { isSidebarOpen, setSidebarOpen, peekSidebar, unpeekSidebar } = useUIStore();
@@ -35,21 +36,28 @@ export function TopBar({ items, actions, showScrollProgress = false }: TopBarPro
             onMouseLeave={unpeekSidebar}
             className={TOP_BAR_ICON_BUTTON}
             aria-label="Open sidebar"
-            title="Open sidebar"
+            title="Open sidebar (⌘\)"
           >
-            <PanelLeft className="w-4 h-4" />
+            <PanelLeft className="size-4" />
           </button>
         )}
         <Breadcrumb items={items} />
       </div>
 
-      {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
+      <div className="flex shrink-0 items-center gap-1">
+        {actions}
+        <ThemeMenu />
+        {/* Phones reach the account through the sidebar */}
+        <div className="hidden sm:block">
+          <AccountMenu />
+        </div>
+      </div>
 
       {/* Scroll-driven in CSS (no listeners); hidden where unsupported */}
       {showScrollProgress && (
         <div
           aria-hidden="true"
-          className="scroll-progress pointer-events-none absolute inset-x-0 -bottom-px h-px bg-codex-foreground"
+          className="scroll-progress pointer-events-none absolute inset-x-0 -bottom-px h-px bg-codex-accent"
         />
       )}
     </header>

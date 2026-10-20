@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Page } from "@tatalaku/shared";
+import { Home } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
@@ -20,6 +21,7 @@ import {
 import { getParentPath } from "./_components/command-palette/filter-pages";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const ALL_PAGES_ID = "home-all-pages";
 
 function getGreeting(date: Date): string {
   const hour = date.getHours();
@@ -96,11 +98,11 @@ export default function WorkspaceHomePage() {
 
   return (
     <div className="flex-1 flex flex-col relative w-full">
-      <TopBar items={[{ label: "Home" }]} />
+      <TopBar items={[{ label: "Home", icon: <Home className="size-4" aria-hidden="true" /> }]} />
 
       <div className="flex-1 w-full">
         <div
-          className={`w-full mx-auto px-6 sm:px-12 pt-12 sm:pt-20 pb-24 transition-[max-width] duration-200 ${
+          className={`w-full mx-auto px-6 sm:px-12 pt-10 sm:pt-16 pb-24 transition-[max-width] duration-200 ${
             isFullWidth ? "max-w-none" : "max-w-3xl"
           }`}
         >
@@ -118,6 +120,7 @@ export default function WorkspaceHomePage() {
             pages={activePages}
             getParentPath={parentPathOf}
             onCreatePage={() => handleCreatePage()}
+            allPagesId={ALL_PAGES_ID}
           />
 
           <GettingStarted
@@ -129,7 +132,7 @@ export default function WorkspaceHomePage() {
             onFavoritePage={handleFavoritePage}
           />
 
-          <AllPages pages={activePages} getParentPath={parentPathOf} />
+          <AllPages id={ALL_PAGES_ID} pages={activePages} getParentPath={parentPathOf} />
         </div>
       </div>
     </div>

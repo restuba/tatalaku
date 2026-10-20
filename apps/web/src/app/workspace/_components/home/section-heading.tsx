@@ -9,15 +9,15 @@ interface SectionHeadingProps {
   action?: ReactNode;
 }
 
-/** Home section rule: a mono ALL CAPS label over a full-width hairline */
+/** Home section heading: a small caps label with an optional readout and action */
 export function SectionHeading({ id, label, meta, action }: SectionHeadingProps) {
   return (
-    <div className="flex items-end justify-between gap-4 border-b border-codex-border pb-3">
-      <h2 id={id} className="font-mono text-xs uppercase tracking-label text-codex-muted">
+    <div className="flex min-h-7 items-center justify-between gap-4">
+      <h2 id={id} className="eyebrow text-codex-muted">
         {label}
       </h2>
       {(meta !== undefined || action) && (
-        <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-label text-codex-muted/70 tabular-nums">
+        <div className="eyebrow flex items-center gap-3 text-codex-muted">
           {meta}
           {action}
         </div>

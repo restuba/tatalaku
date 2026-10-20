@@ -1,2 +1,2 @@
-export * from "./theme-provider";
+export * from "./theme-sync";
 export * from "./motion-sync";

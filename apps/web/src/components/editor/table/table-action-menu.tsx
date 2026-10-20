@@ -193,22 +193,22 @@ export function TableActionMenu({
   };
 
   return (
-    <div className="w-56 glass-surface rounded-codex-lg border border-codex-border-strong p-1 text-sm animate-in fade-in duration-150">
+    <div className="surface-popover w-56 rounded-codex-lg p-1 text-sm animate-in fade-in duration-150">
       <div className="pb-1">
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search actions..."
+          placeholder="Search actions…"
           aria-label="Search actions"
-          className="w-full rounded-codex-md border border-codex-border-strong bg-codex-background px-2.5 py-1.5 text-sm text-codex-foreground outline-none transition-colors placeholder:text-codex-muted/70 focus:border-codex-foreground"
+          className="h-8 w-full rounded-codex-md border border-codex-border-strong bg-codex-elevated px-2.5 text-sm text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-faint focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft"
         />
       </div>
 
       {filtered.length === 0 && (
-        <div className="px-2.5 py-2 font-mono text-xs uppercase tracking-label text-codex-muted">
-          [ No actions found ]
-        </div>
+        <p role="status" className="px-2.5 py-2 text-sm text-codex-muted">
+          No actions found
+        </p>
       )}
 
       {filtered.map((item, index) => {
@@ -217,30 +217,28 @@ export function TableActionMenu({
         const isSubmenuOpen = item.key === "color" && showColorSubmenu;
         return (
           <div key={item.key}>
-            {isDivierBeforeDelete && <div className="mx-2 my-1 h-px bg-codex-border" />}
+            {isDivierBeforeDelete && <div className="mx-1.5 my-1 h-px bg-codex-border" />}
             <div className="relative">
               <button
                 type="button"
                 onClick={item.onSelect}
-                className={`flex h-8 w-full items-center gap-2 rounded-codex-md px-2.5 text-left transition-colors ${
+                className={`flex h-8 w-full items-center gap-2.5 rounded-codex-md px-2.5 text-left transition-colors ${
                   item.danger
-                    ? "text-codex-muted hover:bg-codex-danger-bg hover:text-codex-danger"
+                    ? "text-codex-danger hover:bg-codex-danger-bg"
                     : isSubmenuOpen
-                      ? "bg-codex-surface-raised text-codex-foreground"
-                      : "text-codex-muted hover:bg-codex-surface-raised hover:text-codex-foreground"
+                      ? "bg-codex-selected text-codex-foreground"
+                      : "text-codex-foreground hover:bg-codex-hover"
                 }`}
               >
-                <span className="shrink-0">{item.icon}</span>
+                <span className={`shrink-0 ${item.danger ? "" : "text-codex-muted"}`}>
+                  {item.icon}
+                </span>
                 <span className="flex-1">{item.label}</span>
                 {(item.key === "header-column" || item.key === "header-row") && (
                   <HeaderToggle active={isHeaderActive} />
                 )}
-                {item.key === "color" && <ChevronRight className="h-4 w-4 text-codex-muted/70" />}
-                {item.shortcut && (
-                  <span className="font-mono text-xs tracking-label text-codex-muted/70">
-                    {item.shortcut}
-                  </span>
-                )}
+                {item.key === "color" && <ChevronRight className="h-4 w-4 text-codex-muted" />}
+                {item.shortcut && <span className="text-xs text-codex-muted">{item.shortcut}</span>}
               </button>
 
               {/* ml-2 clears this menu's own padding and border */}
@@ -263,20 +261,20 @@ export function TableActionMenu({
 }
 
 /**
- * Small pill switch for the "Header column" toggle: a solid accent track with
- * a background-colored thumb when on, a strong-border track with a muted
- * thumb when off.
+ * Small switch for the "Header column/row" toggle: the thumb position carries
+ * the state as well as the track color.
  */
 function HeaderToggle({ active }: { active: boolean }) {
   return (
     <span
+      aria-hidden="true"
       className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors duration-150 ${
-        active ? "bg-codex-accent" : "bg-codex-border-strong"
+        active ? "bg-codex-accent" : "bg-codex-faint"
       }`}
     >
       <span
-        className={`inline-block h-3 w-3 rounded-full transition duration-150 ${
-          active ? "translate-x-3.5 bg-codex-background" : "translate-x-0.5 bg-codex-muted"
+        className={`inline-block h-3 w-3 rounded-full bg-codex-elevated transition duration-150 ${
+          active ? "translate-x-3.5" : "translate-x-0.5"
         }`}
       />
     </span>

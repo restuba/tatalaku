@@ -3,15 +3,13 @@
 import { useEffect, useState } from "react";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { useAuthStore } from "@/stores/auth-store";
-import { UserMinus, ShieldAlert, Mail, Users, Check } from "lucide-react";
+import { AlertCircle, UserMinus, ShieldAlert, Mail, Users, Check } from "lucide-react";
 import { Input } from "@/components/reusable/input";
 import { Button } from "@/components/reusable/button";
 import { Badge } from "@/components/reusable/badge";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { useApp } from "@/components/app";
 import { confirmDialog } from "@/stores/dialog-store";
-
-/** Section title in the label voice */
-const SECTION_LABEL = "block font-mono text-xs uppercase tracking-label text-codex-muted";
 
 export function MembersTab() {
   const {
@@ -39,11 +37,7 @@ export function MembersTab() {
   }, [activeWorkspace, fetchActiveWorkspaceMembers]);
 
   if (!activeWorkspace) {
-    return (
-      <div className="py-24 text-center font-mono text-xs uppercase tracking-label text-codex-muted">
-        [ No active workspace selected ]
-      </div>
-    );
+    return <p className="py-24 text-center text-sm text-codex-muted">No workspace is selected.</p>;
   }
 
   const isOwner = user?.id === activeWorkspace.ownerId;
@@ -96,31 +90,29 @@ export function MembersTab() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="space-y-8">
       {/* Invite form (for Owner): an outlined card, no tint */}
       {isOwner ? (
-        <form
-          onSubmit={handleInviteMember}
-          className="p-4 rounded-codex-lg border border-codex-border space-y-3"
-        >
-          <label htmlFor="invite-member-email" className={SECTION_LABEL}>
-            Invite New Member
+        <form onSubmit={handleInviteMember} className="space-y-2">
+          <label
+            htmlFor="invite-member-email"
+            className="block text-sm font-medium text-codex-foreground"
+          >
+            Invite a member
           </label>
           <div className="flex items-center gap-2">
             <Input
               id="invite-member-email"
               type="email"
-              size="small"
               placeholder="colleague@example.com"
               value={inviteEmail}
               onChange={setInviteEmail}
-              prefix={<Mail className="w-3.5 h-3.5" />}
+              prefix={<Mail className="size-4" />}
               className="flex-1"
             />
             <Button
               htmlType="submit"
               btnType="primary"
-              size="small"
               loading={isInviting}
               disabled={!inviteEmail.trim()}
               className="shrink-0"
@@ -130,61 +122,55 @@ export function MembersTab() {
           </div>
           {inviteStatus && (
             <p
-              className={`text-xs flex items-center gap-1.5 ${
+              role={inviteStatus.type === "error" ? "alert" : "status"}
+              className={`flex items-start gap-1.5 text-sm ${
                 inviteStatus.type === "success" ? "text-codex-success" : "text-codex-danger"
               }`}
             >
-              {inviteStatus.type === "success" && <Check className="w-3.5 h-3.5 shrink-0" />}
-              {inviteStatus.type === "error" && (
-                <span className="font-mono uppercase tracking-label">[Error]</span>
+              {inviteStatus.type === "success" ? (
+                <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               )}
               <span>{inviteStatus.message}</span>
             </p>
           )}
         </form>
       ) : (
-        <div className="px-4 py-3 rounded-codex-lg border border-codex-border flex items-center gap-2.5 text-xs text-codex-muted">
-          <ShieldAlert className="w-4 h-4 shrink-0 text-codex-muted" />
+        <div className="flex items-center gap-2.5 rounded-codex-lg border border-codex-border bg-codex-surface-secondary px-4 py-3 text-sm text-codex-muted">
+          <ShieldAlert className="size-4 shrink-0" aria-hidden="true" />
           <span>Only the workspace owner can invite or remove members.</span>
         </div>
       )}
 
       {/* Members List: hairline-ruled rows inside an outlined card */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className={SECTION_LABEL}>
-            All Members ({activeWorkspaceMembers?.length || 0})
-          </label>
-        </div>
+        <h4 className="eyebrow text-codex-muted">
+          Members · {String(activeWorkspaceMembers?.length || 0).padStart(2, "0")}
+        </h4>
 
         <div className="rounded-codex-lg border border-codex-border divide-y divide-codex-border overflow-hidden">
           {!activeWorkspaceMembers || activeWorkspaceMembers.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-12 text-codex-muted">
-              <Users className="w-5 h-5 text-codex-muted/60" />
-              <span className="font-mono text-xs uppercase tracking-label">
-                [ Loading members ]
-              </span>
+              <Users className="size-5" aria-hidden="true" />
+              <span className="text-sm">Loading members…</span>
             </div>
           ) : (
             activeWorkspaceMembers.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-codex-surface-raised/60 transition-colors group"
+                className="group flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-codex-hover"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-codex-border-strong font-mono text-xs font-bold text-codex-foreground">
-                    {member.name ? member.name.charAt(0).toUpperCase() : "M"}
-                  </div>
+                  <UserAvatar name={member.name || member.email} size="md" />
                   <div className="min-w-0">
                     <p className="text-sm text-codex-foreground truncate">
                       {member.name}{" "}
                       {user?.id === member.id && (
-                        <span className="font-mono text-xs uppercase tracking-label text-codex-muted/70">
-                          (You)
-                        </span>
+                        <span className="text-xs text-codex-muted">(you)</span>
                       )}
                     </p>
-                    <p className="font-mono text-xs text-codex-muted truncate">{member.email}</p>
+                    <p className="truncate text-xs text-codex-muted">{member.email}</p>
                   </div>
                 </div>
 

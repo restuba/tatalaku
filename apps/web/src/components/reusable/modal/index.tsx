@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useCallback, useId } from "react";
+import { useEffect, useCallback, useId, useRef, type ReactNode } from "react";
 import { AnimatePresence, m } from "motion/react";
 import { TWEEN } from "@/components/motion";
 import { createPortal } from "react-dom";
 import { useIsMounted } from "@/hooks/use-is-mounted";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { ModalAction } from "./modal-action";
 import { ModalContent } from "./modal-content";
 import { ModalContext } from "./modal-context";
@@ -33,6 +34,26 @@ const maxWidthClasses: Record<string, string> = {
 // Only the top-most open modal reacts to Escape, so a confirm dialog opened
 // over another modal closes on its own instead of taking the parent with it.
 const openModalStack: string[] = [];
+
+/** The dialog sheet: owns focus while it is mounted */
+function ModalPanel({ className, children }: { className: string; children: ReactNode }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef);
+
+  return (
+    <m.div
+      ref={panelRef}
+      tabIndex={-1}
+      className={className}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, transition: { duration: 0.12 } }}
+      transition={TWEEN}
+    >
+      {children}
+    </m.div>
+  );
+}
 
 // ─── Main Modal Component ───────────────────────────────────────────
 
@@ -83,7 +104,7 @@ function Modal({
   const widthClass = maxWidth ? (maxWidthClasses[maxWidth] ?? "max-w-md") : "";
 
   // AnimatePresence keeps the dialog mounted while it fades out, so closing
-  // reads as deliberately as opening. Opacity only: flat surfaces, no motion blur.
+  // reads as deliberately as opening.
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -96,9 +117,9 @@ function Modal({
             aria-modal="true"
             aria-label={ariaLabel}
           >
-            {/* Backdrop: a dense scrim instead of a blur */}
+            {/* Backdrop: a theme-tinted dim, no blur */}
             <m.div
-              className="fixed inset-0 bg-codex-background/80"
+              className="fixed inset-0 bg-codex-scrim"
               onClick={disableBackdropClick ? undefined : onClose}
               aria-hidden="true"
               initial={{ opacity: 0 }}
@@ -107,18 +128,13 @@ function Modal({
               transition={TWEEN}
             />
 
-            {/* Paper Container: elevated surface set off by a strong border */}
-            <m.div
-              className={`glass-surface relative z-10 flex flex-col w-full rounded-codex-xl border border-codex-border-strong text-codex-foreground ${
+            <ModalPanel
+              className={`surface-dialog relative z-10 flex w-full flex-col rounded-codex-xl outline-none ${
                 fullWidth ? "w-full" : ""
-              } ${widthClass} ${scroll === "paper" ? "max-h-[calc(100vh-4rem)]" : ""} ${className}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={TWEEN}
+              } ${widthClass} ${scroll === "paper" ? "max-h-[calc(100dvh-4rem)]" : ""} ${className}`}
             >
               {children}
-            </m.div>
+            </ModalPanel>
           </div>
         </ModalContext.Provider>
       )}

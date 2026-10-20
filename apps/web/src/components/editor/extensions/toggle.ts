@@ -117,15 +117,14 @@ export const Toggle = Node.create({
       [
         "summary",
         {
-          class:
-            "cursor-pointer text-sm font-medium py-0.5 text-codex-foreground dark:text-codex-foreground select-none",
+          class: "py-0.5 text-[0.9em] font-medium text-codex-muted select-none",
         },
         "Toggle list",
       ],
       [
         "div",
         {
-          class: "pl-4 pt-1 border-l border-codex-border dark:border-codex-border ml-1.5 mt-1",
+          class: "ml-[0.4em] mt-1 border-l border-codex-border pl-4 pt-0.5",
         },
         0,
       ],

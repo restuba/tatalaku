@@ -19,17 +19,18 @@ export function ModalHeader({
         divider ? "border-b border-codex-border pb-4" : ""
       } ${className}`}
     >
-      <div className="min-w-0 flex-1 text-lg font-medium tracking-tight text-codex-foreground">
+      {/* Dialog titles use the editorial serif, like page titles */}
+      <div className="min-w-0 flex-1 font-serif text-xl font-medium leading-snug text-codex-foreground">
         {children}
       </div>
       {showClose && onClose && (
         <button
           type="button"
           onClick={onClose}
-          className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-codex-muted transition-colors hover:bg-codex-surface-raised hover:text-codex-foreground pointer-coarse:h-11 pointer-coarse:w-11"
-          aria-label="Close modal"
+          className="-mr-2 flex size-8 shrink-0 items-center justify-center rounded-codex-md text-codex-muted transition-colors hover:bg-codex-hover hover:text-codex-foreground pointer-coarse:size-11"
+          aria-label="Close dialog"
         >
-          <CloseIcon size={14} />
+          <CloseIcon size={16} />
         </button>
       )}
     </div>

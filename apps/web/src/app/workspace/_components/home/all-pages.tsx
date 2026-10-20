@@ -2,59 +2,51 @@
 
 import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
-import { ArrowUpRight, FileText } from "lucide-react";
-import { formatFullDate, formatTimeAgo } from "@/lib/date";
+import { FileText } from "lucide-react";
+import { formatFullDate, formatTimeAgo, toISODate } from "@/lib/date";
 import { SectionHeading } from "./section-heading";
 
-/** Rows past this index appear together instead of continuing the cascade */
-const STAGGER_LIMIT = 12;
-
 interface AllPagesProps {
+  id: string;
   pages: Page[];
   getParentPath: (page: Page) => string;
 }
 
-/** Flat list of every page as ruled data rows: title on the left, time on the right */
-export function AllPages({ pages, getParentPath }: AllPagesProps) {
+/** Every page as quiet rows: title on the left, last edit on the right */
+export function AllPages({ id, pages, getParentPath }: AllPagesProps) {
   if (pages.length === 0) return null;
 
   return (
-    <section className="mt-16" aria-labelledby="home-all-pages-heading">
+    <section id={id} className="mt-14 scroll-mt-16" aria-labelledby="home-all-pages-heading">
       <SectionHeading
         id="home-all-pages-heading"
         label="All pages"
         meta={String(pages.length).padStart(2, "0")}
       />
-      <ul className="divide-y divide-codex-border">
-        {pages.map((page, index) => {
+      <ul className="mt-2 divide-y divide-codex-border">
+        {pages.map((page) => {
           const parentPath = getParentPath(page);
+          const touched = page.updatedAt || page.createdAt;
           return (
-            <li
-              key={page.id}
-              className="animate-row-in"
-              style={{ animationDelay: `${450 + Math.min(index, STAGGER_LIMIT) * 30}ms` }}
-            >
+            <li key={page.id}>
               <Link
                 href={`/workspace/${page.id}`}
-                className="group relative flex items-center gap-3 px-2 py-2.5 transition-colors duration-150 hover:bg-codex-surface-secondary"
+                className="group flex items-center gap-3 rounded-codex-md px-2 py-2.5 transition-colors duration-150 hover:bg-codex-hover"
               >
-                <span className="w-5 flex justify-center shrink-0 leading-none">
-                  {page.icon ?? <FileText className="w-4 h-4 text-codex-muted" />}
+                <span className="flex w-5 shrink-0 justify-center leading-none">
+                  {page.icon ?? <FileText className="size-4 text-codex-muted" aria-hidden="true" />}
                 </span>
-                <span className="flex-1 min-w-0 truncate text-sm text-codex-foreground">
+                <span className="min-w-0 flex-1 truncate text-sm text-codex-foreground">
                   {page.title || "Untitled"}
                   {parentPath && <span className="ml-2 text-codex-muted">in {parentPath}</span>}
                 </span>
-                <span
-                  className="shrink-0 font-mono text-xs uppercase tracking-label text-codex-muted transition-opacity duration-150 group-hover:opacity-0"
-                  title={formatFullDate(page.updatedAt || page.createdAt)}
+                <time
+                  className="eyebrow shrink-0 text-codex-muted"
+                  dateTime={toISODate(touched)}
+                  title={formatFullDate(touched)}
                 >
-                  {formatTimeAgo(page.updatedAt || page.createdAt)}
-                </span>
-                <ArrowUpRight
-                  aria-hidden="true"
-                  className="absolute right-2 w-4 h-4 text-codex-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                />
+                  {formatTimeAgo(touched)}
+                </time>
               </Link>
             </li>
           );

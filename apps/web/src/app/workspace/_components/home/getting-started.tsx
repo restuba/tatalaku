@@ -1,9 +1,7 @@
 "use client";
 
 import type { Page } from "@tatalaku/shared";
-import { AnimatePresence, m } from "motion/react";
 import { Check } from "lucide-react";
-import { TWEEN_FAST } from "@/components/motion";
 import { useUIStore } from "@/stores/ui-store";
 import { SectionHeading } from "./section-heading";
 
@@ -47,7 +45,7 @@ export function GettingStarted({
     {
       id: "create",
       label: "Create your first page",
-      description: "Every note, doc, or plan starts as a page.",
+      description: "Every note, doc or plan starts as a page.",
       isDone: pages.length > 0,
       onAction: onCreatePage,
     },
@@ -69,7 +67,7 @@ export function GettingStarted({
       id: "favorite",
       label: "Pin a page to Favorites",
       description: latestPage
-        ? `Pins "${latestPage.title || "Untitled"}" to the sidebar.`
+        ? `Pins “${latestPage.title || "Untitled"}” to the sidebar.`
         : "Keep important pages one click away.",
       isDone: pages.some((p) => p.isFavorite),
       onAction: withLatest(onFavoritePage),
@@ -87,7 +85,7 @@ export function GettingStarted({
   if (isOnboardingDismissed || doneCount === items.length) return null;
 
   return (
-    <section className="mt-16" aria-labelledby="home-onboarding-heading">
+    <section className="mt-14" aria-labelledby="home-onboarding-heading">
       <SectionHeading
         id="home-onboarding-heading"
         label="Getting started"
@@ -96,84 +94,62 @@ export function GettingStarted({
           <button
             type="button"
             onClick={dismissOnboarding}
-            // Buttons don't inherit text-transform, so the label voice is restated here
-            className="-my-1 rounded-codex-sm px-1.5 py-1 uppercase tracking-label text-codex-muted transition-colors hover:text-codex-foreground"
+            className="eyebrow -my-1 rounded-codex-sm px-1.5 py-1 text-codex-muted transition-colors hover:bg-codex-hover hover:text-codex-foreground"
           >
             Hide
           </button>
         }
       />
 
-      {/* Segmented progress: one square block per step, filled as steps complete */}
       <div
-        className="mt-4 flex gap-0.5"
+        className="mt-3 h-1 overflow-hidden rounded-full bg-codex-border"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={items.length}
         aria-valuenow={doneCount}
+        aria-valuetext={`${doneCount} of ${items.length} steps done`}
         aria-label="Getting started progress"
       >
-        {items.map((item) => (
-          <span
-            key={item.id}
-            className={`h-2 flex-1 transition-colors duration-300 ${
-              item.isDone ? "bg-codex-foreground" : "bg-codex-border"
-            }`}
-          />
-        ))}
+        <div
+          className="h-full rounded-full bg-codex-accent transition-[width] duration-500 ease-out"
+          style={{ width: `${(doneCount / items.length) * 100}%` }}
+        />
       </div>
 
-      <ul className="mt-3 divide-y divide-codex-border">
+      <ul className="mt-2">
         {items.map((item, index) => (
-          <li
-            key={item.id}
-            className="animate-row-in"
-            style={{ animationDelay: `${380 + index * 45}ms` }}
-          >
+          <li key={item.id}>
             <button
               type="button"
               onClick={item.onAction}
               disabled={item.isDone}
-              className="group w-full flex items-center gap-3 px-2 py-3 text-left transition-colors duration-150 hover:bg-codex-surface-secondary disabled:hover:bg-transparent disabled:cursor-default"
+              className="group flex w-full items-center gap-3 rounded-codex-md px-2 py-2.5 text-left transition-colors duration-150 hover:bg-codex-hover disabled:cursor-default disabled:hover:bg-transparent"
             >
               <span
-                className={`w-4 h-4 shrink-0 flex items-center justify-center rounded-full border transition-colors ${
-                  item.isDone
-                    ? "bg-codex-accent border-codex-accent text-codex-background"
-                    : "border-codex-border-strong group-hover:border-codex-muted"
-                }`}
                 aria-hidden="true"
+                className={`flex size-5 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors ${
+                  item.isDone
+                    ? "border-codex-accent bg-codex-accent text-codex-background"
+                    : "border-codex-faint group-hover:border-codex-accent"
+                }`}
               >
-                <AnimatePresence initial={false}>
-                  {item.isDone && (
-                    <m.span
-                      key="check"
-                      className="flex"
-                      initial={{ opacity: 0, scale: 0.6 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={TWEEN_FAST}
-                    >
-                      <Check className="w-3 h-3" strokeWidth={3} />
-                    </m.span>
-                  )}
-                </AnimatePresence>
+                {item.isDone && <Check className="size-3" strokeWidth={3} />}
               </span>
-              <span className="flex-1 min-w-0">
+              <span className="min-w-0 flex-1">
                 <span
                   className={`block text-sm ${
-                    item.isDone ? "text-codex-muted line-through" : "text-codex-foreground"
+                    item.isDone ? "text-codex-muted" : "text-codex-foreground"
                   }`}
                 >
                   {item.label}
                 </span>
                 {!item.isDone && (
-                  <span className="block text-xs text-codex-muted truncate">
+                  <span className="block truncate text-xs text-codex-muted">
                     {item.description}
                   </span>
                 )}
               </span>
-              <span className="shrink-0 font-mono text-xs uppercase tracking-label text-codex-muted/70 tabular-nums">
+              <span className="eyebrow shrink-0 text-codex-muted">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <span className="sr-only">{item.isDone ? "Completed" : "Not completed"}</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import type { Editor, Range } from "@tiptap/core";
 import {
   Type,
@@ -183,10 +183,18 @@ export interface SlashCommandListProps {
 export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandListProps>(
   function SlashCommandList(props, ref) {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const listRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
       setSelectedIndex(0);
     }, [props.items]);
+
+    // Keep the highlighted block in view while arrowing through the list
+    useEffect(() => {
+      listRef.current
+        ?.querySelector<HTMLElement>(`[data-index="${selectedIndex}"]`)
+        ?.scrollIntoView({ block: "nearest" });
+    }, [selectedIndex]);
 
     useImperativeHandle(ref, () => ({
       onKeyDown: ({ event }: { event: KeyboardEvent }) => {
@@ -212,22 +220,27 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
       },
     }));
 
-    // Elevated panel: flat, opaque and outlined by a strong border (no blur or
-    // shadow). Fades in without scaling.
+    // Elevated panel; fades in without scaling so the text below doesn't jump
     if (props.items.length === 0) {
       return (
-        <div className="z-50 min-w-60 glass-surface rounded-codex-lg border border-codex-border-strong px-3 py-2.5 font-mono text-xs uppercase tracking-label text-codex-muted animate-in fade-in duration-150">
-          [ No matching blocks ]
+        <div
+          role="status"
+          className="surface-popover z-50 min-w-60 rounded-codex-lg px-3 py-2.5 text-sm text-codex-muted animate-in fade-in duration-150"
+        >
+          No matching blocks
         </div>
       );
     }
 
     return (
-      <div className="z-50 min-w-70 max-h-72 overflow-y-auto glass-surface rounded-codex-lg border border-codex-border-strong p-1 animate-in fade-in duration-150">
-        <div className="px-2.5 pt-2 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80">
-          Basic blocks
+      <div
+        ref={listRef}
+        className="surface-popover z-50 max-h-80 w-72 overflow-y-auto rounded-codex-lg p-1 animate-in fade-in duration-150"
+      >
+        <div className="eyebrow px-2.5 pt-2 pb-1.5 text-codex-muted" id="slash-menu-label">
+          Blocks
         </div>
-        <div className="space-y-px">
+        <div role="listbox" aria-labelledby="slash-menu-label" className="space-y-px">
           {props.items.map((item, index) => {
             const Icon = item.icon;
             const isSelected = index === selectedIndex;
@@ -235,22 +248,24 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
               <button
                 key={item.title}
                 type="button"
+                role="option"
+                aria-selected={isSelected}
+                data-index={index}
                 onClick={() => props.command(item)}
-                className={`group flex w-full items-center gap-2.5 rounded-codex-md px-2.5 py-1.5 text-left transition-colors duration-150 ${
-                  isSelected ? "bg-codex-surface-raised" : "hover:bg-codex-surface-raised"
+                onMouseMove={() => setSelectedIndex(index)}
+                className={`group flex w-full items-center gap-2.5 rounded-codex-md px-2 py-1.5 text-left transition-colors duration-150 ${
+                  isSelected ? "bg-codex-selected" : ""
                 }`}
               >
                 <div
-                  className={`flex size-8 shrink-0 items-center justify-center rounded-codex-sm border border-codex-border bg-codex-background transition-colors duration-150 ${
-                    isSelected
-                      ? "text-codex-foreground"
-                      : "text-codex-muted group-hover:text-codex-foreground"
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-codex-md border border-codex-border bg-codex-elevated transition-colors duration-150 ${
+                    isSelected ? "text-codex-foreground" : "text-codex-muted"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-codex-foreground">{item.title}</p>
+                  <p className="truncate text-sm font-medium text-codex-foreground">{item.title}</p>
                   <p className="truncate text-xs text-codex-muted">{item.description}</p>
                 </div>
               </button>

@@ -1,9 +1,8 @@
 import { Check } from "lucide-react";
 import { TABLE_TEXT_COLORS, TABLE_BACKGROUND_COLORS, TableColorOption } from "./table-colors";
 
-/** Section heading in the mono label voice */
-const SECTION_LABEL =
-  "px-2.5 pt-2 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80";
+/** Section heading inside the submenu */
+const SECTION_LABEL = "eyebrow px-2.5 pt-2 pb-1.5 text-codex-muted";
 
 interface ColorSubmenuProps {
   /** Currently applied text color value (or null for default). */
@@ -26,7 +25,7 @@ export function ColorSubmenu({
   onSelectBackground,
 }: ColorSubmenuProps) {
   return (
-    <div className="w-48 glass-surface rounded-codex-lg border border-codex-border-strong p-1 text-sm animate-in fade-in duration-150">
+    <div className="surface-popover w-48 rounded-codex-lg p-1 text-sm animate-in fade-in duration-150">
       <div className={SECTION_LABEL}>Text</div>
       {TABLE_TEXT_COLORS.map((option) => (
         <ColorRow
@@ -42,7 +41,7 @@ export function ColorSubmenu({
         />
       ))}
 
-      <div className="mx-2 my-1 h-px bg-codex-border" />
+      <div className="mx-1.5 my-1 h-px bg-codex-border" />
 
       <div className={SECTION_LABEL}>Background</div>
       {TABLE_BACKGROUND_COLORS.map((option) => (
@@ -74,10 +73,9 @@ function ColorRow({ option, isActive, swatchStyle, swatchChar, onSelect }: Color
     <button
       type="button"
       onClick={onSelect}
-      className={`flex h-8 w-full items-center gap-2 rounded-codex-md px-2.5 text-left transition-colors ${
-        isActive
-          ? "bg-codex-surface-raised text-codex-foreground"
-          : "text-codex-muted hover:bg-codex-surface-raised hover:text-codex-foreground"
+      aria-pressed={isActive}
+      className={`flex h-8 w-full items-center gap-2 rounded-codex-md px-2.5 text-left text-codex-foreground transition-colors ${
+        isActive ? "bg-codex-selected" : "hover:bg-codex-hover"
       }`}
     >
       <span
@@ -87,7 +85,7 @@ function ColorRow({ option, isActive, swatchStyle, swatchChar, onSelect }: Color
         {swatchChar ?? ""}
       </span>
       <span className="flex-1">{option.label}</span>
-      {isActive && <Check className="h-4 w-4 text-codex-foreground" />}
+      {isActive && <Check className="h-4 w-4 text-codex-accent" />}
     </button>
   );
 }

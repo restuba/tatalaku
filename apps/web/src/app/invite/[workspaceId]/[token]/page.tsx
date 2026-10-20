@@ -1,9 +1,13 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Mail } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/reusable/button";
+import { Logo } from "@/components/ui/logo";
+import { LogoSpinner } from "@/components/ui/logo-spinner";
 
 interface InvitePageProps {
   params: Promise<{
@@ -12,14 +16,31 @@ interface InvitePageProps {
   }>;
 }
 
+type Status = "idle" | "loading" | "success" | "error";
+
+const ICON_TONE: Record<"accent" | "success" | "danger", string> = {
+  accent: "bg-codex-accent-soft text-codex-accent",
+  success: "bg-codex-success-bg text-codex-success",
+  danger: "bg-codex-danger-bg text-codex-danger",
+};
+
+function StatusIcon({ tone, children }: { tone: keyof typeof ICON_TONE; children: ReactNode }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`mb-6 flex size-12 items-center justify-center rounded-full ${ICON_TONE[tone]}`}
+    >
+      {children}
+    </span>
+  );
+}
+
 export default function InvitePage({ params }: InvitePageProps) {
-  // In Next.js 15, params is a promise
-  const resolvedParams = use(params);
-  const { workspaceId, token } = resolvedParams;
+  const { workspaceId, token } = use(params);
   const router = useRouter();
   const { acceptInvite } = useWorkspaceStore();
 
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   async function handleAccept() {
@@ -27,7 +48,7 @@ export default function InvitePage({ params }: InvitePageProps) {
     try {
       await acceptInvite(workspaceId, token);
       setStatus("success");
-      // Redirect to workspace after a short delay
+      // Redirect to the workspace after a short pause
       setTimeout(() => {
         router.push("/workspace");
       }, 1500);
@@ -38,64 +59,75 @@ export default function InvitePage({ params }: InvitePageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-codex-surface rounded-codex-2xl border border-codex-border p-8 text-center">
-        {status === "idle" && (
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 bg-codex-info-bg dark:bg-codex-info-bg/30 rounded-full flex items-center justify-center mb-4">
-              <AlertCircle className="w-8 h-8 text-codex-info dark:text-codex-info" />
-            </div>
-            <h2 className="text-xl font-semibold text-codex-foreground mb-2">
-              Workspace Invitation
-            </h2>
-            <p className="text-codex-muted mb-6">You have been invited to join a workspace.</p>
-            <button
-              onClick={handleAccept}
-              className="px-6 py-2 w-full bg-codex-accent hover:opacity-90 text-codex-background rounded-codex-xl font-medium transition-opacity"
-            >
-              Accept Invitation
-            </button>
-          </div>
-        )}
+    <div className="flex min-h-dvh flex-col bg-codex-background">
+      <header className="flex h-20 shrink-0 items-center px-6 sm:px-10">
+        <Link href="/" aria-label="Tatalaku home" className="rounded-codex-md">
+          <Logo size="md" />
+        </Link>
+      </header>
 
-        {status === "loading" && (
-          <div className="flex flex-col items-center">
-            <Loader2 className="w-12 h-12 text-codex-accent animate-spin mb-4" />
-            <h2 className="text-xl font-semibold text-codex-foreground mb-2">
-              Accepting Invitation
-            </h2>
-            <p className="text-codex-muted">Please wait while we add you to the workspace...</p>
-          </div>
-        )}
+      <main className="flex flex-1 items-center justify-center px-4 pb-20">
+        <div
+          className="surface-dialog flex w-full max-w-md flex-col items-center rounded-codex-xl px-8 py-10 text-center"
+          aria-live="polite"
+        >
+          {status === "idle" && (
+            <>
+              <StatusIcon tone="accent">
+                <Mail className="size-5" />
+              </StatusIcon>
+              <h1 className="font-serif text-3xl font-medium text-codex-foreground">
+                You&apos;re invited
+              </h1>
+              <p className="mt-2 text-sm leading-relaxed text-codex-muted">
+                Someone invited you to join their Tatalaku workspace.
+              </p>
+              <Button btnType="primary" size="large" block className="mt-8" onClick={handleAccept}>
+                Accept invitation
+              </Button>
+            </>
+          )}
 
-        {status === "success" && (
-          <div className="flex flex-col items-center animate-in zoom-in duration-300">
-            <div className="w-16 h-16 bg-codex-success-bg dark:bg-codex-success-bg/30 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-8 h-8 text-codex-success dark:text-codex-success" />
-            </div>
-            <h2 className="text-xl font-semibold text-codex-foreground mb-2">
-              Invitation Accepted!
-            </h2>
-            <p className="text-codex-muted">Redirecting you to your workspace...</p>
-          </div>
-        )}
+          {status === "loading" && (
+            <>
+              <LogoSpinner size="lg" className="mb-6 text-codex-accent" />
+              <h1 className="font-serif text-3xl font-medium text-codex-foreground">
+                Joining workspace…
+              </h1>
+              <p className="mt-2 text-sm text-codex-muted">This only takes a moment.</p>
+            </>
+          )}
 
-        {status === "error" && (
-          <div className="flex flex-col items-center animate-in zoom-in duration-300">
-            <div className="w-16 h-16 bg-codex-danger-bg dark:bg-codex-danger-bg/30 rounded-full flex items-center justify-center mb-4">
-              <AlertCircle className="w-8 h-8 text-codex-danger dark:text-codex-danger" />
-            </div>
-            <h2 className="text-xl font-semibold text-codex-foreground mb-2">Invitation Failed</h2>
-            <p className="text-codex-danger dark:text-codex-danger mb-6">{errorMessage}</p>
-            <button
-              onClick={() => router.push("/workspace")}
-              className="px-6 py-2 bg-codex-accent hover:opacity-90 text-codex-background rounded-codex-xl font-medium transition-opacity"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        )}
-      </div>
+          {status === "success" && (
+            <>
+              <StatusIcon tone="success">
+                <CheckCircle2 className="size-5" />
+              </StatusIcon>
+              <h1 className="font-serif text-3xl font-medium text-codex-foreground">
+                You&apos;re in
+              </h1>
+              <p className="mt-2 text-sm text-codex-muted">Taking you to your workspace…</p>
+            </>
+          )}
+
+          {status === "error" && (
+            <>
+              <StatusIcon tone="danger">
+                <AlertCircle className="size-5" />
+              </StatusIcon>
+              <h1 className="font-serif text-3xl font-medium text-codex-foreground">
+                Invitation failed
+              </h1>
+              <p role="alert" className="mt-2 text-sm leading-relaxed text-codex-danger">
+                {errorMessage}
+              </p>
+              <Button size="large" className="mt-8" onClick={() => router.push("/workspace")}>
+                Go to my workspace
+              </Button>
+            </>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

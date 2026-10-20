@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { Keyboard } from "lucide-react";
+import { Kbd } from "@/components/reusable/kbd";
 import { Modal } from "@/components/reusable/modal";
 import { useUIStore } from "@/stores/ui-store";
 
@@ -98,19 +98,12 @@ export function KeyboardShortcuts() {
       aria-label="Keyboard shortcuts"
     >
       <Modal.Header showClose divider>
-        <div className="flex items-center gap-2.5">
-          <Keyboard className="w-4 h-4 shrink-0 text-codex-muted" aria-hidden="true" />
-          <span>Keyboard shortcuts</span>
-        </div>
+        Keyboard shortcuts
       </Modal.Header>
       <Modal.Content className="max-h-[65vh] space-y-8 py-5">
         {SECTIONS.map((section) => (
           <section key={section.title} aria-labelledby={`kbd-${section.title}`}>
-            {/* Section rule: a mono label over a hairline, like the home headings */}
-            <h3
-              id={`kbd-${section.title}`}
-              className="border-b border-codex-border pb-2 font-mono text-xs uppercase tracking-label text-codex-muted"
-            >
+            <h3 id={`kbd-${section.title}`} className="eyebrow pb-1 text-codex-muted">
               {section.title}
             </h3>
             <dl className="divide-y divide-codex-border">
@@ -119,12 +112,7 @@ export function KeyboardShortcuts() {
                   <dt className="text-sm text-codex-foreground">{item.label}</dt>
                   <dd className="flex shrink-0 items-center gap-1">
                     {item.keys.map((key) => (
-                      <kbd
-                        key={key}
-                        className="min-w-6 rounded-codex-sm border border-codex-border-strong px-1.5 py-0.5 text-center font-mono text-xs text-codex-muted"
-                      >
-                        {key === "Mod" ? mod : key === "Shift" ? "⇧" : key}
-                      </kbd>
+                      <Kbd key={key}>{key === "Mod" ? mod : key === "Shift" ? "⇧" : key}</Kbd>
                     ))}
                   </dd>
                 </div>

@@ -2,9 +2,16 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { AuroraBackground } from "@/components/shared/aurora-canvas";
+import { ThemePreview } from "@/components/shared/theme-preview";
 import { SESSION_FLAG_COOKIE } from "@/helpers/session-flag";
-import { BlockMarquee, EditorDemo, FeatureGrid, HeroHeadline } from "./_components/landing";
+import { THEMES } from "@/lib/themes";
+import { BlockList, EditorDemo, FeatureGrid, HeroHeadline } from "./_components/landing";
+
+/** Pill links styled like the app's buttons (links keep their native semantics) */
+const PRIMARY_LINK =
+  "group inline-flex h-11 items-center justify-center gap-2 rounded-full bg-codex-accent px-6 text-sm font-medium text-codex-background transition-colors hover:bg-codex-accent-hover";
+const SECONDARY_LINK =
+  "inline-flex h-11 items-center justify-center rounded-full border border-codex-border-strong px-6 text-sm font-medium text-codex-foreground transition-colors hover:bg-codex-hover";
 
 export default async function LandingPage() {
   // Read the session marker from the request on the server, so the first paint
@@ -16,156 +23,141 @@ export default async function LandingPage() {
   const primaryLabel = hasSession ? "Open workspace" : "Get started — it's free";
 
   return (
-    <div className="relative min-h-dvh w-full overflow-x-clip bg-codex-surface">
-      {/* Ambient aurora (WebGL, follows the cursor); CSS orbs are the fallback */}
-      <AuroraBackground
-        className="h-[115dvh]"
-        interactive
-        fallback={
-          <>
-            <div className="absolute inset-0">
-              <div
-                className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-codex-accent opacity-50 dark:opacity-30 blur-[120px] animate-pulse"
-                style={{ animationDuration: "12s" }}
-              />
-              <div className="absolute top-[20%] -right-[15%] w-[70%] h-[70%] rounded-full bg-codex-info opacity-40 dark:opacity-25 blur-[130px]" />
-              <div
-                className="absolute -bottom-[15%] left-[15%] w-[55%] h-[55%] rounded-full bg-codex-skill opacity-40 dark:opacity-25 blur-[100px] animate-pulse"
-                style={{ animationDuration: "18s" }}
-              />
-            </div>
-            <div className="absolute inset-0 backdrop-blur-[80px] bg-codex-surface/30 dark:bg-codex-surface/50" />
-          </>
-        }
-      />
-      {/* The aurora melts into the page instead of ending on a hard edge */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-[75dvh] h-[40dvh] bg-linear-to-b from-transparent to-codex-surface"
-      />
-
-      {/* Top bar */}
-      <header className="sticky top-0 z-20 flex items-center justify-between px-6 sm:px-10 py-4 backdrop-blur-md bg-codex-surface/40">
-        <Logo size="md" />
-        <nav className="flex items-center gap-2">
-          {hasSession ? (
-            <Link
-              href="/workspace"
-              className="px-3.5 py-2 rounded-full text-sm font-medium bg-codex-foreground text-codex-background hover:opacity-90 transition-opacity"
-            >
-              Open workspace
-            </Link>
-          ) : (
-            <>
+    <div className="min-h-dvh w-full bg-codex-background">
+      <header className="sticky top-0 z-20 border-b border-codex-border bg-codex-background">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 sm:px-10">
+          <Link href="/" aria-label="Tatalaku home" className="rounded-codex-md">
+            <Logo size="md" />
+          </Link>
+          <nav aria-label="Account" className="flex items-center gap-2">
+            {hasSession ? (
               <Link
-                href="/login"
-                className="px-3.5 py-2 rounded-full text-sm font-medium text-codex-foreground hover:bg-codex-surface-secondary transition-colors"
+                href="/workspace"
+                className="inline-flex h-9 items-center rounded-full bg-codex-accent px-4 text-sm font-medium text-codex-background transition-colors hover:bg-codex-accent-hover"
               >
-                Sign in
+                Open workspace
               </Link>
-              <Link
-                href="/register"
-                className="px-3.5 py-2 rounded-full text-sm font-medium bg-codex-foreground text-codex-background hover:opacity-90 transition-opacity"
-              >
-                Sign up
-              </Link>
-            </>
-          )}
-        </nav>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex h-9 items-center rounded-full px-4 text-sm font-medium text-codex-foreground transition-colors hover:bg-codex-hover"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex h-9 items-center rounded-full bg-codex-accent px-4 text-sm font-medium text-codex-background transition-colors hover:bg-codex-accent-hover"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
       </header>
 
-      <main className="relative z-10 flex flex-col items-center px-5 sm:px-6 pt-14 sm:pt-24 pb-24 text-center">
-        <div
-          className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full border border-codex-border bg-codex-surface/60 backdrop-blur-sm font-mono text-xs uppercase tracking-widest text-codex-muted animate-slide-up-fade opacity-0"
-          style={{ animationDelay: "0ms" }}
-        >
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inset-0 rounded-full bg-codex-accent animate-ping" />
-            <span className="relative h-1.5 w-1.5 rounded-full bg-codex-accent" />
-          </span>
+      <main className="flex flex-col items-center px-5 pt-16 pb-24 text-center sm:px-6 sm:pt-24">
+        <p className="eyebrow mb-8 flex items-center gap-2 text-codex-muted">
+          <span aria-hidden="true" className="size-1.5 rounded-full bg-codex-accent-secondary" />
           Block-based workspace
-        </div>
+        </p>
 
         <HeroHeadline />
 
-        <p
-          className="mt-8 max-w-xl text-base sm:text-lg text-codex-muted leading-relaxed text-pretty animate-slide-up-fade opacity-0"
-          style={{ animationDelay: "260ms" }}
-        >
-          Nested pages, a flexible block editor, and instant search — in a workspace that stays out
-          of your way.
+        <p className="mt-8 max-w-xl text-base leading-relaxed text-codex-muted text-pretty sm:text-lg">
+          Nested pages, a flexible block editor and instant search — in a workspace that stays quiet
+          while you read and write.
         </p>
 
-        <div
-          className="mt-10 flex flex-col sm:flex-row items-center gap-3 animate-slide-up-fade opacity-0"
-          style={{ animationDelay: "340ms" }}
-        >
-          <Link
-            href={primaryHref}
-            className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-codex-accent text-codex-background font-medium text-sm hover:opacity-90 transition-opacity"
-          >
+        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
+          <Link href={primaryHref} className={PRIMARY_LINK}>
             {primaryLabel}
-            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+            <ArrowRight
+              className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
           </Link>
           {!hasSession && (
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-codex-border bg-codex-surface/50 backdrop-blur-sm text-codex-foreground font-medium text-sm hover:bg-codex-surface-secondary transition-colors"
-            >
+            <Link href="/login" className={SECONDARY_LINK}>
               I have an account
             </Link>
           )}
         </div>
 
         {/* Product preview: types itself while on screen */}
-        <div
-          className="mt-16 sm:mt-24 w-full flex justify-center animate-slide-up-fade opacity-0"
-          style={{ animationDelay: "440ms" }}
-        >
+        <div className="mt-16 flex w-full justify-center sm:mt-24">
           <EditorDemo />
         </div>
 
-        <div className="mt-16 w-full flex justify-center">
-          <BlockMarquee />
+        <div className="mt-12 flex w-full justify-center">
+          <BlockList />
         </div>
 
         {/* Features */}
-        <section className="mt-24 sm:mt-32 w-full flex flex-col items-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-codex-muted">
-            Everything in one place
-          </p>
-          <h2 className="mt-3 mb-10 max-w-2xl text-3xl sm:text-5xl font-semibold tracking-tight text-codex-foreground text-balance">
-            Quietly powerful. <span className="text-codex-muted">Never in the way.</span>
+        <section
+          aria-labelledby="landing-features"
+          className="mt-28 flex w-full flex-col items-center sm:mt-36"
+        >
+          <p className="eyebrow text-codex-muted">Everything in one place</p>
+          <h2
+            id="landing-features"
+            className="mt-4 mb-14 max-w-2xl font-serif text-4xl font-normal leading-tight text-codex-foreground text-balance sm:text-5xl"
+          >
+            Quietly capable. <span className="italic text-codex-muted">Never in the way.</span>
           </h2>
           <FeatureGrid />
         </section>
 
+        {/* Themes */}
+        <section
+          aria-labelledby="landing-themes"
+          className="mt-28 flex w-full max-w-5xl flex-col items-center sm:mt-36"
+        >
+          <p className="eyebrow text-codex-muted">Three themes, one design</p>
+          <h2
+            id="landing-themes"
+            className="mt-4 max-w-2xl font-serif text-4xl font-normal leading-tight text-codex-foreground text-balance sm:text-5xl"
+          >
+            Pick the light you read best in.
+          </h2>
+          <ul className="mt-14 grid w-full grid-cols-1 gap-6 text-left sm:grid-cols-3">
+            {THEMES.map((theme) => (
+              <li key={theme.id}>
+                <ThemePreview theme={theme.id} />
+                <h3 className="mt-4 text-sm font-medium text-codex-foreground">
+                  {theme.name}
+                  <span className="ml-2 font-normal text-codex-muted">{theme.style}</span>
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-codex-muted">{theme.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {/* Closing call to action */}
-        <section className="mt-28 sm:mt-36 w-full max-w-5xl">
-          <div className="relative isolate overflow-hidden rounded-codex-2xl border border-codex-border px-6 py-16 sm:py-20">
-            <div aria-hidden="true" className="dot-grid absolute inset-0 -z-10 opacity-70" />
-            <div
-              aria-hidden="true"
-              className="home-hero-glow absolute -top-1/2 left-1/4 -z-10 h-full w-1/2"
-            />
-            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-codex-foreground text-balance">
+        <section className="mt-28 w-full max-w-5xl sm:mt-36">
+          <div className="rounded-codex-2xl border border-codex-border bg-codex-sidebar px-6 py-16 sm:py-20">
+            <h2 className="font-serif text-4xl font-normal leading-tight text-codex-foreground text-balance sm:text-5xl">
               Start with a blank page.
             </h2>
             <p className="mt-4 text-base text-codex-muted">See where it takes you.</p>
-            <Link
-              href={primaryHref}
-              className="group mt-8 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-codex-foreground text-codex-background font-medium text-sm hover:opacity-90 transition-opacity"
-            >
+            <Link href={primaryHref} className={`${PRIMARY_LINK} mt-8`}>
               {primaryLabel}
-              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+              <ArrowRight
+                className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </Link>
           </div>
         </section>
       </main>
 
-      <footer className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-5xl mx-auto px-6 py-10 text-xs text-codex-muted">
-        <Logo size="sm" />
-        <p>A modern block-based workspace.</p>
+      <footer className="border-t border-codex-border">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-10 text-sm text-codex-muted sm:flex-row sm:px-10">
+          <Logo size="sm" />
+          <p>A calm, block-based workspace.</p>
+        </div>
       </footer>
     </div>
   );

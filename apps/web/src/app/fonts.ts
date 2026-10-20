@@ -2,41 +2,45 @@ import localFont from "next/font/local";
 
 // Self-hosted (OFL, see ./fonts/LICENSE.txt): no build-time or runtime request
 // to Google Fonts, so the UI looks the same offline, behind proxies and in CI.
-// Only the latin subsets are shipped.
+// Latin subsets only — they cover Indonesian and Western European text; any
+// other script falls back to the system font glyph by glyph.
+//
+// Typography is the same in every theme: themes only change colors.
 
-/** Body / UI */
+/** Inter: interface, body text and document prose */
 export const fontSans = localFont({
-  src: "./fonts/space-grotesk-latin-wght-normal.woff2",
-  variable: "--font-space-grotesk",
-  weight: "300 700",
-  display: "swap",
-  fallback: ["DM Sans", "system-ui", "sans-serif"],
-});
-
-/** ALL CAPS labels, data, code */
-export const fontMono = localFont({
   src: [
-    { path: "./fonts/space-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/space-mono-latin-700-normal.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/inter-latin-wght-normal.woff2", weight: "100 900", style: "normal" },
+    { path: "./fonts/inter-latin-wght-italic.woff2", weight: "100 900", style: "italic" },
   ],
-  variable: "--font-space-mono",
+  variable: "--font-inter",
   display: "swap",
-  // The default metric-adjusted fallback is Arial, which is proportional:
-  // reaching it would misalign code. Fall back to real monospace fonts instead.
-  adjustFontFallback: false,
-  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
+  fallback: [
+    "system-ui",
+    "-apple-system",
+    "Segoe UI",
+    "Roboto",
+    "Helvetica Neue",
+    "Arial",
+    "sans-serif",
+  ],
 });
 
 /**
- * Dot-matrix display face for hero numbers only (36px+). Not preloaded.
- * No fallback of its own: the `font-display` utility (globals.css) continues
- * with Space Mono, so numbers stay monospaced while Doto loads.
+ * Fraunces: the editorial voice for display text, page titles and document
+ * headings. Ships with the optical-size axis, so the same file is sturdy at
+ * heading sizes and refined at display sizes (`font-optical-sizing: auto`).
+ * Not preloaded: it is only needed for headings, and its metric-matched
+ * fallback keeps the swap from shifting the layout.
  */
-export const fontDisplay = localFont({
-  src: "./fonts/doto-latin-wght-normal.woff2",
-  variable: "--font-doto",
-  weight: "100 900",
+export const fontSerif = localFont({
+  src: [
+    { path: "./fonts/fraunces-latin-opsz-normal.woff2", weight: "100 900", style: "normal" },
+    { path: "./fonts/fraunces-latin-opsz-italic.woff2", weight: "100 900", style: "italic" },
+  ],
+  variable: "--font-fraunces",
   display: "swap",
   preload: false,
-  adjustFontFallback: false,
+  adjustFontFallback: "Times New Roman",
+  fallback: ["Iowan Old Style", "Palatino Linotype", "Georgia", "serif"],
 });

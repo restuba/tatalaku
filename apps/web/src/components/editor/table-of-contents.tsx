@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { Editor } from "@tiptap/react";
-import { ListTree, Hash, Sparkles } from "lucide-react";
+import { ListTree, Hash } from "lucide-react";
 import { scrollBehavior } from "@/lib/motion";
 
 export interface ToCItem {
@@ -291,18 +291,14 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
       {isHovered && (
         <aside
           aria-label="Table of contents"
-          className="mr-3 flex w-80 max-h-[calc(100vh-8rem)] flex-col overflow-hidden glass-surface rounded-codex-lg border border-codex-border-strong animate-in fade-in slide-in-from-right-1 duration-150"
+          className="surface-popover mr-3 flex w-80 max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-codex-lg animate-in fade-in slide-in-from-right-1 duration-150"
         >
-          {/* Header: mono label and the heading count */}
+          {/* Header: label and the heading count */}
           <div className="flex items-center justify-between border-b border-codex-border px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <ListTree className="w-3.5 h-3.5 text-codex-muted" />
-              <span className="font-mono text-xs uppercase tracking-label text-codex-muted">
-                Outline
-              </span>
-              <span className="font-mono text-xs tabular-nums text-codex-muted/70">
-                {items.length}
-              </span>
+            <div className="eyebrow flex items-center gap-2 text-codex-muted">
+              <ListTree className="size-3.5" aria-hidden="true" />
+              <span>Outline</span>
+              <span>{String(items.length).padStart(2, "0")}</span>
             </div>
           </div>
 
@@ -326,15 +322,18 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
                     paddingLeft: `${(item.level - 1) * 14 + 12}px`,
                   }}
                 >
-                  {/* Active marker: a 2px signal bar over the rail */}
+                  {/* Active marker: a 2px accent bar over the rail */}
                   {isActive && (
-                    <span className="absolute -left-px inset-y-0 w-0.5 bg-codex-signal animate-in fade-in duration-150" />
+                    <span className="absolute -left-px inset-y-0 w-0.5 bg-codex-accent animate-in fade-in duration-150" />
                   )}
 
                   {/* Level marker */}
                   <span
-                    className={`shrink-0 transition-opacity duration-150 ${
-                      isActive ? "opacity-100" : "opacity-40 group-hover:opacity-80"
+                    aria-hidden="true"
+                    className={`shrink-0 transition-colors duration-150 ${
+                      isActive
+                        ? "text-codex-accent"
+                        : "text-codex-faint group-hover:text-codex-muted"
                     }`}
                   >
                     {item.level === 1 ? (
@@ -345,7 +344,9 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
                   </span>
 
                   {/* Heading Text */}
-                  <span className={`truncate ${item.level === 1 ? "font-medium" : ""}`}>
+                  <span
+                    className={`truncate ${item.level === 1 ? "font-medium" : ""} ${isActive ? "font-medium" : ""}`}
+                  >
                     {item.text}
                   </span>
                 </a>
@@ -353,19 +354,17 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
             })}
           </div>
 
-          {/* Footer hint in the label voice */}
-          <div className="flex items-center gap-2 border-t border-codex-border px-4 py-2.5 font-mono text-xs uppercase tracking-label text-codex-muted/70">
-            <Sparkles className="w-3 h-3 shrink-0" />
-            <span>Click to jump to section</span>
-          </div>
+          <p className="border-t border-codex-border px-4 py-2.5 text-xs text-codex-muted">
+            Select a heading to jump to it.
+          </p>
         </aside>
       )}
 
-      {/* 2. Vertical Outline Bars (always visible on the right edge, max 40 bars):
-          square-ended 2px segments, the active one in the signal color */}
+      {/* 2. Vertical outline bars (always visible on the right edge, max 40):
+          rounded 2px segments, the active one in the accent */}
       <div
         className={`flex flex-col items-end gap-y-2 py-1.5 px-2 cursor-pointer transition-opacity duration-200 ${
-          isHovered ? "opacity-100" : "opacity-40 hover:opacity-100"
+          isHovered ? "opacity-100" : "opacity-60 hover:opacity-100"
         }`}
         title="Outline"
       >
@@ -383,8 +382,8 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
               type="button"
               onClick={(e) => handleItemClick(e, item)}
               aria-label={`Jump to ${item.text}`}
-              className={`h-0.5 transition-colors duration-150 ${widthClass} ${
-                isActive ? "bg-codex-signal" : "bg-codex-foreground/40 hover:bg-codex-foreground/80"
+              className={`h-0.5 rounded-full transition-colors duration-150 ${widthClass} ${
+                isActive ? "bg-codex-accent" : "bg-codex-faint hover:bg-codex-muted"
               }`}
             />
           );

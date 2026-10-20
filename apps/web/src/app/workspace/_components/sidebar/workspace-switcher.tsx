@@ -17,16 +17,17 @@ import {
 import { useApp } from "@/components/app";
 import { confirmDialog } from "@/stores/dialog-store";
 import { PopPanel } from "@/components/motion/pop-panel";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { WorkspaceMembersModal } from "./workspace-members-modal";
 
 const ROW_ACTION =
-  "flex size-6 items-center justify-center rounded-codex-sm opacity-0 transition-[opacity,color,background-color] group-hover:opacity-100 focus-visible:opacity-100 hover:bg-codex-border hover:text-codex-foreground pointer-coarse:opacity-100";
+  "flex size-6 items-center justify-center rounded-codex-sm transition-colors hover:bg-codex-selected hover:text-codex-foreground pointer-coarse:size-9";
 
 const FIELD =
-  "min-w-0 rounded-codex-md border border-codex-border-strong bg-codex-background px-2.5 py-1.5 text-sm text-codex-foreground outline-none transition-colors placeholder:text-codex-muted/70 focus:border-codex-foreground";
+  "min-w-0 rounded-codex-md border border-codex-border-strong bg-codex-elevated px-2.5 py-1.5 text-sm text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-faint focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft";
 
 const SMALL_PRIMARY =
-  "rounded-full bg-codex-accent px-3 py-1 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-7 items-center rounded-full bg-codex-accent px-3 text-sm font-medium text-codex-background transition-colors hover:bg-codex-accent-hover disabled:cursor-not-allowed disabled:opacity-50";
 
 export function WorkspaceSwitcher() {
   const { user, logout } = useAuthStore();
@@ -53,6 +54,20 @@ export function WorkspaceSwitcher() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Escape closes the panel and hands focus back to its trigger
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      setIsOpen(false);
+      setIsCreating(false);
+      dropdownRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   async function handleCreateWorkspace(e: React.FormEvent) {
     e.preventDefault();
@@ -110,47 +125,40 @@ export function WorkspaceSwitcher() {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        aria-haspopup="menu"
-        className={`group flex h-11 w-full items-center gap-2.5 rounded-codex-lg px-2 text-left transition-colors duration-150 hover:bg-codex-surface-raised/60 ${
-          isOpen ? "bg-codex-surface-raised/60" : ""
+        aria-haspopup="true"
+        aria-label={`Workspace: ${activeWorkspace?.name ?? "none selected"}`}
+        className={`group flex h-10 w-full items-center gap-2.5 rounded-codex-md px-2 text-left transition-colors duration-150 hover:bg-codex-hover pointer-coarse:h-12 ${
+          isOpen ? "bg-codex-selected" : ""
         }`}
       >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-codex-md bg-codex-foreground text-sm font-semibold text-codex-background">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-codex-md bg-codex-accent text-xs font-semibold text-codex-background">
           {activeWorkspace?.name?.charAt(0).toUpperCase() || "W"}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold leading-tight tracking-tight text-codex-foreground">
-            {activeWorkspace?.name || "Select Workspace"}
-          </span>
-          <span className="block truncate font-mono text-xs uppercase tracking-label text-codex-muted/80">
-            Tatalaku
-          </span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-codex-foreground">
+          {activeWorkspace?.name || "Select workspace"}
         </span>
-        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-codex-muted" />
+        <ChevronsUpDown className="size-3.5 shrink-0 text-codex-muted" />
       </button>
 
       <PopPanel
         open={isOpen}
-        origin="top left"
-        // w-56 fits inside the sidebar, whose panel clips overflow
-        className="absolute top-full left-0 mt-1 z-50 w-56 glass-surface rounded-codex-lg border border-codex-border-strong p-1"
+        origin="bottom left"
+        // Opens upward from the sidebar footer; w-56 fits the sidebar, whose
+        // panel clips overflow
+        className="absolute bottom-full left-0 mb-1 z-50 w-56 surface-popover rounded-codex-lg p-1"
       >
         {/* User Profile Section */}
         <div className="flex items-center gap-2.5 px-2 py-2.5">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-codex-border-strong font-mono text-xs font-bold text-codex-foreground">
-            {user?.name?.charAt(0).toUpperCase() || "U"}
-          </div>
+          <UserAvatar name={user?.name} avatarUrl={user?.avatarUrl} size="md" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-codex-foreground">
               {user?.name || "User"}
             </p>
-            <p className="truncate font-mono text-xs text-codex-muted">{user?.email}</p>
+            <p className="truncate text-xs text-codex-muted">{user?.email}</p>
           </div>
         </div>
-        <div className="mx-2 h-px bg-codex-border" />
-        <div className="px-2 pt-3 pb-1.5 font-mono text-xs uppercase tracking-label text-codex-muted/80">
-          Workspaces
-        </div>
+        <div className="mx-1.5 h-px bg-codex-border" />
+        <div className="eyebrow px-2 pt-3 pb-1.5 text-codex-muted">Workspaces</div>
 
         <div className="space-y-px max-h-56 overflow-y-auto">
           {workspaces.map((ws) => {
@@ -158,63 +166,73 @@ export function WorkspaceSwitcher() {
             return (
               <div key={ws.id} className="flex flex-col">
                 <div
-                  onClick={() => {
-                    setActiveWorkspace(ws);
-                    setIsOpen(false);
-                    router.push("/workspace");
-                  }}
-                  className={`group flex h-9 cursor-pointer items-center justify-between rounded-codex-md px-2 text-sm transition-colors ${
-                    isActive
-                      ? "bg-codex-surface-raised font-medium text-codex-foreground"
-                      : "text-codex-muted hover:bg-codex-surface-raised hover:text-codex-foreground"
+                  className={`group flex h-9 items-center rounded-codex-md text-sm text-codex-foreground transition-colors pointer-coarse:h-11 ${
+                    isActive ? "bg-codex-selected font-medium" : "hover:bg-codex-hover"
                   }`}
                 >
-                  <div className="flex items-center gap-2 truncate">
-                    <Briefcase className="w-4 h-4 shrink-0 text-codex-muted/80" />
+                  {/* A real button, so keyboard users can switch workspaces too */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveWorkspace(ws);
+                      setIsOpen(false);
+                      router.push("/workspace");
+                    }}
+                    aria-current={isActive ? "true" : undefined}
+                    className="flex h-full min-w-0 flex-1 items-center gap-2 rounded-codex-md px-2 text-left focus-visible:-outline-offset-2"
+                  >
+                    <Briefcase className="size-4 shrink-0 text-codex-muted" />
                     <span className="truncate">{ws.name}</span>
-                  </div>
-                  <div className="flex items-center gap-0.5 text-codex-muted">
-                    {isActive && (
+                  </button>
+                  <div className="flex shrink-0 items-center gap-0.5 pr-1.5 text-codex-muted">
+                    {/* Row actions take no room until the row is hovered or
+                        focused, so the name gets the full width at rest */}
+                    <div className="hidden items-center gap-0.5 group-focus-within:flex group-hover:flex pointer-coarse:flex">
+                      {isActive && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsOpen(false);
+                            setIsMembersModalOpen(true);
+                          }}
+                          className={ROW_ACTION}
+                          aria-label="View members"
+                          title="View members"
+                        >
+                          <Users className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setIsOpen(false);
-                          setIsMembersModalOpen(true);
+                          setIsInviting(isInviting === ws.id ? null : ws.id);
+                          setInviteEmail("");
                         }}
                         className={ROW_ACTION}
-                        aria-label="View members"
-                        title="View members"
+                        aria-label="Invite member"
+                        title="Invite member"
                       >
-                        <Users className="w-3.5 h-3.5" />
+                        <UserPlus className="w-3.5 h-3.5" />
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsInviting(isInviting === ws.id ? null : ws.id);
-                        setInviteEmail("");
-                      }}
-                      className={ROW_ACTION}
-                      aria-label="Invite member"
-                      title="Invite member"
-                    >
-                      <UserPlus className="w-3.5 h-3.5" />
-                    </button>
-                    {workspaces.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteWorkspace(ws.id, e)}
-                        className={`${ROW_ACTION} hover:text-codex-danger`}
-                        aria-label="Delete workspace"
-                        title="Delete workspace"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                      {workspaces.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteWorkspace(ws.id, e)}
+                          className={`${ROW_ACTION} hover:text-codex-danger`}
+                          aria-label="Delete workspace"
+                          title="Delete workspace"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                     {isActive && (
-                      <Check className="ml-0.5 w-4 h-4 shrink-0 text-codex-foreground" />
+                      <Check
+                        className="ml-0.5 size-4 shrink-0 text-codex-accent"
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
                 </div>
@@ -224,7 +242,7 @@ export function WorkspaceSwitcher() {
                     onSubmit={(e) => handleInvite(ws.id, e)}
                     className="mx-1 my-1 rounded-codex-md border border-codex-border p-2"
                   >
-                    <p className="mb-2 truncate font-mono text-xs uppercase tracking-label text-codex-muted">
+                    <p className="mb-2 truncate text-xs font-medium text-codex-muted">
                       Invite to {ws.name}
                     </p>
                     <div className="flex items-center gap-1.5">
@@ -252,7 +270,7 @@ export function WorkspaceSwitcher() {
           })}
         </div>
 
-        <div className="mx-2 my-1 h-px bg-codex-border" />
+        <div className="mx-1.5 my-1 h-px bg-codex-border" />
         {isCreating ? (
           <form onSubmit={handleCreateWorkspace} className="p-1 space-y-2">
             <input
@@ -268,7 +286,7 @@ export function WorkspaceSwitcher() {
               <button
                 type="button"
                 onClick={() => setIsCreating(false)}
-                className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-label text-codex-muted transition-colors hover:text-codex-foreground"
+                className="inline-flex h-7 items-center rounded-full px-3 text-sm text-codex-muted transition-colors hover:bg-codex-hover hover:text-codex-foreground"
               >
                 Cancel
               </button>
@@ -281,22 +299,22 @@ export function WorkspaceSwitcher() {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="flex h-9 w-full items-center gap-2 rounded-codex-md px-2 text-sm text-codex-muted transition-colors hover:bg-codex-surface-raised hover:text-codex-foreground"
+            className="flex h-9 w-full items-center gap-2 rounded-codex-md px-2 text-sm text-codex-foreground transition-colors hover:bg-codex-hover pointer-coarse:h-11"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-codex-muted" />
             <span>New workspace</span>
           </button>
         )}
 
         {/* Logout */}
-        <div className="mx-2 my-1 h-px bg-codex-border" />
+        <div className="mx-1.5 my-1 h-px bg-codex-border" />
         <button
           type="button"
           onClick={async () => {
             await logout();
             router.push("/login");
           }}
-          className="flex h-9 w-full items-center gap-2 rounded-codex-md px-2 text-sm text-codex-muted transition-colors hover:bg-codex-danger-bg hover:text-codex-danger"
+          className="flex h-9 w-full items-center gap-2 rounded-codex-md px-2 text-sm text-codex-danger transition-colors hover:bg-codex-danger-bg pointer-coarse:h-11"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Log out</span>

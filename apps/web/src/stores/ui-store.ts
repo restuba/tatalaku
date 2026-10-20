@@ -3,6 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { UI_STORE_KEY } from "@/constants/storage-keys";
+import { isReadingSize, type ReadingSize } from "@/lib/reading-size";
 
 /**
  * Animation preference. `system` follows the OS "reduce motion" setting;
@@ -10,8 +12,11 @@ import { persist } from "zustand/middleware";
  */
 export type MotionPreference = "system" | "on" | "off";
 
+/** Sections of the Settings dialog */
+export type SettingsTab = "account" | "appearance" | "general" | "members";
+
 /** localStorage key of the persisted UI store (also read by the pre-paint script) */
-export const UI_STORE_KEY = "tatalaku-ui-v1";
+export { UI_STORE_KEY };
 
 export type SidebarPeek = "hidden" | "shown" | "leaving";
 
@@ -36,6 +41,8 @@ function clearPeekTimers(): void {
 
 interface UIState {
   motion: MotionPreference;
+  /** Document text size (Settings → Appearance) */
+  readingSize: ReadingSize;
   isSidebarOpen: boolean;
   isOutlineOpen: boolean;
   /** Render page content full width across the whole app (device preference) */
@@ -46,6 +53,8 @@ interface UIState {
   isImportMarkdownOpen: boolean;
   /** Transient: keyboard shortcuts sheet (⌘/) */
   isShortcutsOpen: boolean;
+  /** Transient: the open Settings section, or null while Settings is closed */
+  settingsTab: SettingsTab | null;
   /**
    * Transient: floating "peek" of the collapsed sidebar (hover the left edge
    * or the open-sidebar button). `leaving` keeps the floating layout while it
@@ -59,6 +68,11 @@ interface UIState {
 
 interface UIActions {
   setMotion: (motion: MotionPreference) => void;
+  setReadingSize: (readingSize: ReadingSize) => void;
+  /** Open Settings (from the sidebar, the account menu or the command palette) */
+  openSettings: (tab?: SettingsTab) => void;
+  setSettingsTab: (tab: SettingsTab) => void;
+  closeSettings: () => void;
   toggleSidebar: () => void;
   setSidebarOpen: (isOpen: boolean) => void;
   toggleOutline: () => void;
@@ -80,18 +94,36 @@ export const useUIStore = create<UIState & UIActions>()(
   persist(
     (set, get) => ({
       motion: "system",
+      readingSize: "default",
       isSidebarOpen: true,
       isOutlineOpen: false,
       isFullWidth: false,
       isCommandPaletteOpen: false,
       isImportMarkdownOpen: false,
       isShortcutsOpen: false,
+      settingsTab: null,
       sidebarPeek: "hidden",
       hasUsedCommandPalette: false,
       isOnboardingDismissed: false,
 
       setMotion: (motion) => {
         set({ motion });
+      },
+
+      setReadingSize: (readingSize) => {
+        set({ readingSize });
+      },
+
+      openSettings: (tab = "account") => {
+        set({ settingsTab: tab });
+      },
+
+      setSettingsTab: (tab) => {
+        set({ settingsTab: tab });
+      },
+
+      closeSettings: () => {
+        set({ settingsTab: null });
       },
 
       // Docking/undocking always ends any peek in progress
@@ -173,6 +205,7 @@ export const useUIStore = create<UIState & UIActions>()(
       // Only persist layout preferences, not transient overlays
       partialize: (state) => ({
         motion: state.motion,
+        readingSize: state.readingSize,
         isSidebarOpen: state.isSidebarOpen,
         isOutlineOpen: state.isOutlineOpen,
         isFullWidth: state.isFullWidth,
@@ -183,6 +216,10 @@ export const useUIStore = create<UIState & UIActions>()(
       // (before the first render) so an "open" preference saved on a wide
       // screen never flashes the drawer open on load.
       onRehydrateStorage: () => (state) => {
+        // Hand-edited or stale storage: fall back to the default text size
+        if (state && !isReadingSize(state.readingSize)) {
+          state.setReadingSize("default");
+        }
         if (
           state?.isSidebarOpen &&
           typeof window !== "undefined" &&

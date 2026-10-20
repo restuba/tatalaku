@@ -146,9 +146,11 @@ export function ImportMarkdownModal() {
   return (
     <Modal open={isImportMarkdownOpen} onClose={handleClose} maxWidth="md" fullWidth>
       <Modal.Header showClose divider>
-        <div className="flex items-center gap-2.5">
-          <UploadCloud className="w-4 h-4 shrink-0 text-codex-muted" />
-          <span>Import from Markdown</span>
+        <div className="min-w-0">
+          <span className="block leading-tight">Import from Markdown</span>
+          <span className="mt-1 block font-sans text-sm font-normal text-codex-muted">
+            Each file becomes a new page in {activeWorkspace?.name ?? "this workspace"}.
+          </span>
         </div>
       </Modal.Header>
 
@@ -163,25 +165,22 @@ export function ImportMarkdownModal() {
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
-          className={`group w-full flex flex-col items-center justify-center gap-2 py-8 px-4 rounded-codex-lg border border-dashed transition-colors duration-150 ${
+          className={`group w-full flex flex-col items-center justify-center gap-2 py-10 px-4 rounded-codex-lg border border-dashed transition-colors duration-150 ${
             isDragging
-              ? "border-codex-foreground bg-codex-surface-raised"
-              : "border-codex-border-strong hover:border-codex-muted"
+              ? "border-codex-accent bg-codex-accent-soft"
+              : "border-codex-border-strong bg-codex-surface-secondary hover:border-codex-accent"
           }`}
         >
           <UploadCloud
-            className={`mb-1 w-6 h-6 transition-colors ${
-              isDragging
-                ? "text-codex-foreground"
-                : "text-codex-muted group-hover:text-codex-foreground"
+            aria-hidden="true"
+            className={`mb-1 size-6 transition-colors ${
+              isDragging ? "text-codex-accent" : "text-codex-muted group-hover:text-codex-accent"
             }`}
           />
-          <span className="text-sm text-codex-foreground">
-            Drag &amp; drop <code>.md</code> files, or click to browse
+          <span className="text-sm font-medium text-codex-foreground">
+            Drop <code className="font-mono text-xs">.md</code> files here, or click to browse
           </span>
-          <span className="text-xs text-codex-muted">
-            Each file becomes a new page · max {MAX_KB} KB per file
-          </span>
+          <span className="text-xs text-codex-muted">Up to {MAX_KB} KB per file</span>
           <input
             ref={inputRef}
             type="file"
@@ -197,7 +196,7 @@ export function ImportMarkdownModal() {
 
         {/* Selected files: hairline-ruled rows in an outlined list */}
         {items.length > 0 && (
-          <ul className="rounded-codex-lg border border-codex-border divide-y divide-codex-border">
+          <ul className="rounded-codex-lg border border-codex-border bg-codex-elevated divide-y divide-codex-border">
             {items.map((item, index) => (
               <li
                 key={`${item.file.name}:${item.file.size}`}
@@ -207,8 +206,7 @@ export function ImportMarkdownModal() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-codex-foreground truncate">{item.file.name}</p>
                   {item.status === "error" && item.error && (
-                    <p className="text-xs text-codex-danger">
-                      <span className="mr-1.5 font-mono uppercase tracking-label">[Error]</span>
+                    <p role="alert" className="text-xs text-codex-danger">
                       {item.error}
                     </p>
                   )}
@@ -217,7 +215,7 @@ export function ImportMarkdownModal() {
                   <button
                     type="button"
                     onClick={() => removeItem(index)}
-                    className="flex size-6 shrink-0 items-center justify-center rounded-codex-sm text-codex-muted transition-colors hover:bg-codex-surface-raised hover:text-codex-foreground pointer-coarse:size-9"
+                    className="flex size-6 shrink-0 items-center justify-center rounded-codex-sm text-codex-muted transition-colors hover:bg-codex-hover hover:text-codex-foreground pointer-coarse:size-9"
                     aria-label={`Remove ${item.file.name}`}
                   >
                     <X className="w-3.5 h-3.5" />

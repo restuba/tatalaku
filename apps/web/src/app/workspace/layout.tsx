@@ -12,8 +12,10 @@ import { CommandPalette } from "@/app/workspace/_components/command-palette";
 import { ImportMarkdownModal } from "@/app/workspace/_components/import-markdown";
 import { DialogHost } from "@/components/shared/dialog-host";
 import { KeyboardShortcuts } from "@/app/workspace/_components/keyboard-shortcuts";
-import { Plus } from "lucide-react";
-import { LogoSpinner } from "@/components/ui/logo-spinner";
+import { AlertCircle, Plus, RefreshCw } from "lucide-react";
+import { Button } from "@/components/reusable/button";
+import { Input } from "@/components/reusable/input";
+import { Logo } from "@/components/ui/logo";
 import { WorkspaceShellSkeleton } from "./_components/workspace-skeleton";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
@@ -89,24 +91,24 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   if (isAuthInit && error) {
     return (
       <div className="h-dvh w-full flex items-center justify-center p-4 bg-codex-background">
-        <div
-          role="alert"
-          className="w-full max-w-md glass-surface rounded-codex-xl border border-codex-border-strong p-8"
-        >
-          <p className="font-mono text-xs uppercase tracking-label text-codex-danger">
-            [ Error: connection failed ]
+        <div role="alert" className="w-full max-w-md surface-dialog rounded-codex-xl p-8">
+          <p className="eyebrow flex items-center gap-2 text-codex-danger">
+            <AlertCircle className="size-4" aria-hidden="true" />
+            Connection failed
           </p>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-codex-foreground">
+          <h1 className="mt-4 font-serif text-3xl font-medium leading-tight text-codex-foreground">
             Can&apos;t reach Tatalaku
           </h1>
-          <p className="mt-2 text-sm text-codex-muted">{error}</p>
-          <button
-            type="button"
+          <p className="mt-2 text-sm leading-relaxed text-codex-muted">{error}</p>
+          <Button
+            btnType="primary"
+            size="large"
+            className="mt-8"
             onClick={() => window.location.reload()}
-            className="mt-8 inline-flex h-11 items-center justify-center rounded-full bg-codex-accent px-6 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity hover:opacity-85"
+            icon={<RefreshCw className="size-4" />}
           >
-            Retry
-          </button>
+            Try again
+          </Button>
         </div>
       </div>
     );
@@ -119,79 +121,71 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   // If user has no workspaces at all, show friendly Onboarding screen
   if (isWsInit && workspaces.length === 0) {
     return (
-      <div className="relative min-h-dvh w-full flex items-center justify-center p-6 bg-codex-background overflow-hidden">
-        {/* Dot-matrix backdrop, fading out from the top left */}
-        <div aria-hidden="true" className="dot-grid pointer-events-none absolute inset-0" />
+      <div className="min-h-dvh w-full flex flex-col bg-codex-background">
+        <header className="flex h-16 items-center px-6 sm:px-10">
+          <Logo size="md" />
+        </header>
+        <main className="flex flex-1 items-center justify-center px-6 pb-24">
+          <div className="w-full max-w-md">
+            <p className="eyebrow flex items-center gap-2 text-codex-muted">
+              <span
+                aria-hidden="true"
+                className="size-1.5 rounded-full bg-codex-accent-secondary"
+              />
+              New workspace
+            </p>
+            <h1 className="mt-5 font-serif text-4xl font-normal leading-tight text-codex-foreground text-balance sm:text-5xl">
+              Welcome to <span className="italic text-codex-accent">Tatalaku</span>.
+            </h1>
+            <p className="mt-4 text-base leading-relaxed text-codex-muted text-pretty">
+              Start with a workspace: a home for your notes, documents and plans.
+            </p>
 
-        <div className="relative z-10 w-full max-w-md">
-          <p
-            className="flex items-center gap-2 font-mono text-xs uppercase tracking-label text-codex-muted animate-row-in"
-            style={{ animationDelay: "60ms" }}
-          >
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-codex-signal" />
-            New workspace
-          </p>
-          <h1
-            className="mt-6 text-4xl font-semibold leading-tight tracking-tight text-codex-foreground text-balance animate-row-in"
-            style={{ animationDelay: "120ms" }}
-          >
-            Welcome to Tatalaku.
-          </h1>
-          <p
-            className="mt-3 text-sm text-codex-muted text-pretty animate-row-in"
-            style={{ animationDelay: "180ms" }}
-          >
-            Let&apos;s create your first workspace to start taking notes and organizing docs.
-          </p>
-
-          <form
-            onSubmit={handleCreateFirstWorkspace}
-            className="mt-10 animate-row-in"
-            style={{ animationDelay: "240ms" }}
-          >
-            <label
-              htmlFor="first-workspace-name"
-              className="block font-mono text-xs uppercase tracking-label text-codex-muted"
-            >
-              Workspace name
-            </label>
-            <input
-              id="first-workspace-name"
-              type="text"
-              autoFocus
-              placeholder="e.g. My Notes, Personal, Acme Team"
-              value={initialWorkspaceName}
-              onChange={(e) => setInitialWorkspaceName(e.target.value)}
-              className="mt-2 w-full border-b border-codex-border-strong bg-transparent py-2.5 text-lg text-codex-foreground outline-none transition-colors placeholder:text-codex-muted/60 focus:border-codex-foreground"
-            />
-            <button
-              type="submit"
-              disabled={!initialWorkspaceName.trim() || isCreatingFirstWs}
-              className="mt-8 inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-full bg-codex-accent px-6 font-mono text-xs uppercase tracking-label text-codex-background transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {isCreatingFirstWs ? (
-                <LogoSpinner size="sm" className="w-5 h-5 opacity-80" />
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Create workspace</span>
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+            <form onSubmit={handleCreateFirstWorkspace} className="mt-10 space-y-4">
+              <Input
+                id="first-workspace-name"
+                label="Workspace name"
+                size="large"
+                autoFocus
+                placeholder="e.g. My Notes, Personal, Acme Team"
+                value={initialWorkspaceName}
+                onChange={setInitialWorkspaceName}
+              />
+              <Button
+                htmlType="submit"
+                btnType="primary"
+                size="large"
+                loading={isCreatingFirstWs}
+                disabled={!initialWorkspaceName.trim()}
+                icon={<Plus className="size-4" />}
+              >
+                Create workspace
+              </Button>
+            </form>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
     <div className="h-dvh w-full flex overflow-hidden bg-codex-background">
+      {/* Keyboard users can jump past the sidebar */}
+      <a
+        href="#workspace-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-codex-md focus:bg-codex-elevated focus:px-3 focus:py-2 focus:text-sm focus:text-codex-foreground focus:shadow-codex-md"
+      >
+        Skip to content
+      </a>
       <Sidebar />
       <CommandPalette />
       <ImportMarkdownModal />
       <KeyboardShortcuts />
       <DialogHost />
-      <main className="flex-1 h-dvh overflow-y-auto flex flex-col relative z-10 bg-codex-background">
+      <main
+        id="workspace-main"
+        className="flex-1 h-dvh overflow-y-auto flex flex-col relative z-10 bg-codex-background"
+      >
         {/* Route transition: each page fades in. Opacity only, so no lingering
             filter/transform can re-anchor the fixed editor menus. */}
         <m.div

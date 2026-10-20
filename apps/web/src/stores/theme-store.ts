@@ -1,124 +1,96 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { DEFAULT_DARK_THEME_ID, DEFAULT_LIGHT_THEME_ID, presets } from "@/lib/themes";
-
-type ThemeVariant = "light" | "dark";
+import { THEME_STORE_KEY } from "@/constants/storage-keys";
+import {
+  DARK_SCHEME_QUERY,
+  DEFAULT_THEME,
+  initialThemePreference,
+  isThemePreference,
+  resolveTheme,
+  type ThemeId,
+  type ThemePreference,
+} from "@/lib/themes";
 
 interface ThemeState {
-  lightCodeThemeId: string;
-  darkCodeThemeId: string;
-  activeConfig: {
-    codeThemeId: string;
-    variant: ThemeVariant;
-    opaqueWindows: boolean;
-  };
+  /** What the user picked: a named theme, or "system" */
+  preference: ThemePreference;
 }
 
 interface ThemeActions {
-  setCodeThemeId: (codeThemeId: string, variant: ThemeVariant) => void;
-  setResolvedVariant: (variant: ThemeVariant) => void;
+  setPreference: (preference: ThemePreference) => void;
 }
 
-/** Bumped when the stored shape or defaults change; see `migrate` below */
-const STORE_VERSION = 1;
+function readInitialPreference(): ThemePreference {
+  if (typeof window === "undefined") return DEFAULT_THEME;
+  try {
+    return initialThemePreference(window.localStorage);
+  } catch {
+    return DEFAULT_THEME;
+  }
+}
 
 /**
- * v0 → v1: GitHub was the default palette before Nothing. Anyone still on it
- * moves to the new default; an explicitly picked Everforest/Lobster stays.
+ * Device-level theme preference, persisted in localStorage like the other UI
+ * preferences. The pre-paint script (lib/prepaint.ts) reads the same key so
+ * the right theme is on screen before React hydrates; ThemeSync applies
+ * changes afterwards without a reload.
  */
-const PREVIOUS_DEFAULTS: Readonly<Record<string, string>> = {
-  "github-light": DEFAULT_LIGHT_THEME_ID,
-  "github-dark": DEFAULT_DARK_THEME_ID,
-};
-
-function getOpaqueWindows(codeThemeId: string, variant: ThemeVariant): boolean {
-  const preset = presets.find((p) => p.codeThemeId === codeThemeId && p.variant === variant);
-  return preset ? preset.theme.opaqueWindows : true;
-}
-
-const DEFAULT_STATE: ThemeState = {
-  lightCodeThemeId: DEFAULT_LIGHT_THEME_ID,
-  darkCodeThemeId: DEFAULT_DARK_THEME_ID,
-  activeConfig: {
-    codeThemeId: DEFAULT_LIGHT_THEME_ID,
-    variant: "light",
-    opaqueWindows: getOpaqueWindows(DEFAULT_LIGHT_THEME_ID, "light"),
-  },
-};
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function isThemeState(value: unknown): value is ThemeState {
-  if (!isRecord(value) || !isRecord(value["activeConfig"])) return false;
-  const { activeConfig } = value;
-  return (
-    typeof value["lightCodeThemeId"] === "string" &&
-    typeof value["darkCodeThemeId"] === "string" &&
-    typeof activeConfig["codeThemeId"] === "string" &&
-    (activeConfig["variant"] === "light" || activeConfig["variant"] === "dark")
-  );
-}
-
-function migrateThemeState(persisted: unknown, version: number): ThemeState {
-  if (!isThemeState(persisted)) return DEFAULT_STATE;
-  if (version >= STORE_VERSION) return persisted;
-
-  const toCurrent = (id: string) => PREVIOUS_DEFAULTS[id] ?? id;
-  const { variant } = persisted.activeConfig;
-  const activeId = toCurrent(persisted.activeConfig.codeThemeId);
-  return {
-    lightCodeThemeId: toCurrent(persisted.lightCodeThemeId),
-    darkCodeThemeId: toCurrent(persisted.darkCodeThemeId),
-    activeConfig: {
-      codeThemeId: activeId,
-      variant,
-      opaqueWindows: getOpaqueWindows(activeId, variant),
-    },
-  };
-}
-
 export const useThemeStore = create<ThemeState & ThemeActions>()(
   persist(
-    (set, get) => ({
-      ...DEFAULT_STATE,
-
-      setCodeThemeId: (codeThemeId, variant) => {
-        set((state) => ({
-          lightCodeThemeId: variant === "light" ? codeThemeId : state.lightCodeThemeId,
-          darkCodeThemeId: variant === "dark" ? codeThemeId : state.darkCodeThemeId,
-          activeConfig: {
-            codeThemeId,
-            variant,
-            opaqueWindows: getOpaqueWindows(codeThemeId, variant),
-          },
-        }));
-      },
-
-      setResolvedVariant: (variant) => {
-        const activeThemeId = variant === "light" ? get().lightCodeThemeId : get().darkCodeThemeId;
-        set({
-          activeConfig: {
-            codeThemeId: activeThemeId,
-            variant,
-            opaqueWindows: getOpaqueWindows(activeThemeId, variant),
-          },
-        });
-      },
+    (set) => ({
+      preference: readInitialPreference(),
+      setPreference: (preference) => set({ preference }),
     }),
     {
-      name: "tatalaku-theme-v1",
-      version: STORE_VERSION,
-      // Only the choices are stored; actions are rebuilt on load
-      partialize: ({ lightCodeThemeId, darkCodeThemeId, activeConfig }): ThemeState => ({
-        lightCodeThemeId,
-        darkCodeThemeId,
-        activeConfig,
-      }),
-      migrate: migrateThemeState,
+      name: THEME_STORE_KEY,
+      version: 1,
+      partialize: ({ preference }): ThemeState => ({ preference }),
+      // Ignore anything that isn't a known preference (old or hand-edited data)
+      merge: (persisted, current) => {
+        const stored = (persisted as Partial<ThemeState> | null | undefined)?.preference;
+        return isThemePreference(stored) ? { ...current, preference: stored } : current;
+      },
     },
   ),
 );
+
+const noopSubscribe = () => () => {};
+
+function subscribeToColorScheme(onChange: () => void): () => void {
+  const media = window.matchMedia(DARK_SCHEME_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+/** Whether the device is in dark mode (false during SSR and hydration) */
+export function usePrefersDark(): boolean {
+  return useSyncExternalStore(
+    subscribeToColorScheme,
+    () => window.matchMedia(DARK_SCHEME_QUERY).matches,
+    () => false,
+  );
+}
+
+/**
+ * The stored preference once mounted, `null` before. Settings and menus use it
+ * to mark the active choice without a hydration mismatch.
+ */
+export function useHydratedThemePreference(): ThemePreference | null {
+  const isMounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+  const preference = useThemeStore((s) => s.preference);
+  return isMounted ? preference : null;
+}
+
+/** The theme currently on screen (Parchment until mounted) */
+export function useResolvedTheme(): ThemeId {
+  const preference = useHydratedThemePreference();
+  const prefersDark = usePrefersDark();
+  return preference ? resolveTheme(preference, prefersDark) : DEFAULT_THEME;
+}
