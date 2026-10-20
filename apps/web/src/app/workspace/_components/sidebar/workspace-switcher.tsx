@@ -24,7 +24,7 @@ const ROW_ACTION =
   "flex size-6 items-center justify-center rounded-codex-sm transition-colors hover:bg-codex-selected hover:text-codex-foreground pointer-coarse:size-9";
 
 const FIELD =
-  "min-w-0 rounded-codex-md border border-codex-border-strong bg-codex-elevated px-2.5 py-1.5 text-sm text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-faint focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft";
+  "min-w-0 rounded-codex-md border border-codex-border-strong bg-codex-elevated px-2.5 py-1.5 text-sm text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-muted focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft";
 
 const SMALL_PRIMARY =
   "inline-flex h-7 items-center rounded-full bg-codex-accent px-3 text-sm font-medium text-codex-background transition-colors hover:bg-codex-accent-hover disabled:cursor-not-allowed disabled:opacity-50";

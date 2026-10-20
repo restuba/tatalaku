@@ -77,7 +77,8 @@ function ThemeColumn({ id, name, style }: { id: ThemeId; name: string; style: st
             <Search className="size-4" aria-hidden="true" /> Search
           </span>
         </div>
-        <div className="flex h-9 items-center rounded-codex-md border border-codex-border-strong bg-codex-elevated px-3 text-sm text-codex-faint">
+        {/* Body-size placeholders are muted (4.5:1); faint is for disabled text */}
+        <div className="flex h-9 items-center rounded-codex-md border border-codex-border-strong bg-codex-elevated px-3 text-sm text-codex-muted">
           Placeholder text
         </div>
         <div className="surface-popover rounded-codex-lg p-1 text-sm">

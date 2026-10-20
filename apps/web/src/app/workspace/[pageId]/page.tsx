@@ -264,6 +264,28 @@ function PageDetail({ page }: { page: Page }) {
       <DropdownMenu
         label="Page options"
         widthClassName="w-60"
+        // Page metadata lives here instead of cluttering the canvas. It sits
+        // outside the menu itself, which may only hold menu items.
+        footer={
+          <dl aria-label="Page details" className="space-y-1 px-2.5 pt-1.5 pb-2 text-xs">
+            {lastEditedAt && (
+              <div className="flex justify-between gap-3" title={formatFullDate(lastEditedAt)}>
+                <dt className="text-codex-muted">Edited</dt>
+                <dd className="tabular-nums text-codex-foreground">
+                  {formatTimeAgo(lastEditedAt)}
+                </dd>
+              </div>
+            )}
+            {page.createdAt && (
+              <div className="flex justify-between gap-3" title={formatFullDate(page.createdAt)}>
+                <dt className="text-codex-muted">Created</dt>
+                <dd className="tabular-nums text-codex-foreground">
+                  {formatTimeAgo(page.createdAt)}
+                </dd>
+              </div>
+            )}
+          </dl>
+        }
         trigger={(props, isOpen) => (
           <button
             type="button"
@@ -292,23 +314,6 @@ function PageDetail({ page }: { page: Page }) {
         >
           {isExporting ? "Exporting…" : "Export to Markdown"}
         </DropdownMenu.Item>
-
-        {/* Page metadata lives here instead of cluttering the canvas */}
-        <DropdownMenu.Separator />
-        <dl role="group" aria-label="Page details" className="space-y-1 px-2.5 pt-1.5 pb-2 text-xs">
-          {lastEditedAt && (
-            <div className="flex justify-between gap-3" title={formatFullDate(lastEditedAt)}>
-              <dt className="text-codex-muted">Edited</dt>
-              <dd className="text-codex-foreground">{formatTimeAgo(lastEditedAt)}</dd>
-            </div>
-          )}
-          {page.createdAt && (
-            <div className="flex justify-between gap-3" title={formatFullDate(page.createdAt)}>
-              <dt className="text-codex-muted">Created</dt>
-              <dd className="text-codex-foreground">{formatTimeAgo(page.createdAt)}</dd>
-            </div>
-          )}
-        </dl>
       </DropdownMenu>
     </>
   );

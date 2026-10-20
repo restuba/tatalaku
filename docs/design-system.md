@@ -62,19 +62,22 @@ Token turunan (`hover`, `selected`, `accent-soft`, `*-bg`, `scrim`, shadow) dihi
 
 ## Palet
 
-| Token                       | Parchment | Clarity   | Nocturne  |
-| --------------------------- | --------- | --------- | --------- |
-| background                  | `#F5F0E7` | `#F7F8F8` | `#222320` |
-| sidebar / surface-secondary | `#EDE6D8` | `#EEF0F2` | `#292A27` |
-| elevated                    | `#FBF8F2` | `#FFFFFF` | `#30312D` |
-| foreground                  | `#29271F` | `#252B30` | `#EAE7DF` |
-| muted                       | `#615E55` | `#5C656D` | `#AAA99F` |
-| faint                       | `#868072` | `#808991` | `#83827A` |
-| border                      | `#DDD5C8` | `#E0E4E7` | `#41423C` |
-| accent                      | `#5E6A4F` | `#46607A` | `#A5AA8C` |
-| accent-secondary            | `#B07250` | `#7B8894` | `#C7B486` |
+| Token                       | Parchment             | Clarity               | Nocturne              |
+| --------------------------- | --------------------- | --------------------- | --------------------- |
+| background                  | `#F5F0E7`             | `#F7F8F8`             | `#222320`             |
+| sidebar / surface-secondary | `#EDE6D8`             | `#EEF0F2`             | `#292A27`             |
+| elevated                    | `#FBF8F2`             | `#FFFFFF`             | `#30312D`             |
+| foreground                  | `#29271F`             | `#252B30`             | `#EAE7DF`             |
+| muted                       | `#615E55`             | `#5C656D`             | `#B1B0A6`             |
+| faint                       | `#868072`             | `#808991`             | `#83827A`             |
+| success / warning           | `#40603A` / `#7A5212` | `#2D714D` / `#8A5B00` | `#9BBE8E` / `#DDB66E` |
+| border                      | `#DDD5C8`             | `#E0E4E7`             | `#41423C`             |
+| accent                      | `#5E6A4F`             | `#46607A`             | `#A5AA8C`             |
+| accent-secondary            | `#B07250`             | `#7B8894`             | `#C7B486`             |
 
-Beberapa nilai digelapkan dari usulan awal agar lolos AA, mis. muted Parchment (`#706D63` → `#615E55`, sebelumnya 4.17:1 di sidebar) dan accent Clarity (`#667F98` → `#46607A`, sebelumnya 3.9:1 untuk label tombol).
+Beberapa nilai digelapkan dari usulan awal agar lolos AA, mis. muted Parchment (`#706D63` → `#615E55`, sebelumnya 4.17:1 di sidebar) dan accent Clarity (`#667F98` → `#46607A`, sebelumnya 3.9:1 untuk label tombol). Hasil audit axe: muted Nocturne dinaikkan (`#AAA99F` → `#B1B0A6`, sebelumnya 4.2:1 di baris terpilih), success/warning Parchment digelapkan agar tetap 4.5:1 di atas fill status-nya.
+
+- `faint` (≥ 3:1) hanya untuk teks disabled, placeholder berukuran besar (judul halaman), dan tanda dekoratif. Placeholder berukuran body memakai `muted`, karena tetap teks dan butuh 4.5:1.
 
 Nama variabel `--color-ink`, `--color-surface`, `--color-accent`, `--color-danger`, `--color-success`, `--color-info` tersimpan di konten dokumen (warna teks/sel) — jangan diganti namanya.
 

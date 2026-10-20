@@ -235,7 +235,7 @@ export function MermaidNodeView(props: NodeViewProps) {
               onChange={(e) => setEditCode(e.target.value)}
               onKeyDown={handleKeyDown}
               aria-label="Mermaid code"
-              className="min-h-40 w-full resize-y rounded-codex-md border border-codex-border-strong bg-codex-elevated p-4 font-mono text-sm leading-relaxed text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-faint focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft"
+              className="min-h-40 w-full resize-y rounded-codex-md border border-codex-border-strong bg-codex-elevated p-4 font-mono text-sm leading-relaxed text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-muted focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft"
               placeholder={"graph TD\n    A[Start] --> B[End]"}
               spellCheck={false}
             />

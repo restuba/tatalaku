@@ -201,7 +201,7 @@ export function TableActionMenu({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search actions…"
           aria-label="Search actions"
-          className="h-8 w-full rounded-codex-md border border-codex-border-strong bg-codex-elevated px-2.5 text-sm text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-faint focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft"
+          className="h-8 w-full rounded-codex-md border border-codex-border-strong bg-codex-elevated px-2.5 text-sm text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-muted focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft"
         />
       </div>
 

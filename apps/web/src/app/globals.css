@@ -83,8 +83,8 @@ html[data-motion="reduce"] *::after {
 
   /* Status */
   --color-danger: #a3412c;
-  --color-success: #4a6f43;
-  --color-warning: #8c5f17;
+  --color-success: #40603a;
+  --color-warning: #7a5212;
   --color-info: #3c6585;
 
   /* Code */
@@ -159,7 +159,7 @@ html[data-motion="reduce"] *::after {
   --color-elevated: #30312d;
 
   --color-ink: #eae7df;
-  --color-muted: #aaa99f;
+  --color-muted: #b1b0a6;
   --color-faint: #83827a;
 
   --color-border: #41423c;
@@ -283,7 +283,8 @@ html[data-reading-size="large"] {
   /* Text */
   --color-codex-foreground: var(--color-ink);
   --color-codex-muted: var(--color-muted);
-  /* Placeholders, disabled text, decorative marks (≥ 3:1) */
+  /* Disabled text, large-text placeholders (page title), decorative marks (≥ 3:1).
+     Body-size placeholders use muted: they are text and need 4.5:1. */
   --color-codex-faint: var(--color-faint);
 
   /* Lines */
@@ -488,7 +489,7 @@ body {
   float: left;
   height: 0;
   pointer-events: none;
-  color: var(--color-faint);
+  color: var(--color-muted);
 }
 
 /* Headings: Fraunces for the two large levels, Inter for the third so dense

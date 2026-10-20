@@ -19,7 +19,8 @@ export function ThemePreview({ theme }: { theme: ThemeId }) {
       </div>
       <div className="min-w-0 flex-1 p-2.5">
         <span className="block font-serif text-base leading-none text-codex-foreground">
-          Good <span className="italic text-codex-accent-secondary">day</span>
+          {/* Accent, like the name in the Home greeting it mirrors */}
+          Good <span className="italic text-codex-accent">day</span>
         </span>
         <span className="mt-2 block h-1 w-5/6 rounded-full bg-codex-border-strong" />
         <span className="mt-1 block h-1 w-2/3 rounded-full bg-codex-border-strong" />

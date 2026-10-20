@@ -342,7 +342,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
             aria-activedescendant={activeItem ? `${listboxId}-${activeItem.id}` : undefined}
             aria-autocomplete="list"
             aria-label="Search pages and commands"
-            className="h-13 flex-1 bg-transparent text-base text-codex-foreground outline-none placeholder:text-codex-faint sm:text-sm"
+            className="h-13 flex-1 bg-transparent text-base text-codex-foreground outline-none placeholder:text-codex-muted sm:text-sm"
           />
           <Kbd className="shrink-0">esc</Kbd>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useId, useRef } from "react";
 import type { Editor } from "@tiptap/react";
 import { ListTree, Hash } from "lucide-react";
 import { scrollBehavior } from "@/lib/motion";
@@ -148,28 +148,47 @@ interface TableOfContentsProps {
 export function TableOfContents({ editor }: TableOfContentsProps) {
   const items = useTableOfContents(editor);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const panelId = useId();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLButtonElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeItemRef = useRef<HTMLAnchorElement | null>(null);
   const isClickingRef = useRef(false);
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMouseEnter = useCallback(() => {
+  const handleOpen = useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
-    setIsHovered(true);
+    setIsOpen(true);
   }, []);
 
+  // The pointer may leave briefly (e.g. on its way to the panel) before it closes
   const handleMouseLeave = useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
     hoverTimeoutRef.current = setTimeout(() => {
-      setIsHovered(false);
+      setIsOpen(false);
     }, 220);
   }, []);
+
+  // Keyboard: the panel stays open while focus is inside the outline
+  const handleBlur = useCallback((event: React.FocusEvent) => {
+    if (!wrapperRef.current?.contains(event.relatedTarget as Node | null)) setIsOpen(false);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key !== "Escape" || !isOpen) return;
+      event.stopPropagation();
+      setIsOpen(false);
+      railRef.current?.focus();
+    },
+    [isOpen],
+  );
 
   // Keep active item in view inside outline panel
   useEffect(() => {
@@ -278,18 +297,62 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
   // Maximum 40 bars for the vertical outline bar indicator
   const displayBars = items.slice(0, 40);
 
+  // A click on a bar jumps to its heading; anywhere else on the rail (and
+  // Enter/Space) opens the outline panel
+  const handleRailClick = (event: React.MouseEvent) => {
+    const bar = (event.target as HTMLElement).closest<HTMLElement>("[data-toc-index]");
+    const item = bar ? displayBars[Number(bar.dataset.tocIndex)] : undefined;
+    if (item) handleItemClick(event, item);
+    else handleOpen();
+  };
+
   // Vertically centered (not offset from the top), so the panel's max height
   // (100vh - 8rem) keeps it clear of the sticky top bar (48px, 56px on touch).
   // Shown from xl up only, so no smaller breakpoints are needed.
+  // The rail comes first in the DOM (Tab reaches it, then the panel's links);
+  // flex-row-reverse puts the panel on its left.
   return (
     <div
-      className="fixed right-5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex items-center select-none"
-      onMouseEnter={handleMouseEnter}
+      ref={wrapperRef}
+      className="fixed right-5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-row-reverse items-center select-none"
+      onMouseEnter={handleOpen}
       onMouseLeave={handleMouseLeave}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
     >
-      {/* 1. Popover Menu Box (fades in on hover, scrollable, hides shortly after the pointer leaves) */}
-      {isHovered && (
+      {/* 1. The rail: one button (a comfortable target) drawing a bar per heading */}
+      <button
+        ref={railRef}
+        type="button"
+        aria-label="Outline"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? panelId : undefined}
+        onClick={handleRailClick}
+        className={`flex flex-col items-end rounded-codex-md px-2 py-0.5 transition-opacity duration-200 ${
+          isOpen ? "opacity-100" : "opacity-60 hover:opacity-100"
+        }`}
+      >
+        {displayBars.map((item, index) => {
+          const isActive = activeId === item.id;
+          // Width by heading level: 24px (H1), 16px (H2), 10px (H3)
+          const widthClass = item.level === 1 ? "w-6" : item.level === 2 ? "w-4" : "w-2.5";
+          // Padding, not gaps, so each bar's click area runs into the next
+          return (
+            <span key={item.id} data-toc-index={index} className="flex justify-end py-1">
+              <span
+                className={`block h-0.5 rounded-full transition-colors duration-150 ${widthClass} ${
+                  isActive ? "bg-codex-accent" : "bg-codex-faint"
+                }`}
+              />
+            </span>
+          );
+        })}
+      </button>
+
+      {/* 2. Panel (opens on hover or from the rail; scrollable) */}
+      {isOpen && (
         <aside
+          id={panelId}
           aria-label="Table of contents"
           className="surface-popover mr-3 flex w-80 max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-codex-lg animate-in fade-in slide-in-from-right-1 duration-150"
         >
@@ -359,36 +422,6 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
           </p>
         </aside>
       )}
-
-      {/* 2. Vertical outline bars (always visible on the right edge, max 40):
-          rounded 2px segments, the active one in the accent */}
-      <div
-        className={`flex flex-col items-end gap-y-2 py-1.5 px-2 cursor-pointer transition-opacity duration-200 ${
-          isHovered ? "opacity-100" : "opacity-60 hover:opacity-100"
-        }`}
-        title="Outline"
-      >
-        {displayBars.map((item) => {
-          const isActive = activeId === item.id;
-          // Width based on heading level:
-          // Level 1: 24px (w-6)
-          // Level 2: 16px (w-4)
-          // Level 3: 10px (w-2.5)
-          const widthClass = item.level === 1 ? "w-6" : item.level === 2 ? "w-4" : "w-2.5";
-
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={(e) => handleItemClick(e, item)}
-              aria-label={`Jump to ${item.text}`}
-              className={`h-0.5 rounded-full transition-colors duration-150 ${widthClass} ${
-                isActive ? "bg-codex-accent" : "bg-codex-faint hover:bg-codex-muted"
-              }`}
-            />
-          );
-        })}
-      </div>
     </div>
   );
 }

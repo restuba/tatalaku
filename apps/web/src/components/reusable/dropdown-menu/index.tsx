@@ -39,6 +39,11 @@ export interface DropdownMenuProps {
   widthClassName?: string;
   /** Accessible name for the menu */
   label: string;
+  /**
+   * Static content under the items (e.g. page details). Rendered outside the
+   * `role="menu"` element, which may only contain menu items.
+   */
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -81,6 +86,7 @@ export function DropdownMenu({
   side = "bottom",
   widthClassName = "w-56",
   label,
+  footer,
   className = "",
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -185,6 +191,12 @@ export function DropdownMenu({
           <div id={menuId} role="menu" aria-label={label} onKeyDown={onMenuKeyDown}>
             {children}
           </div>
+          {footer && (
+            <>
+              <div aria-hidden="true" className="mx-1.5 my-1 h-px bg-codex-border" />
+              {footer}
+            </>
+          )}
         </PopPanel>
       </div>
     </MenuContext.Provider>

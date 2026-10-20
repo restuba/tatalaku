@@ -152,7 +152,7 @@ const Input = forwardRef<InputRef, InputProps>(
             disabled={disabled}
             maxLength={maxLength}
             placeholder={placeholder}
-            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-codex-faint disabled:cursor-not-allowed ${sizeStyles.input} text-codex-foreground`}
+            className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-codex-muted disabled:cursor-not-allowed ${sizeStyles.input} text-codex-foreground`}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={(e) => {
