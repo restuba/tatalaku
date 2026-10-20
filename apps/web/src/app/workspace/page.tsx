@@ -98,7 +98,11 @@ export default function WorkspaceHomePage() {
 
   return (
     <div className="flex-1 flex flex-col relative w-full">
-      <TopBar items={[{ label: "Home", icon: <Home className="size-4" aria-hidden="true" /> }]} />
+      {/* Only "Home" would sit in the bar, repeating the sidebar's active item */}
+      <TopBar
+        hideWhenSidebarDocked
+        items={[{ label: "Home", icon: <Home className="size-4" aria-hidden="true" /> }]}
+      />
 
       <div className="flex-1 w-full">
         <div

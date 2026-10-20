@@ -62,12 +62,20 @@ function SidebarToggleSlot() {
 function TopBarSkeleton({
   crumbs,
   hasActions = false,
+  hideWhenSidebarDocked = false,
 }: {
   crumbs: readonly string[];
   hasActions?: boolean;
+  /** Same as TopBar's prop: no bar on wide screens while the sidebar is docked open */
+  hideWhenSidebarDocked?: boolean;
 }) {
+  const isSidebarOpen = useHydratedSidebarOpen();
   return (
-    <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between gap-3 border-b border-codex-border bg-codex-background px-3 select-none pointer-coarse:h-14">
+    <header
+      className={`sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between gap-3 border-b border-codex-border bg-codex-background px-3 select-none pointer-coarse:h-14 ${
+        hideWhenSidebarDocked && isSidebarOpen ? "md:hidden" : ""
+      }`}
+    >
       <div className="flex min-w-0 items-center gap-1">
         <SidebarToggleSlot />
         <div className="flex min-w-0 items-center gap-0.5 text-sm">
@@ -154,8 +162,8 @@ export function PageContentSkeleton() {
         <div className="text-4xl leading-[1.15] sm:text-[2.625rem]">
           <TextLine className="w-2/5 max-w-md" />
         </div>
-        {/* Byline */}
-        <div className="eyebrow mt-3">
+        {/* Byline ("Edited 4h ago", text-xs) */}
+        <div className="mt-3 text-xs">
           <TextLine className="w-28" />
         </div>
       </div>
@@ -271,7 +279,7 @@ export function WorkspaceHomeSkeleton() {
 
   return (
     <div className="relative flex w-full flex-1 flex-col">
-      <TopBarSkeleton crumbs={HOME_CRUMBS} />
+      <TopBarSkeleton crumbs={HOME_CRUMBS} hideWhenSidebarDocked />
 
       <div className="w-full flex-1">
         <div
