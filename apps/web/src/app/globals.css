@@ -387,7 +387,8 @@ body {
    Shared utilities
    ───────────────────────────────────────────────────────────── */
 
-/* Small ALL CAPS label: section headings, metadata, timestamps */
+/* Small ALL CAPS label: section headings and short labels. Not for timestamps
+   ("4H AGO" reads badly): those use `text-xs tabular-nums`, sentence case. */
 @utility eyebrow {
   font-family: var(--font-ui-stack);
   font-size: 0.75rem;

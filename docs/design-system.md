@@ -26,6 +26,7 @@ Sumber kebenaran: `apps/web/src/app/globals.css`. Halaman referensi hidup: `/des
 | Tabel                    | Inter                            | 0.9em / 1.55                            |
 | UI, sidebar, tombol      | Inter 400–500                    | 14px                                    |
 | Label kecil (`eyebrow`)  | Inter 500, caps, tracking 0.08em | 12px                                    |
+| Waktu & metadata         | Inter 400, tabular, huruf biasa  | 12px (`text-xs tabular-nums`)           |
 
 - Font di-self-host (`apps/web/src/app/fonts/`, OFL), subset latin — mencakup Bahasa Indonesia.
 - Ukuran dokumen memakai `em` sehingga Appearance → Text size menskalakan seluruh dokumen.

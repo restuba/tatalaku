@@ -41,7 +41,7 @@ export function AllPages({ id, pages, getParentPath }: AllPagesProps) {
                   {parentPath && <span className="ml-2 text-codex-muted">in {parentPath}</span>}
                 </span>
                 <time
-                  className="eyebrow shrink-0 text-codex-muted"
+                  className="shrink-0 text-xs tabular-nums text-codex-muted"
                   dateTime={toISODate(touched)}
                   title={formatFullDate(touched)}
                 >

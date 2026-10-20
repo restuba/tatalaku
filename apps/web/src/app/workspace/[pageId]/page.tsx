@@ -470,7 +470,7 @@ function PageDetail({ page }: { page: Page }) {
           />
 
           {lastEditedAt && (
-            <p className="eyebrow mt-3 text-codex-muted">
+            <p className="mt-3 text-xs tabular-nums text-codex-muted">
               Edited{" "}
               <time dateTime={toISODate(lastEditedAt)} title={formatFullDate(lastEditedAt)}>
                 {formatTimeAgo(lastEditedAt)}

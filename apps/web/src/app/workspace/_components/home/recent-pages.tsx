@@ -73,7 +73,7 @@ export function RecentPages({ pages, getParentPath, onCreatePage, allPagesId }: 
                     {page.coverImage && page.icon ? `${page.icon} ` : ""}
                     {page.title || "Untitled"}
                   </span>
-                  <span className="eyebrow mt-auto flex min-w-0 items-center justify-between gap-2 pt-2 text-codex-muted">
+                  <span className="mt-auto flex min-w-0 items-center justify-between gap-2 pt-2 text-xs tabular-nums text-codex-muted">
                     <span className="truncate">{parentPath}</span>
                     <time
                       className="shrink-0"

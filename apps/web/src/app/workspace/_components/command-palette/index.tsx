@@ -402,7 +402,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                     )}
                   </span>
                   {item.meta && (
-                    <span className="eyebrow relative shrink-0 font-normal text-codex-muted">
+                    <span className="relative shrink-0 text-xs tabular-nums text-codex-muted">
                       {item.meta}
                     </span>
                   )}

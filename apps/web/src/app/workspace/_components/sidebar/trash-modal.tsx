@@ -100,7 +100,7 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-sm text-codex-foreground">{title}</p>
-                      <p className="eyebrow text-codex-muted">
+                      <p className="text-xs tabular-nums text-codex-muted">
                         Deleted {formatTimeAgo(page.updatedAt)}
                       </p>
                     </div>
