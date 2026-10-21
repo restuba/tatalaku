@@ -23,7 +23,7 @@ export function RecentPages({ pages, getParentPath, onCreatePage, allPagesId }: 
   const hasMore = pages.length > SLOT_COUNT;
 
   return (
-    <section className="mt-14" aria-labelledby="home-recent-heading">
+    <section className="mt-14 @container" aria-labelledby="home-recent-heading">
       <SectionHeading
         id="home-recent-heading"
         label="Recently edited"
@@ -39,7 +39,11 @@ export function RecentPages({ pages, getParentPath, onCreatePage, allPagesId }: 
           ) : undefined
         }
       />
-      <ul className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+      {/* Columns follow the content width, not the viewport: with the sidebar
+          docked the content is ~470px even on a 1024px tablet, so a
+          viewport breakpoint would crush each card to one word. The @container
+          is on the <section>. */}
+      <ul className="mt-4 grid grid-cols-2 gap-3 @2xl:grid-cols-4">
         {visible.map((page) => {
           const parentPath = getParentPath(page);
           const touched = page.updatedAt || page.createdAt;
@@ -47,7 +51,7 @@ export function RecentPages({ pages, getParentPath, onCreatePage, allPagesId }: 
             <li key={page.id}>
               <Link
                 href={`/workspace/${page.id}`}
-                className="group flex h-40 flex-col overflow-hidden rounded-codex-lg border border-codex-border bg-codex-elevated transition-[border-color,box-shadow] duration-150 hover:border-codex-border-strong hover:shadow-codex-sm"
+                className="group flex h-28 flex-col overflow-hidden rounded-codex-lg border border-codex-border bg-codex-elevated transition-[border-color,box-shadow] duration-150 hover:border-codex-border-strong hover:shadow-codex-sm @2xl:h-40"
               >
                 {page.coverImage ? (
                   <span className="block h-16 shrink-0 overflow-hidden border-b border-codex-border bg-codex-surface-secondary">
@@ -56,7 +60,7 @@ export function RecentPages({ pages, getParentPath, onCreatePage, allPagesId }: 
                       src={page.coverImage}
                       alt=""
                       loading="lazy"
-                      className="size-full object-cover"
+                      className="cover-img size-full object-cover"
                     />
                   </span>
                 ) : (

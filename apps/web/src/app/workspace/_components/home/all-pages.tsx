@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { FileText } from "lucide-react";
@@ -12,9 +13,19 @@ interface AllPagesProps {
   getParentPath: (page: Page) => string;
 }
 
+/** How many rows to show before the "Show all" toggle */
+const INITIAL_COUNT = 10;
+
 /** Every page as quiet rows: title on the left, last edit on the right */
 export function AllPages({ id, pages, getParentPath }: AllPagesProps) {
+  const [expanded, setExpanded] = useState(false);
+
   if (pages.length === 0) return null;
+
+  // A long workspace would make Home scroll for ages; show the first rows and
+  // let the reader open the rest in place.
+  const hasMore = pages.length > INITIAL_COUNT;
+  const visible = expanded ? pages : pages.slice(0, INITIAL_COUNT);
 
   return (
     <section id={id} className="mt-14 scroll-mt-16" aria-labelledby="home-all-pages-heading">
@@ -24,7 +35,7 @@ export function AllPages({ id, pages, getParentPath }: AllPagesProps) {
         meta={String(pages.length).padStart(2, "0")}
       />
       <ul className="mt-2 divide-y divide-codex-border">
-        {pages.map((page) => {
+        {visible.map((page) => {
           const parentPath = getParentPath(page);
           const touched = page.updatedAt || page.createdAt;
           return (
@@ -52,6 +63,16 @@ export function AllPages({ id, pages, getParentPath }: AllPagesProps) {
           );
         })}
       </ul>
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="mt-3 ml-2 rounded-codex-sm text-sm text-codex-muted transition-colors hover:text-codex-foreground"
+        >
+          {expanded ? "Show less" : `Show all ${pages.length}`}
+        </button>
+      )}
     </section>
   );
 }
