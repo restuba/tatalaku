@@ -354,7 +354,9 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
 
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {/* Icon ⇄ Chevron: a single slot that shows the page icon at rest and
-              swaps to an expand/collapse chevron on hover. Every page can be
+              swaps to an expand/collapse chevron on hover or keyboard focus.
+              The icon stays put while expanded (the subtree already shows the
+              page is open), so a page never loses its icon. Every page can be
               expanded; empty ones reveal a "No pages inside" placeholder. */}
           <button
             type="button"
@@ -367,22 +369,18 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             aria-expanded={isExpanded}
             className="relative w-4 h-4 shrink-0 flex items-center justify-center rounded-codex-sm text-codex-muted hover:bg-codex-selected"
           >
-            {/* Icon: visible at rest, hidden on hover (or while expanded) */}
-            <span
-              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ${
-                isExpanded ? "opacity-0" : "opacity-100 group-hover:opacity-0"
-              }`}
-            >
+            {/* Icon: visible at rest, hidden only while the chevron is shown */}
+            <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-150 opacity-100 group-hover:opacity-0 group-focus-within:opacity-0">
               {page.icon ? (
                 <span className="text-sm leading-none">{page.icon}</span>
               ) : (
                 <FileText className="w-4 h-4 text-codex-muted" />
               )}
             </span>
-            {/* Chevron: hidden at rest, revealed on hover (or while expanded) */}
+            {/* Chevron: hidden at rest, revealed on hover or focus; rotated when open */}
             <ChevronRight
-              className={`absolute inset-0 m-auto w-3.5 h-3.5 transition-[opacity,rotate] duration-150 ${
-                isExpanded ? "opacity-100 rotate-90" : "opacity-0 group-hover:opacity-100 rotate-0"
+              className={`absolute inset-0 m-auto w-3.5 h-3.5 opacity-0 transition-[opacity,rotate] duration-150 group-hover:opacity-100 group-focus-within:opacity-100 ${
+                isExpanded ? "rotate-90" : "rotate-0"
               }`}
             />
           </button>
@@ -417,11 +415,12 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
           )}
         </div>
 
-        {/* Hover Actions */}
+        {/* Hover Actions: take no width at rest, so the title gets the full
+            row until the row is hovered, focused, or on a touch device */}
         {!isEditing && (
           <div
             data-drag-actions
-            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100 transition-opacity shrink-0 ml-1"
+            className="ml-1 hidden shrink-0 items-center gap-0.5 group-hover:flex group-focus-within:flex pointer-coarse:flex"
           >
             {/* Quick Add Subpage */}
             <button
