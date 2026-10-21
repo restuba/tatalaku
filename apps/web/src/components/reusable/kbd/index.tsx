@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useModKey } from "@/lib/platform";
 
 export interface KbdProps {
   children: ReactNode;
@@ -13,6 +14,20 @@ export function Kbd({ children, className = "" }: KbdProps) {
     >
       {children}
     </kbd>
+  );
+}
+
+/**
+ * A key chip for a shortcut whose primary modifier is the platform's: renders
+ * ⌘ on Apple devices and Ctrl elsewhere, followed by `children` (e.g. "K").
+ */
+export function ModKey({ children, className }: { children?: ReactNode; className?: string }) {
+  const mod = useModKey();
+  return (
+    <Kbd className={className}>
+      {mod}
+      {children}
+    </Kbd>
   );
 }
 

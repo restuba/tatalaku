@@ -36,7 +36,6 @@ interface ActionItem {
   key: string;
   label: string;
   icon: React.ReactNode;
-  shortcut?: string;
   danger?: boolean;
   onSelect: () => void;
 }
@@ -150,7 +149,6 @@ export function TableActionMenu({
         key: "duplicate",
         label: "Duplicate",
         icon: <Copy className="h-4 w-4" />,
-        shortcut: "⌘D",
         onSelect: () => {
           if (ensureCellSelected()) duplicateColumnOrRow(editor, axis);
           onClose();
@@ -238,7 +236,6 @@ export function TableActionMenu({
                   <HeaderToggle active={isHeaderActive} />
                 )}
                 {item.key === "color" && <ChevronRight className="h-4 w-4 text-codex-muted" />}
-                {item.shortcut && <span className="text-xs text-codex-muted">{item.shortcut}</span>}
               </button>
 
               {/* ml-2 clears this menu's own padding and border */}

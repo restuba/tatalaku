@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, m } from "motion/react";
 import { X, User, Palette, Building, Users, Keyboard } from "lucide-react";
 import { TWEEN } from "@/components/motion";
-import { Kbd } from "@/components/reusable/kbd";
+import { ModKey } from "@/components/reusable/kbd";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -190,7 +190,7 @@ function SettingsDialog({ activeTab, onClose }: { activeTab: SettingsTab; onClos
           >
             <Keyboard className="size-4 shrink-0" aria-hidden="true" />
             <span className="flex-1 text-left">Keyboard shortcuts</span>
-            <Kbd className="pointer-coarse:hidden">⌘/</Kbd>
+            <ModKey className="pointer-coarse:hidden">/</ModKey>
           </button>
         </aside>
 

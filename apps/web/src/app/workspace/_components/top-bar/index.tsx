@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { PanelLeft } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
+import { useModKey } from "@/lib/platform";
 import { Breadcrumb, type BreadcrumbItem } from "@/components/shared/breadcrumb";
 import { TOP_BAR_ICON_BUTTON } from "./constants";
 
@@ -33,6 +34,7 @@ export function TopBar({
   hideWhenSidebarDocked = false,
 }: TopBarProps) {
   const { isSidebarOpen, setSidebarOpen, peekSidebar, unpeekSidebar } = useUIStore();
+  const mod = useModKey();
 
   return (
     <header
@@ -50,7 +52,8 @@ export function TopBar({
             onMouseLeave={unpeekSidebar}
             className={TOP_BAR_ICON_BUTTON}
             aria-label="Open sidebar"
-            title="Open sidebar (⌘\)"
+            aria-keyshortcuts="Meta+Backslash Control+Backslash"
+            title={`Open sidebar (${mod}\\)`}
           >
             <PanelLeft className="size-4" />
           </button>

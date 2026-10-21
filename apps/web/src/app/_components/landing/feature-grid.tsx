@@ -24,7 +24,8 @@ const FEATURES = [
   {
     icon: Command,
     title: "Keyboard first",
-    description: "⌘K to jump anywhere, ⌘\\ to fold the sidebar, ⌘/ for every shortcut.",
+    description:
+      "Jump anywhere, fold the sidebar, and reach every shortcut without leaving the keyboard.",
   },
   {
     icon: Palette,

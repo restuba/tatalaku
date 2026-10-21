@@ -2,7 +2,7 @@
 
 import { Plus, Search, Upload } from "lucide-react";
 import { Button } from "@/components/reusable/button";
-import { Kbd } from "@/components/reusable/kbd";
+import { ModKey } from "@/components/reusable/kbd";
 import { useUIStore } from "@/stores/ui-store";
 
 interface QuickActionsProps {
@@ -39,7 +39,7 @@ export function QuickActions({ onCreatePage, disabled }: QuickActionsProps) {
       >
         <span className="flex items-center gap-2">
           Search
-          <Kbd className="pointer-coarse:hidden">⌘K</Kbd>
+          <ModKey className="pointer-coarse:hidden">K</ModKey>
         </span>
       </Button>
     </div>

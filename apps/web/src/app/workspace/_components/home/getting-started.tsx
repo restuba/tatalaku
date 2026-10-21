@@ -74,7 +74,7 @@ export function GettingStarted({
     },
     {
       id: "search",
-      label: "Jump anywhere with ⌘K",
+      label: "Jump anywhere with the command palette",
       description: "Search pages and run quick actions.",
       isDone: hasUsedCommandPalette,
       onAction: () => setCommandPaletteOpen(true),

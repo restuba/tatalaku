@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { Kbd } from "@/components/reusable/kbd";
 import { Modal } from "@/components/reusable/modal";
+import { useModKey } from "@/lib/platform";
 import { useUIStore } from "@/stores/ui-store";
 
 interface Shortcut {
@@ -48,11 +49,6 @@ const SECTIONS: ReadonlyArray<{ title: string; items: ReadonlyArray<Shortcut> }>
   },
 ];
 
-function isApplePlatform(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent);
-}
-
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
@@ -85,10 +81,7 @@ export function KeyboardShortcuts() {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [toggleSidebar, setShortcutsOpen]);
 
-  const mod = useMemo(
-    () => (isShortcutsOpen && isApplePlatform() ? "⌘" : "Ctrl"),
-    [isShortcutsOpen],
-  );
+  const mod = useModKey();
 
   return (
     <Modal

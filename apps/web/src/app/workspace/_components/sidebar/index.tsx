@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, LayoutGroup, m } from "motion/react";
 import { TWEEN, TWEEN_FAST } from "@/components/motion";
-import { Kbd } from "@/components/reusable/kbd";
+import { ModKey } from "@/components/reusable/kbd";
+import { useModKey } from "@/lib/platform";
 import { Logo } from "@/components/ui/logo";
 import { SidebarActivePill } from "./active-pill";
 import { TrashModal } from "./trash-modal";
@@ -207,6 +208,7 @@ export function Sidebar() {
     peekSidebar,
     unpeekSidebar,
   } = useUIStore();
+  const mod = useModKey();
   // Collapsed sidebar can float in as a "peek" panel (desktop hover only)
   const isPeekLayout = !isSidebarOpen && sidebarPeek !== "hidden";
   const isPeekShown = !isSidebarOpen && sidebarPeek === "shown";
@@ -317,7 +319,8 @@ export function Sidebar() {
               onClick={toggleSidebar}
               className="flex size-8 shrink-0 items-center justify-center rounded-codex-md text-codex-muted opacity-0 transition-[opacity,color,background-color] duration-150 group-hover/sidebar:opacity-100 hover:bg-codex-hover hover:text-codex-foreground focus-visible:opacity-100 pointer-coarse:size-11 pointer-coarse:opacity-100"
               aria-label={isPeekLayout ? "Keep sidebar open" : "Close sidebar"}
-              title={isPeekLayout ? "Keep sidebar open" : "Close sidebar (⌘\\)"}
+              aria-keyshortcuts="Meta+Backslash Control+Backslash"
+              title={isPeekLayout ? "Keep sidebar open" : `Close sidebar (${mod}\\)`}
             >
               {isPeekLayout ? (
                 <ChevronsRight className="size-4" />
@@ -337,7 +340,7 @@ export function Sidebar() {
             >
               <Search className="size-4 shrink-0" aria-hidden="true" />
               <span className="flex-1 truncate">Search…</span>
-              <Kbd className="pointer-coarse:hidden">⌘K</Kbd>
+              <ModKey className="pointer-coarse:hidden">K</ModKey>
             </button>
           </div>
 
