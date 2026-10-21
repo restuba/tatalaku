@@ -803,6 +803,21 @@ body {
   outline-offset: 2px;
 }
 
+/* Photos on a dark canvas glow against the quiet surfaces, which fights the
+   "comfortable for long sessions" goal. Take the edge off in Nocturne —
+   document images and page covers (.cover-img) — and lift it back on hover
+   so the real colors are a pointer away. */
+[data-theme="nocturne"] .tiptap img,
+[data-theme="nocturne"] .cover-img {
+  filter: brightness(0.86);
+  transition: filter 150ms ease;
+}
+
+[data-theme="nocturne"] .tiptap img:hover,
+[data-theme="nocturne"] .cover-img:hover {
+  filter: brightness(1);
+}
+
 /* Tables: a hairline grid, slightly smaller type for dense data */
 .tiptap .tableWrapper {
   overflow-x: auto;

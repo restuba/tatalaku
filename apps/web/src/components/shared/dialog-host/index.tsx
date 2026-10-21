@@ -76,6 +76,21 @@ function PromptBody({
         {request.description && (
           <p className="leading-relaxed text-codex-muted">{request.description}</p>
         )}
+        {request.presets && request.presets.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-1" role="group" aria-label="Presets">
+            {request.presets.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => onSettle(preset.value)}
+                title={preset.label}
+                aria-label={preset.label}
+                className="h-10 w-16 rounded-codex-md border border-codex-border bg-codex-surface-secondary bg-cover bg-center transition-[border-color,box-shadow] hover:border-codex-border-strong hover:shadow-codex-sm focus-visible:border-codex-accent"
+                style={{ background: preset.swatch ?? `center/cover url(${preset.value})` }}
+              />
+            ))}
+          </div>
+        )}
         {request.label && (
           <label htmlFor={inputId} className="block pt-1 text-sm font-medium text-codex-foreground">
             {request.label}

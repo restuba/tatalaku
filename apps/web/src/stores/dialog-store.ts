@@ -24,6 +24,16 @@ export interface ConfirmOptions extends BaseOptions {
   tone?: DialogTone | undefined;
 }
 
+/** A one-click value offered above the prompt input (e.g. a cover preset) */
+export interface PromptPreset {
+  /** Accessible name */
+  label: string;
+  /** The value chosen when picked (submits immediately) */
+  value: string;
+  /** CSS background for the swatch; falls back to the value as an image */
+  swatch?: string | undefined;
+}
+
 export interface PromptOptions extends BaseOptions {
   label?: string | undefined;
   placeholder?: string | undefined;
@@ -31,6 +41,8 @@ export interface PromptOptions extends BaseOptions {
   inputType?: "text" | "url" | "email" | undefined;
   /** Return an error message to block submit, or null when the value is valid */
   validate?: ((value: string) => string | null) | undefined;
+  /** Quick-pick values shown as swatches above the input */
+  presets?: ReadonlyArray<PromptPreset> | undefined;
 }
 
 export type DialogRequest =

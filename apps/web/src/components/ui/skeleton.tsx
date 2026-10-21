@@ -158,8 +158,8 @@ export function PageContentSkeleton() {
         {/* "Add cover" and "Add icon": hidden at rest on desktop, but they take their rows */}
         <div className="mb-1 h-8 pointer-coarse:h-11" />
         <div className="mb-1 h-8 pointer-coarse:h-11" />
-        {/* Title: Fraunces 36/42px on a 1.15 line height */}
-        <div className="text-4xl leading-[1.15] sm:text-[2.625rem]">
+        {/* Title: Fraunces 30px on phones, 42px from sm; 1.15 line height */}
+        <div className="text-3xl leading-[1.15] sm:text-[2.625rem]">
           <TextLine className="w-2/5 max-w-md" />
         </div>
         {/* Byline ("Edited 4h ago", text-xs) */}

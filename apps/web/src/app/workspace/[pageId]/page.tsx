@@ -17,6 +17,7 @@ import { formatTimeAgo, formatFullDate, toISODate } from "@/lib/date";
 import { getPage } from "@/services/page/get-page";
 import { promptDialog } from "@/stores/dialog-store";
 import { validateImageUrl } from "@/lib/url";
+import { COVER_PRESETS } from "@/lib/cover-presets";
 import { AnimatePresence, m } from "motion/react";
 import { TWEEN, TWEEN_FAST } from "@/components/motion";
 import { PopPanel } from "@/components/motion/pop-panel";
@@ -196,12 +197,14 @@ function PageDetail({ page }: { page: Page }) {
   async function handleAddCover() {
     const url = await promptDialog({
       title: coverImage ? "Change cover" : "Add cover",
+      description: "Pick a cover below, or paste a link to your own image.",
       label: "Image URL",
       placeholder: "https://example.com/cover.jpg",
-      defaultValue: coverImage ?? "",
+      defaultValue: coverImage?.startsWith("data:") ? "" : (coverImage ?? ""),
       inputType: "url",
       confirmLabel: coverImage ? "Change cover" : "Add cover",
       validate: validateImageUrl,
+      presets: COVER_PRESETS,
     });
     if (url && url !== coverImage) void handleSetCover(url);
   }
@@ -340,7 +343,7 @@ function PageDetail({ page }: { page: Page }) {
                 key={coverImage}
                 src={coverImage}
                 alt=""
-                className="h-full w-full object-cover"
+                className="cover-img h-full w-full object-cover"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ ...TWEEN, duration: 0.4 }}
@@ -379,12 +382,18 @@ function PageDetail({ page }: { page: Page }) {
 
           <div className="relative" ref={emojiPickerRef}>
             {icon ? (
-              // key={icon}: every new icon fades in on its own
+              // key={icon}: every new icon fades in on its own. With a cover,
+              // the icon straddles its bottom edge (pulled up, on an opaque
+              // tile) the way an editorial masthead sits over its banner.
               <m.button
                 key={icon}
                 type="button"
                 onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-                className="-ml-1 mb-3 rounded-codex-md p-1 text-5xl leading-none transition-colors hover:bg-codex-hover"
+                className={`mb-3 rounded-codex-md text-5xl leading-none transition-colors hover:bg-codex-hover ${
+                  coverImage
+                    ? "relative -mt-[2.2rem] inline-flex bg-codex-background p-2 shadow-codex-sm"
+                    : "-ml-1 p-1"
+                }`}
                 aria-label="Change icon"
                 aria-expanded={isEmojiPickerOpen}
                 title="Change icon"
@@ -471,7 +480,7 @@ function PageDetail({ page }: { page: Page }) {
             }}
             // block: an inline textarea sits on the text baseline and leaves a
             // descender gap below it, which the page skeleton can't predict
-            className="block w-full resize-none overflow-hidden border-none bg-transparent p-0 font-serif text-4xl font-medium leading-[1.15] tracking-tight text-codex-foreground caret-codex-accent outline-none placeholder:text-codex-faint sm:text-[2.625rem]"
+            className="block w-full resize-none overflow-hidden border-none bg-transparent p-0 font-serif text-3xl font-medium leading-[1.15] tracking-tight text-codex-foreground caret-codex-accent outline-none placeholder:text-codex-faint sm:text-[2.625rem]"
           />
 
           {lastEditedAt && (
