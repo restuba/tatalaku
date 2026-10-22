@@ -1,188 +1,130 @@
-import React from "react";
+import type { Metadata } from "next";
+import { Plus, Search } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
+import { THEMES, type ThemeId } from "@/lib/themes";
 
-export default function DesignTokensPage() {
+export const metadata: Metadata = {
+  title: "Design tokens · Tatalaku",
+};
+
+const SWATCHES: ReadonlyArray<{ name: string; className: string; outline?: boolean }> = [
+  { name: "background", className: "bg-codex-background", outline: true },
+  { name: "sidebar", className: "bg-codex-sidebar", outline: true },
+  { name: "elevated", className: "bg-codex-elevated", outline: true },
+  { name: "border", className: "bg-codex-border" },
+  { name: "foreground", className: "bg-codex-foreground" },
+  { name: "muted", className: "bg-codex-muted" },
+  { name: "faint", className: "bg-codex-faint" },
+  { name: "accent", className: "bg-codex-accent" },
+  { name: "accent-secondary", className: "bg-codex-accent-secondary" },
+  { name: "danger", className: "bg-codex-danger" },
+  { name: "success", className: "bg-codex-success" },
+  { name: "warning", className: "bg-codex-warning" },
+  { name: "info", className: "bg-codex-info" },
+];
+
+/** One theme rendered with its own palette via a scoped data-theme */
+function ThemeColumn({ id, name, style }: { id: ThemeId; name: string; style: string }) {
   return (
-    <div className="min-h-screen bg-codex-background text-codex-foreground p-8 md:p-12 font-sans selection:bg-codex-accent/20">
-      <div className="max-w-5xl mx-auto space-y-16">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Codex Design Tokens</h1>
-          <p className="text-codex-muted text-lg">
-            Preview of extracted UI tokens from Codex IDE screenshots.
-          </p>
-        </div>
+    <section
+      data-theme={id}
+      aria-labelledby={`tokens-${id}`}
+      className="flex flex-col gap-8 rounded-codex-xl border border-codex-border bg-codex-background p-6 text-codex-foreground"
+    >
+      <header>
+        <p className="eyebrow text-codex-muted">{style}</p>
+        <h2 id={`tokens-${id}`} className="mt-1 font-serif text-3xl font-medium">
+          {name}
+        </h2>
+      </header>
 
-        {/* Colors */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-semibold border-b border-codex-border pb-2">
-            Color Palette
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <ColorSwatch name="Background" variable="bg-codex-background" border />
-            <ColorSwatch name="Sidebar" variable="bg-codex-sidebar" border />
-            <ColorSwatch name="Surface" variable="bg-codex-surface" border />
-            <ColorSwatch name="Border" variable="bg-codex-border" />
-            <ColorSwatch name="Accent" variable="bg-codex-accent" text="text-codex-background" />
-            <ColorSwatch name="Muted" variable="bg-codex-muted" text="text-codex-background" />
+      <div className="grid grid-cols-3 gap-3">
+        {SWATCHES.map((swatch) => (
+          <div key={swatch.name} className="space-y-1.5">
+            <div
+              className={`h-12 rounded-codex-md ${swatch.className} ${
+                swatch.outline ? "border border-codex-border" : ""
+              }`}
+            />
+            <p className="truncate text-xs text-codex-muted">{swatch.name}</p>
           </div>
-        </section>
-
-        {/* Typography */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-semibold border-b border-codex-border pb-2">Typography</h2>
-          <div className="bg-codex-surface border border-codex-border p-6 rounded-codex-xl space-y-6">
-            <div>
-              <div className="text-sm text-codex-muted mb-1">Heading 1 (Page Title)</div>
-              <h1 className="text-3xl font-bold">What should we build in tatalaku?</h1>
-            </div>
-            <div>
-              <div className="text-sm text-codex-muted mb-1">Heading 2 (Section Title)</div>
-              <h2 className="text-xl font-semibold">Appearance</h2>
-            </div>
-            <div>
-              <div className="text-sm text-codex-muted mb-1">Body Text</div>
-              <p className="text-base text-codex-foreground leading-relaxed">
-                Saat ini aplikasi masih di Fase 1 (fondasi), jadi fitur pengguna belum tersedia di
-                antarmuka—halaman utama masih kosong.
-              </p>
-            </div>
-            <div>
-              <div className="text-sm text-codex-muted mb-1">Muted / Small Text</div>
-              <p className="text-sm text-codex-muted">
-                Resets every month · Next reset is on Sep 23 at 9:30 PM
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* UI Elements Preview */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-semibold border-b border-codex-border pb-2">
-            Component Preview
-          </h2>
-
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Mock */}
-            <div className="w-full lg:w-64 bg-codex-sidebar rounded-codex-xl p-4 flex flex-col gap-1 border border-codex-border/50">
-              <div className="px-3 py-2 text-xs font-semibold text-codex-muted uppercase tracking-wider mb-2">
-                Projects
-              </div>
-              <div className="px-3 py-2 bg-codex-surface rounded-codex-md flex items-center justify-between cursor-pointer border border-codex-border">
-                <span className="text-sm font-medium">tatalaku</span>
-              </div>
-              <div className="px-3 py-2 rounded-codex-md flex items-center text-codex-muted hover:bg-codex-surface/50 cursor-pointer transition-colors">
-                <span className="text-sm">kirana-app</span>
-              </div>
-
-              <div className="mt-8 px-3 py-2 text-xs font-semibold text-codex-muted uppercase tracking-wider mb-2">
-                Recents
-              </div>
-              <div className="px-3 py-2 rounded-codex-md text-sm text-codex-muted">No chats</div>
-
-              <div className="mt-auto pt-8">
-                <div className="bg-codex-surface border border-codex-border rounded-codex-lg p-4">
-                  <div className="text-xs font-medium mb-1">9% usage remaining</div>
-                  <div className="text-xs text-codex-muted mb-3">Resets every month</div>
-                  <div className="h-1.5 bg-codex-border rounded-full overflow-hidden mb-3">
-                    <div className="h-full bg-codex-accent w-[9%]" />
-                  </div>
-                  <button className="w-full py-1.5 bg-codex-foreground text-codex-background rounded-codex-md text-xs font-medium hover:opacity-90 transition-opacity">
-                    Upgrade
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content Mock */}
-            <div className="flex-1 bg-codex-background border border-codex-border rounded-codex-2xl p-6 md:p-8 flex flex-col gap-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Appearance</h2>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1.5 bg-codex-surface border border-codex-border rounded-codex-md text-sm font-medium hover:bg-codex-border/30 transition-colors">
-                    Discard
-                  </button>
-                  <button className="px-3 py-1.5 bg-codex-accent text-codex-background rounded-codex-md text-sm font-medium hover:opacity-90 transition-opacity">
-                    Save Changes
-                  </button>
-                </div>
-              </div>
-
-              {/* Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-codex-surface border border-codex-border rounded-codex-xl p-4 flex flex-col gap-3 hover:border-codex-accent/50 transition-colors cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-codex-sm bg-codex-sidebar flex items-center justify-center text-codex-muted">
-                      {/* Placeholder Icon */}
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                        <line x1="3" x2="21" y1="9" y2="9" />
-                        <line x1="9" x2="9" y1="21" y2="9" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm mb-1">Theme Config {i}</div>
-                      <div className="text-xs text-codex-muted">
-                        Customize your UI appearance and colors.
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Setting Row */}
-              <div className="bg-codex-surface border border-codex-border rounded-codex-xl p-4 flex items-center justify-between mt-4">
-                <div>
-                  <div className="font-medium text-sm">Accent Color</div>
-                  <div className="text-xs text-codex-muted">
-                    Used for primary actions and highlights
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-codex-sidebar rounded-codex-md border border-codex-border">
-                  <div className="w-3 h-3 rounded-full bg-codex-accent" />
-                  <span className="text-sm font-medium">#CC7D5E</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        ))}
       </div>
-    </div>
+
+      <div className="space-y-3">
+        <p className="eyebrow text-codex-muted">Typography</p>
+        <p className="font-serif text-4xl leading-[1.1]">
+          Good morning, <span className="italic text-codex-accent">reader</span>
+        </p>
+        <p className="font-serif text-2xl font-medium">Document heading</p>
+        <p className="text-[1.0625rem] leading-[1.7]">
+          Body text is set in Inter at 17px on a 1.7 line height, for long, comfortable reading
+          sessions.
+        </p>
+        <p className="text-sm text-codex-muted">Secondary text for metadata and hints.</p>
+        <code className="inline-block rounded-codex-sm border border-codex-border bg-codex-surface-secondary px-1.5 py-0.5 font-mono text-sm">
+          const theme = &quot;{id}&quot;;
+        </code>
+      </div>
+
+      <div className="space-y-3">
+        <p className="eyebrow text-codex-muted">Components</p>
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex h-9 items-center gap-2 rounded-full bg-codex-accent px-4 text-sm font-medium text-codex-background">
+            <Plus className="size-4" aria-hidden="true" /> New page
+          </span>
+          <span className="inline-flex h-9 items-center gap-2 rounded-full border border-codex-border-strong px-4 text-sm font-medium">
+            <Search className="size-4" aria-hidden="true" /> Search
+          </span>
+        </div>
+        {/* Body-size placeholders are muted (4.5:1); faint is for disabled text */}
+        <div className="flex h-9 items-center rounded-codex-md border border-codex-border-strong bg-codex-elevated px-3 text-sm text-codex-muted">
+          Placeholder text
+        </div>
+        <div className="surface-popover rounded-codex-lg p-1 text-sm">
+          <div className="rounded-codex-md px-2.5 py-1.5">Menu item</div>
+          <div className="rounded-codex-md bg-codex-hover px-2.5 py-1.5">Hovered item</div>
+          <div className="rounded-codex-md bg-codex-selected px-2.5 py-1.5 font-medium">
+            Selected item
+          </div>
+          <div className="rounded-codex-md px-2.5 py-1.5 text-codex-danger">Destructive item</div>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs font-medium">
+          <span className="rounded-full bg-codex-success-bg px-2.5 py-1 text-codex-success">
+            Saved
+          </span>
+          <span className="rounded-full bg-codex-warning-bg px-2.5 py-1 text-codex-warning">
+            Pending
+          </span>
+          <span className="rounded-full bg-codex-danger-bg px-2.5 py-1 text-codex-danger">
+            Not saved
+          </span>
+          <span className="rounded-full bg-codex-info-bg px-2.5 py-1 text-codex-info">Info</span>
+        </div>
+      </div>
+    </section>
   );
 }
 
-function ColorSwatch({
-  name,
-  variable,
-  border = false,
-  text = "text-codex-foreground",
-}: {
-  name: string;
-  variable: string;
-  border?: boolean;
-  text?: string;
-}) {
+/** Living reference of the design system: all three themes, side by side */
+export default function DesignTokensPage() {
   return (
-    <div className="flex flex-col gap-2">
-      <div
-        className={`h-24 w-full rounded-codex-lg ${variable} ${border ? "border border-codex-border" : ""} flex items-end p-3`}
-      >
-        <span className={`text-xs font-mono font-medium ${text} opacity-90`}>
-          {variable.replace("bg-", "")}
-        </span>
+    <div className="min-h-dvh bg-codex-background px-6 py-10 text-codex-foreground sm:px-10">
+      <div className="mx-auto max-w-7xl space-y-10">
+        <header className="space-y-3">
+          <Logo size="md" />
+          <h1 className="font-serif text-4xl font-normal">Design tokens</h1>
+          <p className="max-w-2xl text-codex-muted">
+            One design language, three palettes. Layout, type and components are identical; only the
+            color tokens change. Source of truth: <code className="font-mono">globals.css</code>.
+          </p>
+        </header>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {THEMES.map((theme) => (
+            <ThemeColumn key={theme.id} id={theme.id} name={theme.name} style={theme.style} />
+          ))}
+        </div>
       </div>
-      <div className="font-medium text-sm">{name}</div>
     </div>
   );
 }

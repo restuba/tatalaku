@@ -3,34 +3,34 @@ import type { BadgeProps, BadgeStatus, BadgeVariant, BadgeSize } from "./types";
 function getStatusClasses(status: BadgeStatus, variant: BadgeVariant): string {
   const map: Record<BadgeStatus, Record<BadgeVariant, string>> = {
     default: {
-      subtle: "bg-codex-surface-secondary text-codex-foreground border border-codex-border",
-      solid: "bg-codex-muted text-codex-surface",
-      outline: "border border-codex-border text-codex-foreground bg-transparent",
+      subtle: "bg-codex-hover text-codex-muted",
+      solid: "bg-codex-foreground text-codex-background",
+      outline: "border border-codex-border-strong text-codex-foreground",
     },
     primary: {
-      subtle: "bg-codex-accent/15 text-codex-accent border border-codex-accent/30",
-      solid: "bg-codex-accent text-codex-surface",
-      outline: "border border-codex-accent text-codex-accent bg-transparent",
+      subtle: "bg-codex-accent-soft text-codex-accent",
+      solid: "bg-codex-accent text-codex-background",
+      outline: "border border-codex-accent text-codex-accent",
     },
     success: {
-      subtle: "bg-codex-success-bg text-codex-success border border-codex-success/20",
-      solid: "bg-codex-success text-codex-surface",
-      outline: "border border-codex-success text-codex-success bg-transparent",
+      subtle: "bg-codex-success-bg text-codex-success",
+      solid: "bg-codex-success text-codex-background",
+      outline: "border border-codex-success text-codex-success",
     },
     warning: {
-      subtle: "bg-codex-accent/15 text-codex-accent border border-codex-accent/20",
-      solid: "bg-codex-accent text-codex-surface",
-      outline: "border border-codex-accent text-codex-accent bg-transparent",
+      subtle: "bg-codex-warning-bg text-codex-warning",
+      solid: "bg-codex-warning text-codex-background",
+      outline: "border border-codex-warning text-codex-warning",
     },
     danger: {
-      subtle: "bg-codex-danger-bg text-codex-danger border border-codex-danger/20",
-      solid: "bg-codex-danger text-codex-surface",
-      outline: "border border-codex-danger text-codex-danger bg-transparent",
+      subtle: "bg-codex-danger-bg text-codex-danger",
+      solid: "bg-codex-danger text-codex-background",
+      outline: "border border-codex-danger text-codex-danger",
     },
     info: {
-      subtle: "bg-codex-info-bg text-codex-info border border-codex-info/20",
-      solid: "bg-codex-info text-codex-surface",
-      outline: "border border-codex-info text-codex-info bg-transparent",
+      subtle: "bg-codex-info-bg text-codex-info",
+      solid: "bg-codex-info text-codex-background",
+      outline: "border border-codex-info text-codex-info",
     },
   };
 
@@ -39,8 +39,8 @@ function getStatusClasses(status: BadgeStatus, variant: BadgeVariant): string {
 
 function getSizeClasses(size: BadgeSize): string {
   const map: Record<BadgeSize, string> = {
-    small: "px-1.5 py-0.5 text-xs",
-    medium: "px-2 py-0.5 text-xs",
+    small: "h-5 px-2 text-xs",
+    medium: "h-6 px-2.5 text-xs",
   };
   return map[size];
 }
@@ -50,7 +50,7 @@ function getDotClasses(status: BadgeStatus): string {
     default: "bg-codex-muted",
     primary: "bg-codex-accent",
     success: "bg-codex-success",
-    warning: "bg-codex-accent",
+    warning: "bg-codex-warning",
     danger: "bg-codex-danger",
     info: "bg-codex-info",
   };
@@ -71,9 +71,9 @@ export function Badge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-medium rounded-full select-none ${sizeStyles} ${statusStyles} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full font-medium capitalize select-none ${sizeStyles} ${statusStyles} ${className}`}
     >
-      {dot && <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />}
+      {dot && <span aria-hidden="true" className={`size-1.5 rounded-full ${dotColor}`} />}
       {children && <span>{children}</span>}
     </span>
   );

@@ -23,13 +23,11 @@ export function TabButton({
       disabled={disabled}
       data-tab-value={value}
       onClick={onClick}
-      className={`relative inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer select-none ${
+      className={`relative inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors select-none ${
         isFullWidth ? "flex-1" : ""
-      } ${
-        isActive
-          ? "text-codex-accent font-semibold"
-          : "text-codex-muted hover:text-codex-foreground"
-      } ${disabled ? "pointer-events-none opacity-40 cursor-not-allowed" : ""}`}
+      } ${isActive ? "text-codex-foreground" : "text-codex-muted hover:text-codex-foreground"} ${
+        disabled ? "pointer-events-none opacity-50" : ""
+      }`}
     >
       {icon && <span className="shrink-0">{icon}</span>}
       <span>{label}</span>

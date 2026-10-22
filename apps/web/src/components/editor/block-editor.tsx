@@ -15,8 +15,7 @@ import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { TableControls } from "./table";
 import { TableOfContents, scrollToTargetNode } from "./table-of-contents";
 import { LassoSelection } from "./lasso-selection";
-import { Logo } from "@/components/ui/logo";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EditorBodySkeleton } from "@/components/ui/skeleton";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -63,8 +62,13 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
     immediatelyRender: true,
     extensions: [
       ...createContentExtensions(),
+      // Shown on the empty document, and on the empty block holding the caret
+      // (globals.css), so block insertion stays discoverable while writing
       Placeholder.configure({
-        placeholder: "Type '/' for commands, or just start writing...",
+        placeholder: ({ editor: current, node }) => {
+          if (node.type.name === "heading") return `Heading ${String(node.attrs["level"] ?? "")}`;
+          return current.isEmpty ? "Start writing, or press / for blocks…" : "Press / for blocks";
+        },
       }),
       // Adds `.has-focus` to the focused node. CSS scopes the visible outline to
       // table cells only, so clicking a cell shows a thin accent border around
@@ -79,8 +83,9 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
     ],
     editorProps: {
       attributes: {
-        class:
-          "prose dark:prose-invert max-w-none focus:outline-none min-h-[400px] text-codex-foreground leading-relaxed text-sm sm:text-base",
+        // Typography lives in globals.css (.tiptap) so Text size can scale it
+        class: "min-h-[50vh] focus:outline-none",
+        "aria-label": "Page content",
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
@@ -210,42 +215,12 @@ export function BlockEditor({ pageId, onSaveStatusChange, onSaved }: BlockEditor
         <div className="flex-1 flex flex-col min-w-0 w-full">
           {/* Editor Content Area (save status is surfaced by the page top bar) */}
           {isLoading ? (
-            <div className="space-y-6 py-4 animate-in fade-in duration-200">
-              <div className="space-y-2.5">
-                <Skeleton className="w-full h-4 rounded-codex-sm" />
-                <Skeleton className="w-11/12 h-4 rounded-codex-sm" />
-                <Skeleton className="w-4/5 h-4 rounded-codex-sm" />
-              </div>
-              <div className="pt-2">
-                <Skeleton className="w-1/3 max-w-xs h-6 rounded-codex-md" />
-              </div>
-              <div className="space-y-3 pt-1">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
-                  <Skeleton className="w-1/2 h-4 rounded-codex-sm" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Skeleton className="w-4 h-4 rounded-codex-sm shrink-0" />
-                  <Skeleton className="w-3/5 h-4 rounded-codex-sm" />
-                </div>
-              </div>
-              <div className="space-y-2.5 pt-2">
-                <Skeleton className="w-full h-4 rounded-codex-sm" />
-                <Skeleton className="w-5/6 h-4 rounded-codex-sm" />
-              </div>
-            </div>
+            <EditorBodySkeleton />
           ) : (
             <div
-              className="relative min-h-[500px] cursor-text"
+              className="relative min-h-[50vh] cursor-text"
               onClick={() => editor?.commands.focus()}
             >
-              {/* Brand Watermark for entirely empty document */}
-              {editor?.getText().trim().length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] grayscale transition-opacity duration-1000 select-none z-0">
-                  <Logo variant="icon-only" size="xl" className="w-64 h-64 scale-150" />
-                </div>
-              )}
-
               <div className="relative z-10">
                 <BlockMenu editor={editor} />
                 <EditorBubbleMenu editor={editor} />

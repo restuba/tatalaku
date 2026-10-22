@@ -1,170 +1,230 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, type ComponentType } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, m } from "motion/react";
+import { X, User, Palette, Building, Users, Keyboard } from "lucide-react";
+import { TWEEN } from "@/components/motion";
+import { ModKey } from "@/components/reusable/kbd";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useWorkspaceStore } from "@/stores/workspace-store";
+import { useUIStore, type SettingsTab } from "@/stores/ui-store";
 import { AccountTab } from "./account-tab";
 import { AppearanceTab } from "./appearance-tab";
 import { GeneralTab } from "./general-tab";
 import { MembersTab } from "./members-tab";
-import { X, User, Palette, Building, Users } from "lucide-react";
 
-export type SettingsTab = "account" | "appearance" | "general" | "members";
-
-interface SettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  initialTab?: SettingsTab;
-}
+export type { SettingsTab };
 
 const TAB_METADATA: Record<SettingsTab, { title: string; subtitle: string }> = {
   account: {
-    title: "My Account",
-    subtitle: "Manage your personal profile and account credentials.",
+    title: "My account",
+    subtitle: "Your profile and sign-in details.",
   },
   appearance: {
     title: "Appearance",
-    subtitle: "Customize how Tatalaku looks on your device.",
+    subtitle: "Theme, reading size and motion on this device.",
   },
   general: {
-    title: "Workspace General",
-    subtitle: "Update your workspace profile and general preferences.",
+    title: "Workspace",
+    subtitle: "The workspace name and its details.",
   },
   members: {
-    title: "Workspace Members",
-    subtitle: "Manage team members who have access to this workspace.",
+    title: "Members",
+    subtitle: "People who can open this workspace.",
   },
 };
 
-export function SettingsModal({ isOpen, onClose, initialTab = "account" }: SettingsModalProps) {
+interface NavItem {
+  tab: SettingsTab;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+}
+
+const NAV_GROUPS: ReadonlyArray<{ label: string; items: ReadonlyArray<NavItem> }> = [
+  {
+    label: "Account",
+    items: [
+      { tab: "account", label: "My account", icon: User },
+      { tab: "appearance", label: "Appearance", icon: Palette },
+    ],
+  },
+  {
+    label: "Workspace",
+    items: [
+      { tab: "general", label: "General", icon: Building },
+      { tab: "members", label: "Members", icon: Users },
+    ],
+  },
+];
+
+/** Settings dialog. Open state lives in the UI store, so any surface can open it. */
+export function SettingsModal() {
+  const settingsTab = useUIStore((s) => s.settingsTab);
+  const closeSettings = useUIStore((s) => s.closeSettings);
+  const mounted = useIsMounted();
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {settingsTab && (
+        <SettingsDialog key="settings" activeTab={settingsTab} onClose={closeSettings} />
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
+}
+
+function SettingsDialog({ activeTab, onClose }: { activeTab: SettingsTab; onClose: () => void }) {
   const { activeWorkspace } = useWorkspaceStore();
-  const [prevInitialTab, setPrevInitialTab] = useState(initialTab);
-  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
+  const setSettingsTab = useUIStore((s) => s.setSettingsTab);
+  const setShortcutsOpen = useUIStore((s) => s.setShortcutsOpen);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef);
 
-  // Sync activeTab when initialTab prop changes
-  if (prevInitialTab !== initialTab) {
-    setPrevInitialTab(initialTab);
-    setActiveTab(initialTab);
-  }
-
-  // Handle escape key
+  // Escape closes (nested dialogs stop the event before it gets here)
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
+      if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
-  if (!isOpen) return null;
+  // The page behind doesn't scroll while Settings is open
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-codex-background/60 backdrop-blur-sm p-4 transition-all duration-300">
-      <div
-        className="w-full max-w-3xl h-[620px] max-h-[90vh] bg-codex-surface border border-codex-border rounded-codex-2xl flex shadow-2xl shadow-black/10 animate-slide-up-fade overflow-hidden"
-        style={{ animationDuration: "250ms" }}
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-title"
+    >
+      <m.div
+        aria-hidden="true"
+        className="absolute inset-0 bg-codex-scrim"
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={TWEEN}
+      />
+
+      {/* Phone: full-screen sheet with tabs on top. sm+: centered two-column dialog */}
+      <m.div
+        ref={panelRef}
+        tabIndex={-1}
+        className="relative flex h-dvh w-full flex-col overflow-hidden bg-codex-elevated outline-none sm:h-[640px] sm:max-h-[calc(100dvh-2rem)] sm:max-w-3xl sm:flex-row sm:rounded-codex-xl sm:surface-dialog"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, transition: { duration: 0.12 } }}
+        transition={TWEEN}
       >
-        {/* Left Navigation Column */}
-        <aside className="w-56 bg-codex-sidebar border-r border-codex-border flex flex-col p-3 select-none shrink-0">
-          {/* Header */}
-          <div className="px-2 py-2 mb-2">
-            <h2 className="text-sm font-semibold text-codex-foreground">Settings</h2>
+        {/* Navigation: horizontal scroller on phones, left column from sm */}
+        <aside className="flex shrink-0 flex-col border-b border-codex-border bg-codex-sidebar p-2 select-none sm:w-56 sm:border-r sm:border-b-0">
+          <div className="hidden px-2 pt-2 pb-4 sm:block">
+            <h2 className="font-serif text-lg font-medium leading-tight text-codex-foreground">
+              Settings
+            </h2>
             {activeWorkspace && (
-              <p className="text-xs text-codex-muted truncate mt-0.5">{activeWorkspace.name}</p>
+              <p className="mt-1 truncate text-xs text-codex-muted">{activeWorkspace.name}</p>
             )}
           </div>
 
-          {/* Nav Groups */}
-          <div className="space-y-4 flex-1 overflow-y-auto">
-            {/* Account Group */}
-            <div className="space-y-0.5">
-              <div className="px-2 py-1 text-xs font-semibold text-codex-muted uppercase tracking-wider">
-                Account
+          <nav
+            aria-label="Settings sections"
+            className="flex gap-1 overflow-x-auto [scrollbar-width:none] sm:flex-1 sm:flex-col sm:gap-5 sm:overflow-x-visible sm:overflow-y-auto"
+          >
+            {NAV_GROUPS.map((group) => (
+              <div key={group.label} className="flex shrink-0 gap-1 sm:flex-col sm:gap-px">
+                <div className="eyebrow hidden px-2 pb-1.5 text-codex-muted sm:block">
+                  {group.label}
+                </div>
+                {group.items.map(({ tab, label, icon: Icon }) => {
+                  const isActive = activeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setSettingsTab(tab)}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`group flex h-8 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-codex-md px-2.5 text-sm transition-colors duration-150 pointer-coarse:h-11 sm:w-full sm:px-2 ${
+                        isActive
+                          ? "bg-codex-selected font-medium text-codex-foreground"
+                          : "text-codex-muted hover:bg-codex-hover hover:text-codex-foreground"
+                      }`}
+                    >
+                      <Icon
+                        className={`size-4 shrink-0 transition-colors ${
+                          isActive
+                            ? "text-codex-foreground"
+                            : "text-codex-muted group-hover:text-codex-foreground"
+                        }`}
+                      />
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <button
-                onClick={() => setActiveTab("account")}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-xs font-medium transition-colors ${
-                  activeTab === "account"
-                    ? "bg-codex-surface text-codex-foreground shadow-sm ring-1 ring-codex-border/40"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/50"
-                }`}
-              >
-                <User className="w-3.5 h-3.5 shrink-0" />
-                <span>My Account</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("appearance")}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-xs font-medium transition-colors ${
-                  activeTab === "appearance"
-                    ? "bg-codex-surface text-codex-foreground shadow-sm ring-1 ring-codex-border/40"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/50"
-                }`}
-              >
-                <Palette className="w-3.5 h-3.5 shrink-0" />
-                <span>Appearance</span>
-              </button>
-            </div>
+            ))}
+          </nav>
 
-            {/* Workspace Group */}
-            <div className="space-y-0.5">
-              <div className="px-2 py-1 text-xs font-semibold text-codex-muted uppercase tracking-wider">
-                Workspace
-              </div>
-              <button
-                onClick={() => setActiveTab("general")}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-xs font-medium transition-colors ${
-                  activeTab === "general"
-                    ? "bg-codex-surface text-codex-foreground shadow-sm ring-1 ring-codex-border/40"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/50"
-                }`}
-              >
-                <Building className="w-3.5 h-3.5 shrink-0" />
-                <span>General</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("members")}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-xs font-medium transition-colors ${
-                  activeTab === "members"
-                    ? "bg-codex-surface text-codex-foreground shadow-sm ring-1 ring-codex-border/40"
-                    : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface/50"
-                }`}
-              >
-                <Users className="w-3.5 h-3.5 shrink-0" />
-                <span>Members</span>
-              </button>
-            </div>
-          </div>
+          {/* Not a section: hands over to the shortcuts sheet, which has no
+              other mouse entry point besides the command palette */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              setShortcutsOpen(true);
+            }}
+            className="mt-2 hidden h-8 shrink-0 items-center gap-2.5 rounded-codex-md px-2 text-sm text-codex-muted transition-colors duration-150 hover:bg-codex-hover hover:text-codex-foreground pointer-coarse:h-11 sm:flex"
+          >
+            <Keyboard className="size-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1 text-left">Keyboard shortcuts</span>
+            <ModKey className="pointer-coarse:hidden">/</ModKey>
+          </button>
         </aside>
 
-        {/* Right Content Area */}
-        <main className="flex-1 flex flex-col min-w-0 bg-codex-surface">
-          {/* Header with Title, Subtitle & Close Button (No divide / border) */}
-          <div className="flex items-start justify-between px-6 sm:px-8 pt-6 pb-2 shrink-0">
-            <div>
-              <h3 className="text-base font-semibold text-codex-foreground">
+        {/* Content */}
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-codex-elevated">
+          <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5 pb-2 sm:px-8 sm:pt-7">
+            <div className="min-w-0">
+              <h3
+                id="settings-title"
+                className="font-serif text-2xl font-medium leading-tight text-codex-foreground"
+              >
                 {TAB_METADATA[activeTab].title}
               </h3>
-              <p className="text-xs text-codex-muted mt-0.5">{TAB_METADATA[activeTab].subtitle}</p>
+              <p className="mt-1.5 text-sm text-codex-muted">{TAB_METADATA[activeTab].subtitle}</p>
             </div>
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 -mr-1.5 -mt-1 rounded-codex-sm hover:bg-codex-surface-secondary text-codex-muted hover:text-codex-foreground transition-colors"
-              title="Close Settings (Esc)"
+              className="-mt-0.5 -mr-2 flex size-8 shrink-0 items-center justify-center rounded-codex-md text-codex-muted transition-colors hover:bg-codex-hover hover:text-codex-foreground pointer-coarse:size-11"
+              title="Close settings (Esc)"
+              aria-label="Close settings"
             >
-              <X className="w-4 h-4" />
+              <X className="size-4" />
             </button>
           </div>
 
-          {/* Content Pane */}
-          <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-4">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-5 pb-10 sm:px-8">
             {activeTab === "account" && <AccountTab />}
             {activeTab === "appearance" && <AppearanceTab />}
             {activeTab === "general" && <GeneralTab key={activeWorkspace?.id} onClose={onClose} />}
             {activeTab === "members" && <MembersTab />}
           </div>
         </main>
-      </div>
+      </m.div>
     </div>
   );
 }

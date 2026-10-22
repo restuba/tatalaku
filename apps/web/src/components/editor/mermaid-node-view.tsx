@@ -1,27 +1,91 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import mermaid from "mermaid";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { getTheme, type ThemeId } from "@/lib/themes";
+import { useResolvedTheme } from "@/stores/theme-store";
 
-function initMermaid() {
-  const isDark = document.documentElement.classList.contains("dark");
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: isDark ? "dark" : "default",
-    securityLevel: "loose",
-    fontFamily: "Space Grotesk, system-ui, sans-serif",
-  });
+type MermaidApi = (typeof import("mermaid"))["default"];
+
+// Mermaid (+ d3/dagre) is ~0.5 MB gzipped, so it's only fetched the first time
+// a diagram actually renders — pages without diagrams never download it.
+let mermaidModule: Promise<MermaidApi> | null = null;
+let initializedTheme: ThemeId | null = null;
+
+/** A theme token as resolved on <html> (palette tokens are plain hex values) */
+function readToken(name: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+/**
+ * Mermaid's "base" theme fed with the active palette, so diagrams use the
+ * same surfaces, ink and accent as the page around them.
+ */
+async function getMermaid(theme: ThemeId): Promise<MermaidApi> {
+  mermaidModule ??= import("mermaid").then((m) => m.default);
+  const mermaid = await mermaidModule;
+  if (initializedTheme !== theme) {
+    const surface = readToken("--color-surface", "white");
+    const elevated = readToken("--color-elevated", surface);
+    const well = readToken("--color-surface-secondary", surface);
+    const ink = readToken("--color-ink", "black");
+    const muted = readToken("--color-muted", ink);
+    const border = readToken("--color-border-strong", muted);
+    const accent = readToken("--color-accent", ink);
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      themeVariables: {
+        darkMode: getTheme(theme).colorScheme === "dark",
+        background: surface,
+        fontFamily: readToken("--font-ui-stack", "system-ui, sans-serif"),
+        fontSize: "14px",
+        primaryColor: elevated,
+        primaryTextColor: ink,
+        primaryBorderColor: border,
+        secondaryColor: well,
+        secondaryTextColor: ink,
+        secondaryBorderColor: border,
+        tertiaryColor: surface,
+        tertiaryTextColor: ink,
+        tertiaryBorderColor: border,
+        mainBkg: elevated,
+        nodeBorder: border,
+        textColor: ink,
+        lineColor: muted,
+        clusterBkg: well,
+        clusterBorder: border,
+        edgeLabelBackground: surface,
+        noteBkgColor: well,
+        noteTextColor: ink,
+        noteBorderColor: border,
+        actorBkg: elevated,
+        actorBorder: border,
+        actorTextColor: ink,
+        signalColor: muted,
+        signalTextColor: ink,
+        labelBoxBkgColor: elevated,
+        labelBoxBorderColor: border,
+        labelTextColor: ink,
+        activationBkgColor: well,
+        activationBorderColor: accent,
+      },
+      // Diagrams are authored by any workspace member and injected as SVG:
+      // "strict" sanitizes labels and disables click handlers (no stored XSS).
+      securityLevel: "strict",
+    });
+    initializedTheme = theme;
+  }
+  return mermaid;
 }
 
 function MermaidPreview({ code }: { code: string }) {
   const [svg, setSvg] = useState("");
   const [error, setError] = useState("");
   const renderIdRef = useRef(0);
-
-  useEffect(() => {
-    initMermaid();
-  }, []);
+  // Re-render when the theme changes; only this preview updates, never the editor
+  const theme = useResolvedTheme();
 
   useEffect(() => {
     const trimmed = code.trim();
@@ -31,6 +95,7 @@ function MermaidPreview({ code }: { code: string }) {
     const render = async () => {
       try {
         const id = `mermaid-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const mermaid = await getMermaid(theme);
         const result = await mermaid.render(id, trimmed);
         if (currentRender === renderIdRef.current) {
           setSvg(result.svg);
@@ -46,28 +111,28 @@ function MermaidPreview({ code }: { code: string }) {
 
     const timeout = setTimeout(() => void render(), 400);
     return () => clearTimeout(timeout);
-  }, [code]);
+  }, [code, theme]);
 
   if (!code.trim()) {
     return (
-      <div className="flex items-center justify-center py-12 font-mono text-xs uppercase tracking-widest text-codex-muted">
-        [ ENTER MERMAID CODE ]
-      </div>
+      <p className="py-12 text-center text-sm text-codex-muted">
+        Add Mermaid code to draw a diagram.
+      </p>
     );
   }
   if (error) {
     return (
-      <div className="py-6 text-center">
-        <span className="font-mono text-xs text-codex-danger">[SYNTAX ERROR]</span>
-        <p className="mt-1 font-mono text-xs text-codex-muted">{error}</p>
+      <div role="alert" className="py-6 text-center">
+        <p className="text-sm font-medium text-codex-danger">This diagram has a syntax error</p>
+        <p className="mt-2 font-mono text-xs wrap-break-word text-codex-muted">{error}</p>
       </div>
     );
   }
   if (!svg) {
     return (
-      <div className="flex items-center justify-center py-12 font-mono text-xs uppercase tracking-widest text-codex-muted">
-        [ RENDERING... ]
-      </div>
+      <p role="status" className="py-12 text-center text-sm text-codex-muted">
+        Rendering diagram…
+      </p>
     );
   }
 
@@ -124,12 +189,11 @@ export function MermaidNodeView(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper className="mermaid-block-wrapper my-4">
-      <div className="group relative w-full rounded-codex-lg border border-codex-border bg-codex-surface">
+      {/* Hairline frame on the page, the header on the code well */}
+      <div className="group relative w-full overflow-hidden rounded-codex-lg border border-codex-border">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-codex-border px-4 py-2 bg-codex-background/50 rounded-t-codex-lg">
-          <span className="font-mono text-xs uppercase tracking-[0.08em] text-codex-muted">
-            MERMAID
-          </span>
+        <div className="flex items-center justify-between border-b border-codex-border bg-codex-surface-secondary px-4 py-1.5">
+          <span className="eyebrow text-codex-muted">Diagram</span>
           {editor.isEditable && (
             <div className="flex gap-2">
               {isEditing ? (
@@ -137,25 +201,25 @@ export function MermaidNodeView(props: NodeViewProps) {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-muted transition-colors hover:text-codex-foreground"
+                    className="inline-flex h-7 items-center rounded-full px-3 text-sm text-codex-muted transition-colors hover:bg-codex-hover hover:text-codex-foreground"
                   >
-                    CANCEL
+                    Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="rounded-full bg-codex-accent px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-background transition-opacity hover:opacity-80"
+                    className="inline-flex h-7 items-center rounded-full bg-codex-accent px-3 text-sm font-medium text-codex-background transition-colors hover:bg-codex-accent-hover"
                   >
-                    SAVE
+                    Save
                   </button>
                 </>
               ) : (
                 <button
                   type="button"
                   onClick={handleStartEdit}
-                  className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-codex-muted opacity-0 transition-all hover:text-codex-foreground group-hover:opacity-100"
+                  className="inline-flex h-7 items-center rounded-full px-3 text-sm text-codex-muted opacity-0 transition-[opacity,color,background-color] hover:bg-codex-hover hover:text-codex-foreground group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
                 >
-                  EDIT
+                  Edit
                 </button>
               )}
             </div>
@@ -170,7 +234,8 @@ export function MermaidNodeView(props: NodeViewProps) {
               value={editCode}
               onChange={(e) => setEditCode(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="min-h-[160px] w-full resize-y rounded-codex-md border border-codex-border bg-codex-background p-4 font-mono text-sm leading-relaxed text-codex-foreground focus:border-codex-accent focus:ring-1 focus:ring-codex-accent focus:outline-none"
+              aria-label="Mermaid code"
+              className="min-h-40 w-full resize-y rounded-codex-md border border-codex-border-strong bg-codex-elevated p-4 font-mono text-sm leading-relaxed text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-muted focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft"
               placeholder={"graph TD\n    A[Start] --> B[End]"}
               spellCheck={false}
             />

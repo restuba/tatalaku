@@ -19,8 +19,11 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
     e.stopPropagation();
   };
 
+  // The frame (surface, hairline border, radius) comes from `.tiptap pre` in
+  // globals.css; the wrapper only positions the language label and restores
+  // the block's vertical rhythm (the <pre> margin is zeroed below).
   return (
-    <NodeViewWrapper className="relative group rounded-codex-lg overflow-hidden border border-codex-border/30 bg-codex-background">
+    <NodeViewWrapper className="relative group my-3">
       <select
         contentEditable={false}
         value={node.attrs.language || "null"}
@@ -32,7 +35,8 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
         onPointerUp={stopPropagation}
         onKeyDown={stopPropagation}
         onKeyUp={stopPropagation}
-        className="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-codex-surface/80 hover:bg-codex-surface text-codex-foreground text-xs rounded-codex-md border border-codex-border px-2 py-1 outline-none cursor-pointer backdrop-blur-sm shadow-sm"
+        aria-label="Code language"
+        className="absolute right-2 top-2 z-10 h-7 cursor-pointer rounded-codex-md border border-codex-border bg-codex-elevated px-2 text-xs text-codex-muted opacity-0 transition-[opacity,color,border-color] duration-150 group-hover:opacity-100 hover:text-codex-foreground focus-visible:opacity-100 pointer-coarse:h-9 pointer-coarse:opacity-100"
       >
         <option value="null">auto</option>
         <option disabled>—</option>
@@ -43,7 +47,7 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: CodeBl
         ))}
       </select>
       <pre
-        className="!m-0 !p-4 !bg-transparent"
+        className="!m-0"
         // Plain-text blocks often hold ASCII trees/diagrams; tighter leading lets
         // box-drawing characters (│ ├ └) connect vertically. See globals.css.
         data-plaintext={isPlainText ? "" : undefined}

@@ -5,8 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { ApiRequestError } from "@/helpers/api-error";
-import { Eye, EyeOff } from "lucide-react";
-import { LogoSpinner } from "@/components/ui/logo-spinner";
+import { Button } from "@/components/reusable/button";
+import { Input } from "@/components/reusable/input";
+import { FormError, PasswordField } from "../_components";
+
+const ERROR_ID = "register-error";
+const PASSWORD_HINT_ID = "register-password-hint";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,7 +20,6 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -37,120 +40,82 @@ export default function RegisterPage() {
 
   return (
     <div className="w-full">
-      <div
-        className="mb-10 text-center animate-slide-up-fade opacity-0"
-        style={{ animationDelay: "0ms" }}
-      >
-        <h1 className="text-3xl font-semibold tracking-tight text-codex-foreground">
+      <div className="mb-10">
+        <h1 className="font-serif text-4xl font-normal leading-tight text-codex-foreground">
           Create your account
         </h1>
-        <p className="mt-2 text-sm text-codex-muted">Start building your workspace today</p>
+        <p className="mt-2 text-sm text-codex-muted">
+          A calm place for your notes, documents and plans.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5" id="register-form">
-        <div className="animate-slide-up-fade opacity-0" style={{ animationDelay: "100ms" }}>
-          <label
-            htmlFor="register-name"
-            className="block text-sm font-medium text-codex-foreground mb-1.5"
-          >
-            Full name
-          </label>
-          <input
-            id="register-name"
-            type="text"
-            autoComplete="name"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            className="w-full rounded-codex-lg border border-codex-border bg-transparent px-3 py-2.5 text-sm outline-none focus:border-codex-accent focus:ring-1 focus:ring-codex-accent transition-all duration-200"
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5"
+        id="register-form"
+        aria-describedby={error ? ERROR_ID : undefined}
+      >
+        <Input
+          id="register-name"
+          label="Full name"
+          size="large"
+          type="text"
+          autoComplete="name"
+          required
+          value={name}
+          onChange={setName}
+          placeholder="Your name"
+        />
+
+        <Input
+          id="register-email"
+          label="Email"
+          size="large"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={setEmail}
+          placeholder="you@example.com"
+        />
+
+        <div className="space-y-1.5">
+          <PasswordField
+            id="register-password"
+            label="Password"
+            autoComplete="new-password"
+            minLength={8}
+            value={password}
+            onChange={setPassword}
+            placeholder="At least 8 characters"
+            describedBy={PASSWORD_HINT_ID}
           />
-        </div>
-
-        <div className="animate-slide-up-fade opacity-0" style={{ animationDelay: "200ms" }}>
-          <label
-            htmlFor="register-email"
-            className="block text-sm font-medium text-codex-foreground mb-1.5"
-          >
-            Email
-          </label>
-          <input
-            id="register-email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full rounded-codex-lg border border-codex-border bg-transparent px-3 py-2.5 text-sm outline-none focus:border-codex-accent focus:ring-1 focus:ring-codex-accent transition-all duration-200"
-          />
-        </div>
-
-        <div className="animate-slide-up-fade opacity-0" style={{ animationDelay: "300ms" }}>
-          <label
-            htmlFor="register-password"
-            className="block text-sm font-medium text-codex-foreground mb-1.5"
-          >
-            Password
-          </label>
-          <div className="relative">
-            <input
-              id="register-password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              className="w-full rounded-codex-lg border border-codex-border bg-transparent px-3 py-2.5 text-sm outline-none focus:border-codex-accent focus:ring-1 focus:ring-codex-accent transition-all duration-200 pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-codex-muted hover:text-codex-foreground transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-
-        {error && (
-          <p
-            role="alert"
-            className="text-sm text-codex-danger bg-codex-danger-bg rounded-codex-lg px-3 py-2"
-          >
-            {error}
+          <p id={PASSWORD_HINT_ID} className="text-xs text-codex-muted">
+            Use 8 or more characters.
           </p>
-        )}
+        </div>
 
-        <div className="pt-2 animate-slide-up-fade opacity-0" style={{ animationDelay: "400ms" }}>
-          <button
+        {error && <FormError id={ERROR_ID} message={error} />}
+
+        <div className="pt-2">
+          <Button
             id="register-submit"
-            type="submit"
-            disabled={isLoading}
-            className="relative w-full overflow-hidden rounded-codex-lg bg-codex-accent hover:bg-codex-accent/90 disabled:opacity-80 disabled:cursor-not-allowed text-codex-background font-medium text-sm py-2.5 transition-all duration-300 h-[44px] flex items-center justify-center"
+            htmlType="submit"
+            btnType="primary"
+            size="large"
+            block
+            loading={isLoading}
           >
-            {isLoading ? (
-              <span className="flex items-center justify-center">
-                <LogoSpinner size="sm" className="w-5 h-5 opacity-80" />
-              </span>
-            ) : (
-              "Create account"
-            )}
-          </button>
+            Create account
+          </Button>
         </div>
       </form>
 
-      <p
-        className="mt-8 text-center text-sm text-codex-muted animate-slide-up-fade opacity-0"
-        style={{ animationDelay: "500ms" }}
-      >
+      <p className="mt-8 text-sm text-codex-muted">
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-medium text-codex-foreground hover:text-codex-accent transition-colors"
+          className="font-medium text-codex-accent underline-offset-4 hover:underline"
         >
           Sign in
         </Link>

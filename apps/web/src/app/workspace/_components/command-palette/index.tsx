@@ -3,21 +3,40 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { FileText, Home, Plus, Search } from "lucide-react";
+import {
+  FileText,
+  Home,
+  Keyboard,
+  Loader2,
+  Palette,
+  Plus,
+  Search,
+  Settings,
+  Upload,
+} from "lucide-react";
 import type { Page } from "@tatalaku/shared";
+import { AnimatePresence, m, useIsPresent } from "motion/react";
+import { TWEEN_FAST } from "@/components/motion";
 import { useUIStore } from "@/stores/ui-store";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { Kbd } from "@/components/reusable/kbd";
+import { ThemeSwatch } from "@/components/shared/theme-swatch";
+import { THEMES } from "@/lib/themes";
+import { useThemeStore } from "@/stores/theme-store";
 import { formatTimeAgo } from "@/lib/date";
 import { searchPages, type PageSearchResult } from "@/services/page/search-pages";
 import { filterPages, getParentPath } from "./filter-pages";
 
 const RESULT_LIMIT = 20;
+/** Words that bring up the theme commands */
+const THEME_KEYWORDS = ["theme", "appearance", "dark", "light", "mode", "color", "colour"] as const;
 
 interface PaletteItem {
   id: string;
-  group: "Pages" | "Recent" | "Actions";
+  group: "Pages" | "Recent" | "Actions" | "Theme";
   label: string;
   hint?: string | undefined;
   meta?: string | undefined;
@@ -45,16 +64,22 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [toggleCommandPalette]);
 
-  if (!mounted || !isCommandPaletteOpen) return null;
+  if (!mounted) return null;
 
-  // Rendering the dialog only while open gives it fresh state on every open
+  // Rendering the dialog only while open gives it fresh state on every open;
+  // AnimatePresence keeps it around just long enough to animate out.
   return createPortal(
-    <PaletteDialog onClose={() => setCommandPaletteOpen(false)} />,
+    <AnimatePresence>
+      {isCommandPaletteOpen && (
+        <PaletteDialog key="palette" onClose={() => setCommandPaletteOpen(false)} />
+      )}
+    </AnimatePresence>,
     document.body,
   );
 }
 
 function PaletteDialog({ onClose }: { onClose: () => void }) {
+  const isPresent = useIsPresent();
   const router = useRouter();
   const { pages, createPage } = usePageStore();
   const { activeWorkspace } = useWorkspaceStore();
@@ -69,6 +94,9 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // Tab stays inside the palette; focus returns to the opener on close
+  useFocusTrap(panelRef);
   const listboxId = useId();
 
   // Restore focus to whatever was focused before the palette opened
@@ -116,7 +144,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
       icon: page.icon ? (
         <span className="leading-none">{page.icon}</span>
       ) : (
-        <FileText className="w-4 h-4" />
+        <FileText className="size-4" />
       ),
       onSelect: () => router.push(`/workspace/${page.id}`),
     });
@@ -162,17 +190,68 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
         icon: <Home className="w-4 h-4" />,
         onSelect: () => router.push("/workspace"),
       },
+      {
+        id: "action-import",
+        group: "Actions",
+        label: "Import Markdown",
+        icon: <Upload className="w-4 h-4" />,
+        onSelect: () => useUIStore.getState().setImportMarkdownOpen(true),
+      },
+      {
+        id: "action-settings",
+        group: "Actions",
+        label: "Open settings",
+        icon: <Settings className="w-4 h-4" />,
+        onSelect: () => useUIStore.getState().openSettings(),
+      },
+      {
+        id: "action-appearance",
+        group: "Actions",
+        label: "Appearance settings",
+        icon: <Palette className="w-4 h-4" />,
+        onSelect: () => useUIStore.getState().openSettings("appearance"),
+      },
+      {
+        id: "action-shortcuts",
+        group: "Actions",
+        label: "Keyboard shortcuts",
+        icon: <Keyboard className="w-4 h-4" />,
+        onSelect: () => useUIStore.getState().setShortcutsOpen(true),
+      },
+    ];
+    const themeItems: PaletteItem[] = [
+      ...THEMES.map((theme) => ({
+        id: `theme-${theme.id}`,
+        group: "Theme" as const,
+        label: `Switch to ${theme.name}`,
+        hint: theme.style,
+        icon: <ThemeSwatch theme={theme.id} className="size-4" />,
+        onSelect: () => useThemeStore.getState().setPreference(theme.id),
+      })),
+      {
+        id: "theme-system",
+        group: "Theme",
+        label: "Match system theme",
+        hint: "Parchment by day, Nocturne by night",
+        icon: <ThemeSwatch theme="system" className="size-4" />,
+        onSelect: () => useThemeStore.getState().setPreference("system"),
+      },
     ];
 
-    // While searching, only keep actions that still make sense for the query
+    // While searching, only keep actions that still make sense for the query.
+    // Theme commands only show up when asked for ("theme", "dark", "nocturne"…).
+    const needle = trimmed.toLowerCase();
+    const matches = (item: PaletteItem) =>
+      item.label.toLowerCase().includes(needle) ||
+      (item.hint?.toLowerCase().includes(needle) ?? false);
     const visibleActions = isSearching
-      ? actionItems.filter(
-          (a) =>
-            a.id === "action-new-page" || a.label.toLowerCase().includes(trimmed.toLowerCase()),
-        )
+      ? actionItems.filter((a) => a.id === "action-new-page" || matches(a))
       : actionItems;
+    const asksForThemes =
+      needle.length >= 2 && THEME_KEYWORDS.some((keyword) => keyword.startsWith(needle));
+    const visibleThemes = isSearching ? themeItems.filter((t) => asksForThemes || matches(t)) : [];
 
-    return [...pageItems, ...visibleActions];
+    return [...pageItems, ...visibleActions, ...visibleThemes];
   }, [query, pages, pagesById, serverSearch, activeWorkspace, createPage, router]);
 
   // Keep the highlighted row in bounds and in view
@@ -205,24 +284,48 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
   }
 
   const activeItem = items[safeIndex];
+  const trimmedQuery = query.trim();
+  const hasPageResults = items.some((item) => item.group === "Pages");
+  // Debounced server search still running for the current query
+  const isSearchingServer = trimmedQuery.length > 0 && serverSearch.q !== trimmedQuery;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-center px-4 pt-24 sm:pt-32"
+      // While animating out, let clicks fall through to the page underneath
+      className={`fixed inset-0 z-50 flex justify-center px-4 pt-24 sm:pt-32 ${
+        isPresent ? "" : "pointer-events-none"
+      }`}
       role="dialog"
       aria-modal="true"
       aria-label="Search pages and commands"
     >
-      <div
-        className="fixed inset-0 bg-codex-background/60 backdrop-blur-sm animate-in fade-in-0 duration-150"
+      {/* Backdrop: a theme-tinted dim, no blur */}
+      <m.div
+        className="fixed inset-0 bg-codex-scrim"
         onClick={onClose}
         aria-hidden="true"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={TWEEN_FAST}
       />
 
-      <div className="glass-surface relative z-10 flex flex-col w-full max-w-xl max-h-96 self-start overflow-hidden rounded-codex-2xl border border-codex-border text-codex-foreground shadow-2xl shadow-black/10 animate-in fade-in-0 zoom-in-98 slide-in-from-top-2 duration-150 ease-out">
+      {/* Elevated dialog sheet: fades in with a 4px drop */}
+      <m.div
+        ref={panelRef}
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, transition: { duration: 0.12 } }}
+        transition={TWEEN_FAST}
+        className="surface-dialog relative z-10 flex w-full max-w-xl max-h-[min(28rem,calc(100dvh-8rem))] flex-col self-start overflow-hidden rounded-codex-xl"
+      >
         {/* Search input */}
-        <div className="flex items-center gap-2 px-4 border-b border-codex-border">
-          <Search className="w-4 h-4 shrink-0 text-codex-muted" />
+        <div className="flex items-center gap-2.5 border-b border-codex-border px-4">
+          {isSearchingServer ? (
+            <Loader2 className="size-4 shrink-0 animate-spin text-codex-muted" aria-hidden="true" />
+          ) : (
+            <Search className="size-4 shrink-0 text-codex-muted" aria-hidden="true" />
+          )}
           <input
             ref={inputRef}
             type="text"
@@ -238,22 +341,32 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
             aria-controls={listboxId}
             aria-activedescendant={activeItem ? `${listboxId}-${activeItem.id}` : undefined}
             aria-autocomplete="list"
-            className="flex-1 h-12 bg-transparent text-sm outline-none placeholder:text-codex-muted"
+            aria-label="Search pages and commands"
+            className="h-13 flex-1 bg-transparent text-base text-codex-foreground outline-none placeholder:text-codex-muted sm:text-sm"
           />
-          <kbd className="shrink-0 font-sans text-xs text-codex-muted">esc</kbd>
+          <Kbd className="shrink-0">esc</Kbd>
         </div>
 
         {/* Results */}
-        <ul ref={listRef} id={listboxId} role="listbox" className="flex-1 overflow-y-auto p-1">
+        <ul
+          ref={listRef}
+          id={listboxId}
+          role="listbox"
+          aria-label="Results"
+          className="flex-1 overflow-y-auto p-1.5"
+        >
+          {trimmedQuery && !hasPageResults && !isSearchingServer && (
+            <li role="presentation" className="px-2.5 pt-3 pb-2 text-sm text-codex-muted">
+              No pages match “{trimmedQuery}”.
+            </li>
+          )}
           {items.map((item, index) => {
             const showGroupLabel = index === 0 || items[index - 1]?.group !== item.group;
             const isActive = index === safeIndex;
             return (
               <li key={item.id} role="presentation">
                 {showGroupLabel && (
-                  <div className="px-3 pt-2 pb-1 text-xs font-medium text-codex-muted">
-                    {item.group}
-                  </div>
+                  <div className="eyebrow px-2.5 pt-3 pb-1.5 text-codex-muted">{item.group}</div>
                 )}
                 <div
                   id={`${listboxId}-${item.id}`}
@@ -262,19 +375,36 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                   data-index={index}
                   onMouseMove={() => setActiveIndex(index)}
                   onClick={() => runItem(item)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-codex-md text-sm cursor-pointer ${
-                    isActive ? "bg-codex-surface-secondary" : ""
+                  className={`relative flex h-9 cursor-pointer items-center gap-2.5 rounded-codex-md px-2.5 text-sm text-codex-foreground transition-colors duration-150 pointer-coarse:h-11 ${
+                    isActive ? "font-medium" : ""
                   }`}
                 >
-                  <span className="w-5 flex justify-center shrink-0 text-codex-muted">
+                  {/* Shared highlight glides between rows instead of jumping */}
+                  {isActive && (
+                    <m.span
+                      layoutId={`${listboxId}-highlight`}
+                      className="absolute inset-0 rounded-codex-md bg-codex-selected"
+                      transition={TWEEN_FAST}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span
+                    className={`relative flex w-5 shrink-0 justify-center transition-colors ${
+                      isActive ? "text-codex-foreground" : "text-codex-muted"
+                    }`}
+                  >
                     {item.icon}
                   </span>
-                  <span className="flex-1 min-w-0 truncate">
+                  <span className="relative flex-1 min-w-0 truncate">
                     {item.label}
-                    {item.hint && <span className="ml-2 text-codex-muted">{item.hint}</span>}
+                    {item.hint && (
+                      <span className="ml-2 font-normal text-codex-muted">{item.hint}</span>
+                    )}
                   </span>
                   {item.meta && (
-                    <span className="shrink-0 text-xs text-codex-muted">{item.meta}</span>
+                    <span className="relative shrink-0 text-xs tabular-nums text-codex-muted">
+                      {item.meta}
+                    </span>
                   )}
                 </div>
               </li>
@@ -283,11 +413,21 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
         </ul>
 
         {/* Footer hints */}
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-codex-border text-xs text-codex-muted select-none">
-          <span>↑↓ to navigate</span>
-          <span>↵ to open</span>
+        <div className="hidden items-center gap-5 border-t border-codex-border px-4 py-2.5 text-xs text-codex-muted select-none sm:flex">
+          <span className="flex items-center gap-1.5">
+            <Kbd>↑</Kbd>
+            <Kbd>↓</Kbd>
+            <span>to navigate</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Kbd>↵</Kbd>
+            <span>to open</span>
+          </span>
+          <span className="ml-auto flex items-center gap-1.5">
+            Try <span className="text-codex-foreground">“theme”</span>
+          </span>
         </div>
-      </div>
+      </m.div>
     </div>
   );
 }

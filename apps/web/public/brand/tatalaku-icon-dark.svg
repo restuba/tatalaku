@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Tatalaku">
+  <!-- Icon only · dark (Nocturne) · sage accent #a5aa8c -->
+  <!-- Leaf blade with midrib cut out (evenodd) -->
+  <path fill="#a5aa8c" fill-rule="evenodd" d="M11.65 20.41A7.2 7.2 0 0 1 9.15 6.41C12.85 5.11 16.85 4.21 20.35 1.81C21.85 4.41 22.35 7.71 22.05 10.81C21.55 16.51 16.85 20.61 11.65 20.41ZM7.15 16.29C9.22 14.54 12.07 12.32 16.05 9.41C11.76 11.83 8.54 13.59 6.34 15.28A0.65 0.65 0 0 0 7.15 16.29Z" />
+  <!-- Stem -->
+  <path fill="none" stroke="#a5aa8c" stroke-width="1.55" stroke-linecap="round" d="M2.65 21.41C2.91 19.84 3.78 18.46 5.42 16.93" />
+</svg>

@@ -2,9 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { AnimatePresence, m } from "motion/react";
+import { TWEEN } from "@/components/motion";
+import { PopPanel } from "@/components/motion/pop-panel";
+import { SidebarActivePill } from "./active-pill";
 import { useParams, useRouter } from "next/navigation";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page-store";
+import { useApp } from "@/components/app";
 import {
   ChevronRight,
   FileText,
@@ -17,9 +22,20 @@ import {
   GripVertical,
 } from "lucide-react";
 
-// Matches `w-48`; height is an estimate of the 3-item menu, used for flipping
-const MENU_WIDTH = 192;
+// Matches `w-52`; height is an estimate of the 3-item menu, used for flipping
+const MENU_WIDTH = 208;
 const MENU_HEIGHT_ESTIMATE = 110;
+
+/** Horizontal step per nesting level (px) */
+const INDENT_STEP = 14;
+/**
+ * Where a level's tree guide line sits: under the center of the page icon,
+ * past the 2px inset and the 12px drag-grip slot.
+ */
+const GUIDE_OFFSET = 21;
+
+const MENU_ITEM =
+  "w-full flex h-8 items-center gap-2 px-2.5 rounded-codex-md text-left transition-colors";
 
 interface PageTreeItemProps {
   page: Page;
@@ -40,8 +56,10 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     createPage,
     updatePage,
     archivePage,
+    restorePage,
     reorderPages,
   } = usePageStore();
+  const { message } = useApp();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
@@ -92,12 +110,11 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         .querySelectorAll<HTMLElement>("[data-drag-grip], [data-drag-actions], [data-drop-line]")
         .forEach((el) => el.remove());
 
+      // Flat chip on the elevated surface, outlined by a hairline
       ghost.className =
-        "glass-surface flex items-center gap-1.5 pl-2 pr-3 py-1 rounded-codex-md " +
+        "flex items-center gap-1.5 pl-2 pr-3 h-8 rounded-codex-md bg-codex-elevated " +
         "border border-codex-border text-sm text-codex-foreground pointer-events-none";
-      ghost.style.cssText =
-        `position:fixed;top:-9999px;left:0;width:${Math.round(rect.width)}px;` +
-        "transform:rotate(-1.5deg);box-shadow:0 12px 28px rgba(0,0,0,0.28);";
+      ghost.style.cssText = `position:fixed;top:-9999px;left:0;width:${Math.round(rect.width)}px;`;
 
       document.body.appendChild(ghost);
       e.dataTransfer.setDragImage(ghost, 16, Math.round(rect.height / 2));
@@ -236,14 +253,40 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsMenuOpen(false);
+    const wasActive = isActive;
+    const pageId = page.id;
     try {
-      await archivePage(page.id);
-      if (isActive) {
+      await archivePage(pageId);
+      if (wasActive) {
         router.push("/workspace");
       }
     } catch {
-      // Error handled by store
+      message.error("Couldn't move the page to Trash");
+      return;
     }
+
+    // Deleting is one click, so make it just as easy to take back
+    const handleUndo = async () => {
+      try {
+        await restorePage(pageId);
+        if (wasActive) router.push(`/workspace/${pageId}`);
+      } catch {
+        message.error("Couldn't restore the page");
+      }
+    };
+    message.info(
+      <span className="flex items-center gap-3">
+        <span className="max-w-56 truncate">Moved “{page.title || "Untitled"}” to Trash</span>
+        <button
+          type="button"
+          onClick={() => void handleUndo()}
+          className="shrink-0 rounded-codex-sm text-sm font-medium text-codex-accent underline-offset-4 hover:underline"
+        >
+          Undo
+        </button>
+      </span>,
+      6000,
+    );
   }
 
   async function handleToggleFavorite(e: React.MouseEvent) {
@@ -267,17 +310,19 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`group flex items-center justify-between py-0.5 pr-2 rounded-codex-md text-sm transition-all duration-150 relative ${
-          isDragging ? "opacity-40 cursor-grabbing" : "cursor-grab"
-        } ${
+        // Each row is its own stacking context (isolate), so the rows below
+        // would paint over this row's fixed menu: lift the row while it's open
+        className={`group isolate relative flex h-8 items-center justify-between pr-1 rounded-codex-md text-sm transition-colors duration-150 pointer-coarse:h-11 ${
+          isMenuOpen ? "z-10" : ""
+        } ${isDragging ? "opacity-40 cursor-grabbing" : "cursor-grab"} ${
           isActive
-            ? "bg-codex-border/60 text-codex-foreground font-medium"
-            : "text-codex-muted hover:bg-codex-border/40 hover:text-codex-foreground"
-        } ${
-          dropZone === "inside" ? "ring-2 ring-inset ring-codex-accent/70 bg-codex-accent/10" : ""
-        }`}
-        style={{ paddingLeft: `${Math.max(level * 14 + 2, 2)}px` }}
+            ? "text-codex-foreground font-medium"
+            : "text-codex-foreground hover:bg-codex-hover"
+        } ${dropZone === "inside" ? "bg-codex-accent-soft ring-1 ring-inset ring-codex-accent" : ""}`}
+        style={{ paddingLeft: `${Math.max(level * INDENT_STEP + 2, 2)}px` }}
       >
+        {/* Active-page highlight shared with the nav items: glides to the new page */}
+        {isActive && <SidebarActivePill />}
         {/* Sibling drop indicators: a line with a leading dot */}
         {dropZone === "before" && (
           <div
@@ -285,7 +330,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             className="absolute left-2 right-2 -top-px flex items-center pointer-events-none"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-codex-accent -ml-0.5" />
-            <span className="flex-1 h-0.5 bg-codex-accent rounded-full" />
+            <span className="flex-1 h-0.5 bg-codex-accent" />
           </div>
         )}
         {dropZone === "after" && (
@@ -294,7 +339,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             className="absolute left-2 right-2 -bottom-px flex items-center pointer-events-none"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-codex-accent -ml-0.5" />
-            <span className="flex-1 h-0.5 bg-codex-accent rounded-full" />
+            <span className="flex-1 h-0.5 bg-codex-accent" />
           </div>
         )}
 
@@ -302,14 +347,16 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
         <span
           data-drag-grip
           aria-hidden="true"
-          className="w-3 shrink-0 flex items-center justify-center text-codex-muted/60 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="w-3 shrink-0 flex items-center justify-center text-codex-faint opacity-0 group-hover:opacity-100 pointer-coarse:hidden transition-opacity"
         >
           <GripVertical className="w-3 h-3" />
         </span>
 
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {/* Icon ⇄ Chevron: a single slot that shows the page icon at rest and
-              swaps to an expand/collapse chevron on hover. Every page can be
+              swaps to an expand/collapse chevron on hover or keyboard focus.
+              The icon stays put while expanded (the subtree already shows the
+              page is open), so a page never loses its icon. Every page can be
               expanded; empty ones reveal a "No pages inside" placeholder. */}
           <button
             type="button"
@@ -320,24 +367,20 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             }}
             aria-label={isExpanded ? "Collapse" : "Expand"}
             aria-expanded={isExpanded}
-            className="relative w-4 h-4 shrink-0 flex items-center justify-center rounded-codex-sm text-codex-muted hover:bg-codex-border/60"
+            className="relative w-4 h-4 shrink-0 flex items-center justify-center rounded-codex-sm text-codex-muted hover:bg-codex-selected"
           >
-            {/* Icon: visible at rest, hidden on hover (or while expanded) */}
-            <span
-              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ${
-                isExpanded ? "opacity-0" : "opacity-100 group-hover:opacity-0"
-              }`}
-            >
+            {/* Icon: visible at rest, hidden only while the chevron is shown */}
+            <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-150 opacity-100 group-hover:opacity-0 group-focus-within:opacity-0">
               {page.icon ? (
                 <span className="text-sm leading-none">{page.icon}</span>
               ) : (
-                <FileText className="w-4 h-4" />
+                <FileText className="w-4 h-4 text-codex-muted" />
               )}
             </span>
-            {/* Chevron: hidden at rest, revealed on hover (or while expanded) */}
+            {/* Chevron: hidden at rest, revealed on hover or focus; rotated when open */}
             <ChevronRight
-              className={`absolute inset-0 m-auto w-3.5 h-3.5 transition-all duration-150 ${
-                isExpanded ? "opacity-100 rotate-90" : "opacity-0 group-hover:opacity-100 rotate-0"
+              className={`absolute inset-0 m-auto w-3.5 h-3.5 opacity-0 transition-[opacity,rotate] duration-150 group-hover:opacity-100 group-focus-within:opacity-100 ${
+                isExpanded ? "rotate-90" : "rotate-0"
               }`}
             />
           </button>
@@ -347,6 +390,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
             <input
               ref={inputRef}
               type="text"
+              aria-label="Page title"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onBlur={handleSaveTitle}
@@ -358,7 +402,7 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                 }
               }}
               onClick={(e) => e.stopPropagation()}
-              className="px-1 py-0.5 text-xs bg-codex-background border border-codex-accent rounded-codex-sm outline-none w-full text-codex-foreground"
+              className="h-6 w-full min-w-0 rounded-codex-sm border border-codex-accent bg-codex-elevated px-1.5 text-sm text-codex-foreground outline-none ring-2 ring-codex-accent-soft"
             />
           ) : (
             <Link
@@ -371,17 +415,19 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
           )}
         </div>
 
-        {/* Hover Actions */}
+        {/* Hover Actions: take no width at rest, so the title gets the full
+            row until the row is hovered, focused, or on a touch device */}
         {!isEditing && (
           <div
             data-drag-actions
-            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1"
+            className="ml-1 hidden shrink-0 items-center gap-0.5 group-hover:flex group-focus-within:flex pointer-coarse:flex"
           >
             {/* Quick Add Subpage */}
             <button
               type="button"
               onClick={handleAddSubpage}
-              className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-border/60 transition-colors"
+              className="flex size-6 items-center justify-center rounded-codex-sm text-codex-muted transition-colors hover:bg-codex-selected hover:text-codex-foreground pointer-coarse:size-9"
+              aria-label="Add a page inside"
               title="Add a page inside"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -403,79 +449,100 @@ export function PageTreeItem({ page, level = 0 }: PageTreeItemProps) {
                   setMenuPos({ top, left: Math.max(8, rect.right - MENU_WIDTH) });
                   setIsMenuOpen(!isMenuOpen);
                 }}
-                className="p-1 text-codex-muted hover:text-codex-foreground rounded-codex-sm hover:bg-codex-border/60 transition-colors"
+                className="flex size-6 items-center justify-center rounded-codex-sm text-codex-muted transition-colors hover:bg-codex-selected hover:text-codex-foreground pointer-coarse:size-9"
+                aria-label="Page options"
+                aria-expanded={isMenuOpen}
                 title="Page options"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </button>
 
-              {isMenuOpen && menuPos && (
-                <div
-                  style={{ top: menuPos.top, left: menuPos.left }}
-                  className="fixed z-50 glass-surface border border-codex-border rounded-codex-md p-1 w-48 text-xs animate-in fade-in-0 zoom-in-95 duration-100"
+              <PopPanel
+                open={isMenuOpen && menuPos !== null}
+                origin="top right"
+                position={menuPos ?? undefined}
+                className="fixed z-50 w-52 surface-popover rounded-codex-lg p-1 text-sm cursor-default"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    setEditTitle(page.title);
+                    setIsEditing(true);
+                  }}
+                  className={`${MENU_ITEM} text-codex-foreground hover:bg-codex-hover`}
                 >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsMenuOpen(false);
-                      setEditTitle(page.title);
-                      setIsEditing(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    <span>Rename</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleToggleFavorite}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-background text-codex-foreground transition-colors text-left"
-                  >
-                    {page.isFavorite ? (
-                      <>
-                        <PinOff className="w-3.5 h-3.5" />
-                        <span>Remove from Favorites</span>
-                      </>
-                    ) : (
-                      <>
-                        <Pin className="w-3.5 h-3.5" />
-                        <span>Add to Favorites</span>
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleArchive}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-codex-sm hover:bg-codex-danger-bg/10 text-codex-danger transition-colors text-left"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              )}
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Rename</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  className={`${MENU_ITEM} text-codex-foreground hover:bg-codex-hover`}
+                >
+                  {page.isFavorite ? (
+                    <>
+                      <PinOff className="w-3.5 h-3.5" />
+                      <span>Remove from Favorites</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pin className="w-3.5 h-3.5" />
+                      <span>Add to Favorites</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleArchive}
+                  className={`${MENU_ITEM} text-codex-danger hover:bg-codex-danger-bg`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
+              </PopPanel>
             </div>
           </div>
         )}
       </div>
 
-      {/* Recursive Subpages */}
-      {isExpanded &&
-        (hasChildren ? (
-          <div className="space-y-0.5 mt-0.5">
-            {childPages.map((child) => (
-              <PageTreeItem key={child.id} page={child} level={level + 1} />
-            ))}
-          </div>
-        ) : (
-          <p
-            className="mt-0.5 py-0.5 text-xs italic text-codex-muted/70 select-none"
-            style={{ paddingLeft: `${Math.max((level + 1) * 14 + 8, 8)}px` }}
+      {/* Recursive Subpages — the height eases open/closed instead of popping */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <m.div
+            key="children"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={TWEEN}
+            className="relative overflow-hidden"
           >
-            No pages inside
-          </p>
-        ))}
+            {/* Tree guide line under this page's icon (the grip slot is absent on touch) */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-1 w-px bg-codex-border pointer-coarse:hidden"
+              style={{ left: `${level * INDENT_STEP + GUIDE_OFFSET}px` }}
+            />
+            {hasChildren ? (
+              <div className="space-y-px mt-px">
+                {childPages.map((child) => (
+                  <PageTreeItem key={child.id} page={child} level={level + 1} />
+                ))}
+              </div>
+            ) : (
+              <p
+                className="flex h-8 items-center text-xs text-codex-muted select-none pointer-coarse:h-11"
+                // Lines up with where a child page's icon would sit
+                style={{ paddingLeft: `${(level + 1) * INDENT_STEP + 14}px` }}
+              >
+                No pages inside
+              </p>
+            )}
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

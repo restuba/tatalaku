@@ -13,28 +13,31 @@ import type {
 } from "./types";
 
 // ─── Style Builders ──────────────────────────────────────────────────
+// Buttons use the interface voice (Inter, sentence case, medium weight).
+// Primary is the one solid accent action on a screen; secondary actions are
+// outlined or quiet text buttons. Focus uses the global 2px accent ring.
 
 function getSizeClasses(size: ButtonSize, shape: ButtonShape): string {
   if (shape === "circle") {
     const map: Record<ButtonSize, string> = {
-      small: "h-8 w-8 text-xs",
-      medium: "h-9 w-9 text-sm",
-      large: "h-11 w-11 text-base",
+      small: "size-8 pointer-coarse:size-10",
+      medium: "size-9 pointer-coarse:size-11",
+      large: "size-11 pointer-coarse:size-12",
     };
     return map[size];
   }
 
   const map: Record<ButtonSize, string> = {
-    small: "h-8 px-2.5 text-xs gap-1.5",
-    medium: "h-9 px-3.5 text-sm gap-2",
-    large: "h-11 px-5 text-base gap-2.5",
+    small: "h-8 px-3 gap-1.5 text-sm pointer-coarse:h-10",
+    medium: "h-9 px-4 gap-2 text-sm pointer-coarse:h-11",
+    large: "h-11 px-5 gap-2 text-base pointer-coarse:h-12",
   };
   return map[size];
 }
 
 function getShapeClasses(shape: ButtonShape): string {
   const map: Record<ButtonShape, string> = {
-    default: "rounded-codex-sm",
+    default: "rounded-codex-md",
     circle: "rounded-full p-0",
     round: "rounded-full",
   };
@@ -57,36 +60,33 @@ function getVariantClasses(variant: ButtonVariant, color: ButtonColor, isDashed:
 
   const colorVariants: Record<ButtonColor, Record<ButtonVariant, string>> = {
     primary: {
-      solid: "bg-codex-accent text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-codex-accent text-codex-accent bg-transparent hover:bg-codex-accent/10 active:bg-codex-accent/20`,
-      filled:
-        "bg-codex-accent/15 text-codex-accent hover:bg-codex-accent/25 active:bg-codex-accent/30",
-      text: "text-codex-accent bg-transparent hover:bg-codex-accent/10 active:bg-codex-accent/20",
-      link: "text-codex-accent underline-offset-4 hover:underline bg-transparent",
+      solid: "bg-codex-accent text-codex-background hover:bg-codex-accent-hover",
+      outlined: `border ${borderStyle} border-codex-accent text-codex-accent hover:bg-codex-accent-soft`,
+      filled: "bg-codex-accent-soft text-codex-accent hover:bg-codex-selected",
+      text: "text-codex-accent hover:bg-codex-accent-soft",
+      link: "text-codex-accent underline-offset-4 hover:underline",
     },
     danger: {
-      solid: "bg-codex-danger text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-codex-danger text-codex-danger bg-transparent hover:bg-codex-danger-bg/40 active:bg-codex-danger-bg`,
-      filled:
-        "bg-codex-danger-bg text-codex-danger hover:bg-codex-danger-bg/80 active:bg-codex-danger-bg",
-      text: "text-codex-danger bg-transparent hover:bg-codex-danger-bg/40 active:bg-codex-danger-bg",
-      link: "text-codex-danger underline-offset-4 hover:underline bg-transparent",
+      solid: "bg-codex-danger text-codex-background hover:bg-codex-danger/90",
+      outlined: `border ${borderStyle} border-codex-danger text-codex-danger hover:bg-codex-danger-bg`,
+      filled: "bg-codex-danger-bg text-codex-danger hover:bg-codex-danger/20",
+      text: "text-codex-danger hover:bg-codex-danger-bg",
+      link: "text-codex-danger underline-offset-4 hover:underline",
     },
     warning: {
-      solid: "bg-codex-accent text-codex-surface hover:opacity-90 active:opacity-100 shadow-xs",
-      outlined: `border ${borderStyle} border-codex-accent text-codex-accent bg-transparent hover:bg-codex-accent/10`,
-      filled: "bg-codex-accent/15 text-codex-accent hover:bg-codex-accent/25",
-      text: "text-codex-accent bg-transparent hover:bg-codex-accent/10",
-      link: "text-codex-accent underline-offset-4 hover:underline bg-transparent",
+      solid: "bg-codex-warning text-codex-background hover:bg-codex-warning/90",
+      outlined: `border ${borderStyle} border-codex-warning text-codex-warning hover:bg-codex-warning-bg`,
+      filled: "bg-codex-warning-bg text-codex-warning hover:bg-codex-warning/20",
+      text: "text-codex-warning hover:bg-codex-warning-bg",
+      link: "text-codex-warning underline-offset-4 hover:underline",
     },
     default: {
       solid:
-        "bg-codex-surface-secondary text-codex-foreground border border-codex-border hover:bg-codex-muted/15 shadow-xs",
-      outlined: `border ${borderStyle} border-codex-border text-codex-foreground bg-codex-surface hover:border-codex-accent hover:text-codex-accent active:bg-codex-surface-secondary`,
-      filled:
-        "bg-codex-surface-secondary text-codex-foreground hover:bg-codex-muted/20 active:bg-codex-muted/30",
-      text: "text-codex-foreground bg-transparent hover:bg-codex-surface-secondary active:bg-codex-muted/20",
-      link: "text-codex-foreground underline-offset-4 hover:underline bg-transparent",
+        "border border-codex-border-strong bg-codex-elevated text-codex-foreground hover:bg-codex-hover",
+      outlined: `border ${borderStyle} border-codex-border-strong text-codex-foreground hover:bg-codex-hover`,
+      filled: "bg-codex-hover text-codex-foreground hover:bg-codex-selected",
+      text: "text-codex-muted hover:bg-codex-hover hover:text-codex-foreground",
+      link: "text-codex-foreground underline-offset-4 hover:underline",
     },
   };
 
@@ -102,7 +102,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant,
       color = "default",
       size = "medium",
-      shape = "default",
+      shape = "round",
       icon,
       iconPlacement = "start",
       loading = false,
@@ -122,19 +122,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const effectiveShape = isIconOnly ? "circle" : shape;
 
     const classes = [
-      "inline-flex items-center justify-center font-medium cursor-pointer select-none transition-all duration-150",
-      "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-codex-accent",
+      "inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap select-none transition-[background-color,border-color,color,opacity] duration-150",
       getSizeClasses(size, effectiveShape),
       getShapeClasses(effectiveShape),
       getVariantClasses(resolvedVariant, resolvedColor, btnType === "dashed"),
       block ? "w-full" : "",
-      isDisabled ? "pointer-events-none opacity-50 cursor-not-allowed" : "",
+      isDisabled ? "pointer-events-none opacity-50" : "",
       className,
     ]
       .filter(Boolean)
       .join(" ");
 
-    const iconElement = loading ? <SpinnerIcon size={size === "small" ? 12 : 16} /> : icon;
+    const iconElement = loading ? <SpinnerIcon size={size === "small" ? 14 : 16} /> : icon;
 
     return (
       <button
@@ -147,10 +146,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...rest}
       >
         {iconElement && iconPlacement === "start" && (
-          <span className="shrink-0">{iconElement}</span>
+          <span className="flex shrink-0 items-center">{iconElement}</span>
         )}
         {children && <span className="truncate">{children}</span>}
-        {iconElement && iconPlacement === "end" && <span className="shrink-0">{iconElement}</span>}
+        {iconElement && iconPlacement === "end" && (
+          <span className="flex shrink-0 items-center">{iconElement}</span>
+        )}
       </button>
     );
   },

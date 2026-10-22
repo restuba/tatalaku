@@ -1,144 +1,103 @@
-/* eslint-disable no-restricted-syntax */
-import { ThemeConfig } from "@tatalaku/shared";
-
-export const lightGithub: ThemeConfig = {
-  codeThemeId: "github-light",
-  variant: "light",
-  theme: {
-    accent: "#0969da",
-    contrast: 40,
-    fonts: {
-      code: null,
-      ui: null,
-    },
-    ink: "#1f2328",
-    opaqueWindows: true,
-    semanticColors: {
-      diffAdded: "#1a7f37",
-      diffRemoved: "#cf222e",
-      skill: "#0969da",
-    },
-    surface: "#ffffff",
-  },
-};
-
-export const lightAbsolutely = lightGithub;
-
-export const lightEverforest: ThemeConfig = {
-  codeThemeId: "everforest-light",
-  variant: "light",
-  theme: {
-    accent: "#708d44",
-    contrast: 35,
-    fonts: {
-      code: null,
-      ui: null,
-    },
-    ink: "#3c474d",
-    opaqueWindows: true,
-    semanticColors: {
-      diffAdded: "#6c854c",
-      diffRemoved: "#d65d5b",
-      skill: "#708d44",
-    },
-    surface: "#f7f5ed",
-  },
-};
-
-export const darkGithub: ThemeConfig = {
-  codeThemeId: "github-dark",
-  variant: "dark",
-  theme: {
-    accent: "#1f6feb",
-    contrast: 44,
-    fonts: {
-      code: null,
-      ui: null,
-    },
-    ink: "#e6edf3",
-    opaqueWindows: true,
-    semanticColors: {
-      diffAdded: "#3fb950",
-      diffRemoved: "#f85149",
-      skill: "#1f6feb",
-    },
-    surface: "#0d1117",
-  },
-};
-
-export const darkAbsolutely = darkGithub;
-
-export const darkEverforest: ThemeConfig = {
-  codeThemeId: "everforest-dark",
-  variant: "dark",
-  theme: {
-    accent: "#a7c080",
-    contrast: 44,
-    fonts: {
-      code: null,
-      ui: null,
-    },
-    ink: "#d3c6aa",
-    opaqueWindows: false,
-    semanticColors: {
-      diffAdded: "#a7c080",
-      diffRemoved: "#e67e80",
-      skill: "#d699b6",
-    },
-    surface: "#2d353b",
-  },
-};
-
-export const darkLobster: ThemeConfig = {
-  codeThemeId: "lobster-dark",
-  variant: "dark",
-  theme: {
-    accent: "#ff5c5c",
-    contrast: 44,
-    fonts: {
-      code: null,
-      ui: null,
-    },
-    ink: "#e4e4e7",
-    opaqueWindows: true,
-    semanticColors: {
-      diffAdded: "#4ade80",
-      diffRemoved: "#f87171",
-      skill: "#ff5c5c",
-    },
-    surface: "#111827",
-  },
-};
-
-export const presets: ThemeConfig[] = [
-  lightGithub,
-  lightEverforest,
-  darkGithub,
-  darkEverforest,
-  darkLobster,
-];
+import { LEGACY_THEME_MODE_KEY, LEGACY_THEME_STORE_KEY } from "@/constants/storage-keys";
 
 /**
- * Maps a ThemeConfig to a record of CSS custom properties.
- * This can be used in a style attribute.
+ * Tatalaku themes.
+ *
+ * Every theme shares one layout, type scale and component set; a theme only
+ * swaps the color tokens. The palettes themselves live in globals.css under
+ * `[data-theme="…"]` — this module holds the metadata the UI needs (names,
+ * color scheme) and the logic that picks a theme, so no color value is ever
+ * duplicated in TypeScript.
  */
-export function mapThemeToCSS(config: ThemeConfig): Record<string, string> {
-  const cssVars: Record<string, string> = {
-    "--color-accent": config.theme.accent,
-    "--color-ink": config.theme.ink,
-    "--color-surface": config.theme.surface,
-    "--theme-contrast": config.theme.contrast.toString(),
-    "--color-diff-added": config.theme.semanticColors.diffAdded,
-    "--color-diff-removed": config.theme.semanticColors.diffRemoved,
-    "--color-skill": config.theme.semanticColors.skill,
-  };
 
-  if (config.theme.fonts.ui) {
-    cssVars["--font-ui"] = config.theme.fonts.ui;
-  }
-  if (config.theme.fonts.code) {
-    cssVars["--font-code"] = config.theme.fonts.code;
-  }
+export const THEME_IDS = ["parchment", "clarity", "nocturne"] as const;
 
-  return cssVars;
+export type ThemeId = (typeof THEME_IDS)[number];
+
+/** A named theme, or "system" to follow the device's light/dark setting */
+export type ThemePreference = ThemeId | "system";
+
+export type ColorScheme = "light" | "dark";
+
+export interface ThemeDefinition {
+  id: ThemeId;
+  name: string;
+  /** The design direction the palette expresses */
+  style: string;
+  description: string;
+  colorScheme: ColorScheme;
+}
+
+export const THEMES: readonly ThemeDefinition[] = [
+  {
+    id: "parchment",
+    name: "Parchment",
+    style: "Warm Editorial",
+    description: "Warm ivory paper, ink-dark text and muted olive accents.",
+    colorScheme: "light",
+  },
+  {
+    id: "clarity",
+    name: "Clarity",
+    style: "Quiet Minimalism",
+    description: "Cool neutral surfaces, crisp lines and slate accents.",
+    colorScheme: "light",
+  },
+  {
+    id: "nocturne",
+    name: "Nocturne",
+    style: "Soft Contrast",
+    description: "Charcoal surfaces, warm off-white text and champagne accents.",
+    colorScheme: "dark",
+  },
+];
+
+/** The signature theme, used on a first visit */
+export const DEFAULT_THEME: ThemeId = "parchment";
+
+/** Themes used while following the device setting */
+export const SYSTEM_THEMES: Readonly<Record<ColorScheme, ThemeId>> = {
+  light: "parchment",
+  dark: "nocturne",
+};
+
+export const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
+
+export function isThemeId(value: unknown): value is ThemeId {
+  return typeof value === "string" && (THEME_IDS as readonly string[]).includes(value);
+}
+
+export function isThemePreference(value: unknown): value is ThemePreference {
+  return value === "system" || isThemeId(value);
+}
+
+export function getTheme(id: ThemeId): ThemeDefinition {
+  // THEMES covers every ThemeId, so the fallback is never reached
+  return THEMES.find((theme) => theme.id === id) ?? (THEMES[0] as ThemeDefinition);
+}
+
+/** The theme that is actually rendered for a preference */
+export function resolveTheme(preference: ThemePreference, prefersDark: boolean): ThemeId {
+  if (preference !== "system") return preference;
+  return prefersDark ? SYSTEM_THEMES.dark : SYSTEM_THEMES.light;
+}
+
+/** The old light/dark/system switch, mapped onto the closest new preference */
+export const LEGACY_MODE_PREFERENCES: Readonly<Record<string, ThemePreference>> = {
+  light: "parchment",
+  dark: "nocturne",
+  system: "system",
+};
+
+/**
+ * Preference for a device that has no stored theme yet. Someone who used the
+ * old light/dark switch keeps an equivalent theme; the old default was to
+ * follow the OS, so existing users keep doing that; first-time visitors get
+ * Parchment. The pre-paint script (lib/prepaint.ts) applies the same rules.
+ */
+export function initialThemePreference(storage: Pick<Storage, "getItem">): ThemePreference {
+  const legacyMode = storage.getItem(LEGACY_THEME_MODE_KEY);
+  const carried = legacyMode === null ? undefined : LEGACY_MODE_PREFERENCES[legacyMode];
+  if (carried) return carried;
+  return storage.getItem(LEGACY_THEME_STORE_KEY) !== null ? "system" : DEFAULT_THEME;
 }

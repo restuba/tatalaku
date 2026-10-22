@@ -571,14 +571,18 @@ import type { ButtonProps } from "@/components/reusable/Button";
 
 ## 8. Design Tokens & Styling
 
+Detail lengkap (tipografi, palet Parchment/Clarity/Nocturne, kontras): [`docs/design-system.md`](./design-system.md).
+
 - **Dilarang Hardcode Nilai Sembarang**: Jangan pernah menggunakan arbitrary Tailwind values untuk warna, radius, atau bayangan (contoh dilarang: `bg-[#2196F3]`, `rounded-[14px]`).
-- **Gunakan Token Resmi**: Semua styling warna harus merujuk pada token CSS variables / Tailwind theme yang terdaftar di `style/globals.css`.
+- **Gunakan Token Resmi**: Semua warna merujuk pada token `codex-*` yang terdaftar di `src/app/globals.css` (mis. `bg-codex-elevated`, `text-codex-muted`, `bg-codex-hover`, `border-codex-border`). Palet tema hanya didefinisikan di CSS — jangan menyalin nilai warna ke TypeScript.
+- **Tema = hanya warna**: Komponen tidak boleh memakai varian `dark:` atau logika per tema; perbedaan tema diekspresikan lewat token.
 - **Status Colors Pairing**:
-  Warna status wajib selalu berpasangan antara _background lembut_ dan _teks kontras_:
-  - **Active / Success**: Background hijau lembut (`bg-status-success-subtle`) + Teks hijau tegas (`text-status-success`).
-  - **Warning**: Background kuning lembut (`bg-status-warning-subtle`) + Teks oranye tegas (`text-status-warning`).
-  - **Error / Danger**: Background merah lembut (`bg-status-error-subtle`) + Teks merah tegas (`text-status-error`).
-  - **Inactive / Muted**: Background abu-abu lembut (`bg-muted`) + Teks abu-abu gelap (`text-muted-foreground`).
+  Warna status wajib selalu berpasangan antara _background lembut_ dan _teks kontras_, dan tidak boleh mengandalkan warna saja (sertakan ikon/teks):
+  - **Success**: `bg-codex-success-bg` + `text-codex-success`.
+  - **Warning**: `bg-codex-warning-bg` + `text-codex-warning`.
+  - **Error / Danger**: `bg-codex-danger-bg` + `text-codex-danger`.
+  - **Info**: `bg-codex-info-bg` + `text-codex-info`.
+  - **Inactive / Muted**: `bg-codex-surface-secondary` + `text-codex-muted`.
 
 ---
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import type { Editor, Range } from "@tiptap/core";
 import {
   Type,
@@ -18,6 +18,8 @@ import {
   Table as TableIcon,
   Workflow as WorkflowIcon,
 } from "lucide-react";
+import { promptDialog } from "@/stores/dialog-store";
+import { validateImageUrl } from "@/lib/url";
 
 export interface CommandItem {
   title: string;
@@ -128,12 +130,22 @@ export const SLASH_COMMANDS: CommandItem[] = [
     description: "Insert an image via URL.",
     icon: ImageIcon,
     command: ({ editor, range }) => {
-      const url = window.prompt("Enter image URL:");
-      if (url) {
-        editor.chain().focus().deleteRange(range).setImage({ src: url }).run();
-      } else {
-        editor.chain().focus().deleteRange(range).run();
-      }
+      // Remove the "/image" query first; the caret stays where the image goes
+      editor.chain().focus().deleteRange(range).run();
+      void promptDialog({
+        title: "Insert image",
+        label: "Image URL",
+        placeholder: "https://example.com/image.png",
+        inputType: "url",
+        confirmLabel: "Insert",
+        validate: validateImageUrl,
+      }).then((url) => {
+        if (!editor.isDestroyed) {
+          const chain = editor.chain().focus();
+          if (url) chain.setImage({ src: url });
+          chain.run();
+        }
+      });
     },
   },
   {
@@ -171,10 +183,18 @@ export interface SlashCommandListProps {
 export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandListProps>(
   function SlashCommandList(props, ref) {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const listRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
       setSelectedIndex(0);
     }, [props.items]);
+
+    // Keep the highlighted block in view while arrowing through the list
+    useEffect(() => {
+      listRef.current
+        ?.querySelector<HTMLElement>(`[data-index="${selectedIndex}"]`)
+        ?.scrollIntoView({ block: "nearest" });
+    }, [selectedIndex]);
 
     useImperativeHandle(ref, () => ({
       onKeyDown: ({ event }: { event: KeyboardEvent }) => {
@@ -200,20 +220,27 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
       },
     }));
 
+    // Elevated panel; fades in without scaling so the text below doesn't jump
     if (props.items.length === 0) {
       return (
-        <div className="z-50 bg-codex-surface/80 dark:bg-codex-surface/60 backdrop-blur-xl border border-codex-border/40 shadow-xl rounded-codex-xl p-2 min-w-[240px] text-xs text-codex-muted">
+        <div
+          role="status"
+          className="surface-popover z-50 min-w-60 rounded-codex-lg px-3 py-2.5 text-sm text-codex-muted animate-in fade-in duration-150"
+        >
           No matching blocks
         </div>
       );
     }
 
     return (
-      <div className="z-50 bg-codex-surface/80 dark:bg-codex-surface/60 backdrop-blur-xl border border-codex-border/40 shadow-2xl shadow-black/10 rounded-codex-xl p-1.5 min-w-[280px] max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
-        <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-codex-muted">
-          Basic blocks
+      <div
+        ref={listRef}
+        className="surface-popover z-50 max-h-80 w-72 overflow-y-auto rounded-codex-lg p-1 animate-in fade-in duration-150"
+      >
+        <div className="eyebrow px-2.5 pt-2 pb-1.5 text-codex-muted" id="slash-menu-label">
+          Blocks
         </div>
-        <div className="space-y-0.5">
+        <div role="listbox" aria-labelledby="slash-menu-label" className="space-y-px">
           {props.items.map((item, index) => {
             const Icon = item.icon;
             const isSelected = index === selectedIndex;
@@ -221,25 +248,25 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, SlashCommandList
               <button
                 key={item.title}
                 type="button"
+                role="option"
+                aria-selected={isSelected}
+                data-index={index}
                 onClick={() => props.command(item)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-codex-md text-left transition-all duration-200 ${
-                  isSelected
-                    ? "bg-codex-background/80 border border-codex-border/50 text-codex-foreground shadow-sm scale-[0.98]"
-                    : "text-codex-muted hover:bg-codex-background/50 hover:text-codex-foreground border border-transparent hover:scale-[1.02]"
+                onMouseMove={() => setSelectedIndex(index)}
+                className={`group flex w-full items-center gap-2.5 rounded-codex-md px-2 py-1.5 text-left transition-colors duration-150 ${
+                  isSelected ? "bg-codex-selected" : ""
                 }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-codex-sm flex items-center justify-center shrink-0 border ${
-                    isSelected
-                      ? "bg-codex-surface border-codex-border text-codex-foreground"
-                      : "bg-codex-background border-transparent text-codex-muted"
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-codex-md border border-codex-border bg-codex-elevated transition-colors duration-150 ${
+                    isSelected ? "text-codex-foreground" : "text-codex-muted"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium truncate">{item.title}</p>
-                  <p className="text-xs text-codex-muted truncate opacity-80">{item.description}</p>
+                  <p className="truncate text-sm font-medium text-codex-foreground">{item.title}</p>
+                  <p className="truncate text-xs text-codex-muted">{item.description}</p>
                 </div>
               </button>
             );

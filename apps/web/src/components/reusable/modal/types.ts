@@ -18,6 +18,10 @@ export interface ModalProps {
   disableBackdropClick?: boolean | undefined;
   /** Disable closing when pressing the Escape key */
   disableEscapeKeyDown?: boolean | undefined;
+  /** Stack above other overlays (e.g. a confirm opened from the Settings modal) */
+  elevated?: boolean | undefined;
+  /** Accessible name for the dialog (announced by screen readers) */
+  "aria-label"?: string | undefined;
   /** Additional container classes */
   className?: string | undefined;
   /** Modal content elements */

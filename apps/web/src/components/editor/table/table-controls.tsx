@@ -10,6 +10,21 @@ interface TableControlsProps {
 
 type ActiveMenu = "column" | "row" | null;
 
+/**
+ * Inactive column/row grip. Box-sizing is border-box, so the 1px outline sits
+ * inside the size computed from the geometry constants (SUGGESTION_*).
+ */
+const SUGGESTION_CLASS =
+  "absolute rounded-codex-sm border border-codex-border-strong bg-codex-surface-secondary pointer-events-auto transition-colors duration-150 hover:border-codex-accent hover:bg-codex-accent";
+
+/** Grip of the column/row whose menu is open: solid accent, background-colored dots */
+const ACTIVE_GRIP_CLASS =
+  "flex h-full w-full items-center justify-center rounded-codex-sm border border-codex-accent bg-codex-accent text-codex-background";
+
+/** Add-column / add-row strip: invisible until hovered, then an outlined slot with a "+" */
+const ADD_STRIP_CLASS =
+  "group absolute z-10 flex items-center justify-center rounded-codex-sm border border-transparent text-codex-muted pointer-events-auto transition-colors duration-150 hover:border-codex-border-strong hover:bg-codex-surface-secondary hover:text-codex-foreground";
+
 interface CellColors {
   color: string | null;
   backgroundColor: string | null;
@@ -19,12 +34,12 @@ interface CellColors {
  * Contextual table controls.
  *
  * Behavior:
- * - Hovering the top edge of a column (or left edge of a row) reveals an
- *   elongated strip handle that spans the whole column width / row height. The
- *   strip itself is the indicator (there is no separate accent line).
- * - Clicking the strip selects the entire column/row (CellSelection => active
- *   state highlighted via `.selectedCell`), turns the strip solid accent, and
- *   opens the {@link TableActionMenu}.
+ * - While the cursor is inside a cell, a short outlined grip appears above its
+ *   column and left of its row.
+ * - Clicking a grip selects the entire column/row (CellSelection => active
+ *   state highlighted via `.selectedCell`), swaps it for a solid accent grip
+ *   with a flat accent border around the column/row, and opens the
+ *   {@link TableActionMenu}.
  * - Thin "+" strips run along the right edge (add column) and bottom edge
  *   (add row) of the table.
  *
@@ -285,12 +300,13 @@ export function TableControls({ editor }: TableControlsProps) {
         />
       )}
 
-      {/* Hover suggestion line above the hovered column (thin, short). */}
+      {/* Hover suggestion line above the hovered column (thin, short): an
+          outlined slot that fills with the accent on hover. */}
       {showColSuggestion && (
         <button
           type="button"
           aria-label="Column options"
-          className="absolute rounded-codex-xl bg-codex-muted/70 hover:bg-codex-accent pointer-events-auto transition-colors"
+          className={SUGGESTION_CLASS}
           style={{
             top: colRect.top - (SUGGESTION_THICK + GAP),
             left: colRect.left + colRect.width / 2 - SUGGESTION_LEN / 2,
@@ -316,11 +332,11 @@ export function TableControls({ editor }: TableControlsProps) {
           <button
             type="button"
             aria-label="Column options"
-            className="flex h-full w-full items-center justify-center rounded-codex-sm border border-codex-accent bg-codex-accent shadow-sm"
+            className={ACTIVE_GRIP_CLASS}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => openMenu("column")}
           >
-            <GripHorizontal className="h-3 w-3 text-codex-surface" />
+            <GripHorizontal className="h-3 w-3" />
           </button>
           <div className="absolute left-1/2 top-full mt-1 -translate-x-1/2 z-20">
             <TableActionMenu
@@ -341,7 +357,7 @@ export function TableControls({ editor }: TableControlsProps) {
         <button
           type="button"
           aria-label="Row options"
-          className="absolute rounded-codex-xl bg-codex-muted/70 hover:bg-codex-accent pointer-events-auto transition-colors"
+          className={SUGGESTION_CLASS}
           style={{
             top: rowRect.top + rowRect.height / 2 - SUGGESTION_LEN / 2,
             left: rowRect.left - (SUGGESTION_THICK + GAP),
@@ -367,11 +383,11 @@ export function TableControls({ editor }: TableControlsProps) {
           <button
             type="button"
             aria-label="Row options"
-            className="flex h-full w-full items-center justify-center rounded-codex-sm border border-codex-accent bg-codex-accent shadow-sm"
+            className={ACTIVE_GRIP_CLASS}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => openMenu("row")}
           >
-            <GripVertical className="h-3 w-3 text-codex-surface" />
+            <GripVertical className="h-3 w-3" />
           </button>
           <div className="absolute left-full top-1/2 ml-1 -translate-y-1/2 z-20">
             <TableActionMenu
@@ -391,7 +407,7 @@ export function TableControls({ editor }: TableControlsProps) {
       <button
         type="button"
         aria-label="Add column"
-        className="group absolute flex items-center justify-center rounded-codex-sm bg-transparent hover:bg-codex-surface-secondary pointer-events-auto z-10 transition-colors"
+        className={ADD_STRIP_CLASS}
         style={{
           top: tableRect.top,
           left: tableRect.left + tableRect.width + 2,
@@ -404,14 +420,14 @@ export function TableControls({ editor }: TableControlsProps) {
           if (goToEnd("col")) editor.chain().focus().addColumnAfter().run();
         }}
       >
-        <Plus className="h-3 w-3 text-codex-muted opacity-0 group-hover:opacity-100" />
+        <Plus className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
       </button>
 
       {/* Add-row strip along the bottom edge */}
       <button
         type="button"
         aria-label="Add row"
-        className="group absolute flex items-center justify-center rounded-codex-sm bg-transparent hover:bg-codex-surface-secondary pointer-events-auto z-10 transition-colors"
+        className={ADD_STRIP_CLASS}
         style={{
           top: tableRect.top + tableRect.height + 2,
           left: tableRect.left,
@@ -424,7 +440,7 @@ export function TableControls({ editor }: TableControlsProps) {
           if (goToEnd("row")) editor.chain().focus().addRowAfter().run();
         }}
       >
-        <Plus className="h-3 w-3 text-codex-muted opacity-0 group-hover:opacity-100" />
+        <Plus className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
       </button>
     </div>
   );

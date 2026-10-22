@@ -40,7 +40,7 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
       // Check if target is a drag handle, interactive menu, or part of a link
       if (
         target.closest("[draggable]") ||
-        target.closest(".glass-surface") ||
+        target.closest(".surface-popover, .surface-dialog, [role='menu'], [role='listbox']") ||
         target.closest("button") ||
         target.closest("a")
       ) {
@@ -49,9 +49,7 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
 
       // Allow lasso if clicking empty spaces in the main container
       const isEditorContainer =
-        target === containerRef.current ||
-        target.classList.contains("tiptap") ||
-        target.classList.contains("prose");
+        target === containerRef.current || target.classList.contains("tiptap");
       const isMargin = target.tagName === "DIV" || target.tagName === "MAIN";
 
       if (!isEditorContainer && !isMargin) return;
@@ -177,6 +175,8 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
 
   // Calculate coordinates for rendering the lasso box relative to the container
   let lassoStyle = {};
+  // Visuals only apply once the box is drawn, so the empty placeholder stays invisible
+  let lassoClassName = "";
   if (isSelecting && startPoint && currentPoint && containerRect) {
     const left = Math.min(startPoint.x, currentPoint.x) - containerRect.left;
     const top = Math.min(startPoint.y, currentPoint.y) - containerRect.top;
@@ -190,13 +190,11 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
         top: `${top}px`,
         width: `${width}px`,
         height: `${height}px`,
-        backgroundColor: "var(--color-info)",
-        opacity: 0.15,
-        border: "1px solid var(--color-info)",
-        borderRadius: "2px",
         pointerEvents: "none",
         zIndex: 50,
       };
+      // Accent marquee: a 1px border over a faint tint
+      lassoClassName = "border border-codex-accent bg-codex-accent/10";
     }
   }
 
@@ -207,7 +205,7 @@ export function LassoSelection({ editor, children }: LassoSelectionProps) {
       onContextMenu={(e) => isSelecting && e.preventDefault()}
     >
       {children}
-      {isSelecting && <div style={lassoStyle} />}
+      {isSelecting && <div className={lassoClassName} style={lassoStyle} />}
     </div>
   );
 }

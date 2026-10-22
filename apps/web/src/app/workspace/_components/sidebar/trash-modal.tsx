@@ -6,6 +6,8 @@ import { useWorkspaceStore } from "@/stores/workspace-store";
 import { RefreshCcw, FileText, Trash2, X, Check } from "lucide-react";
 import { Modal } from "@/components/reusable/modal";
 import { Button } from "@/components/reusable/button";
+import { formatTimeAgo } from "@/lib/date";
+import { LogoSpinner } from "@/components/ui/logo-spinner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,86 +56,104 @@ export function TrashModal({ isOpen, onClose }: TrashModalProps) {
   }, [isOpen, activeWorkspace, fetchArchivedPages]);
 
   return (
-    <Modal open={isOpen} onClose={onClose} maxWidth="sm" fullWidth aria-label="Trash">
+    <Modal open={isOpen} onClose={onClose} maxWidth="md" fullWidth aria-label="Trash">
       <Modal.Header showClose divider>
-        <div className="flex items-center gap-2">
-          <Trash2 className="w-5 h-5 text-codex-muted" />
-          <span>Trash</span>
+        <div className="min-w-0">
+          <span className="block leading-tight">Trash</span>
+          <span className="mt-1 block font-sans text-sm font-normal text-codex-muted">
+            Restore pages, or delete them for good.
+          </span>
         </div>
       </Modal.Header>
 
-      <Modal.Content className="p-4 max-h-[60vh] overflow-y-auto">
+      <Modal.Content className="max-h-[60vh] overflow-y-auto">
         {loading ? (
-          <p className="text-sm text-codex-muted text-center py-8">Loading…</p>
+          <div className="flex justify-center py-12">
+            <LogoSpinner size="md" text="Loading trash…" className="text-codex-muted" />
+          </div>
         ) : archivedPages.length === 0 ? (
-          <div className="text-center py-10 px-4 text-codex-muted">
-            <Trash2 className="w-8 h-8 mx-auto mb-3 opacity-20" />
-            <p className="text-sm">Trash is empty</p>
+          <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
+            <Trash2 className="size-6 text-codex-faint" aria-hidden="true" />
+            <p className="text-sm font-medium text-codex-foreground">Trash is empty</p>
+            <p className="text-sm text-codex-muted">
+              Deleted pages stay here until you remove them.
+            </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          // -mx-2 lets the hover fill bleed past the text column
+          <ul className="-mx-2 divide-y divide-codex-border">
             {archivedPages.map((page) => {
               const isConfirming = confirmingId === page.id;
               const isDeleting = deletingId === page.id;
+              const title = page.title || "Untitled";
 
               return (
-                <div
+                <li
                   key={page.id}
-                  className="flex items-center justify-between p-3 hover:bg-codex-surface-secondary/50 rounded-codex-md group transition-colors"
+                  className="group flex items-center justify-between gap-3 rounded-codex-md px-2 py-2 transition-colors hover:bg-codex-hover"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="w-4 h-4 text-codex-muted shrink-0" />
-                    <span className="text-sm truncate text-codex-foreground">
-                      {page.title || "Untitled"}
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex w-5 shrink-0 justify-center leading-none">
+                      {page.icon ?? (
+                        <FileText className="size-4 text-codex-muted" aria-hidden="true" />
+                      )}
                     </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm text-codex-foreground">{title}</p>
+                      <p className="text-xs tabular-nums text-codex-muted">
+                        Deleted {formatTimeAgo(page.updatedAt)}
+                      </p>
+                    </div>
                   </div>
 
                   {isConfirming ? (
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-codex-muted">Delete forever?</span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <span className="mr-1 text-sm text-codex-danger">Delete forever?</span>
                       <Button
                         variant="text"
+                        color="danger"
                         size="small"
                         loading={isDeleting}
                         onClick={() => handlePermanentDelete(page.id)}
-                        className="text-codex-danger hover:text-codex-danger"
-                        title="Confirm permanent delete"
-                        icon={<Check className="w-4 h-4" />}
+                        aria-label={`Confirm deleting ${title} forever`}
+                        title="Delete forever"
+                        icon={<Check className="size-4" />}
                       />
                       <Button
                         variant="text"
                         size="small"
                         disabled={isDeleting}
                         onClick={() => setConfirmingId(null)}
-                        className="text-codex-muted hover:text-codex-foreground"
+                        aria-label="Keep the page"
                         title="Cancel"
-                        icon={<X className="w-4 h-4" />}
+                        icon={<X className="size-4" />}
                       />
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100">
                       <Button
                         variant="text"
                         size="small"
                         onClick={() => restorePage(page.id)}
-                        className="text-codex-muted hover:text-codex-success"
+                        aria-label={`Restore ${title}`}
                         title="Restore"
-                        icon={<RefreshCcw className="w-4 h-4" />}
+                        icon={<RefreshCcw className="size-4" />}
                       />
                       <Button
                         variant="text"
+                        color="danger"
                         size="small"
                         onClick={() => setConfirmingId(page.id)}
-                        className="text-codex-muted hover:text-codex-danger"
-                        title="Delete permanently"
-                        icon={<Trash2 className="w-4 h-4" />}
+                        aria-label={`Delete ${title} forever`}
+                        title="Delete forever"
+                        icon={<Trash2 className="size-4" />}
                       />
                     </div>
                   )}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </Modal.Content>
     </Modal>

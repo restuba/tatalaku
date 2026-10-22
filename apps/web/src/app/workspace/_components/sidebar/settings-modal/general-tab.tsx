@@ -2,15 +2,26 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useWorkspaceStore } from "@/stores/workspace-store";
-import { useAuthStore } from "@/stores/auth-store";
-import { Building, Copy, Check, Trash2, AlertTriangle } from "lucide-react";
-import { Input } from "@/components/reusable/input";
+import { AlertCircle, AlertTriangle, Building, Check, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/reusable/button";
+import { Input } from "@/components/reusable/input";
+import { Modal } from "@/components/reusable/modal";
+import { useAuthStore } from "@/stores/auth-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
+
+/** Inline error under a field: icon + text, so it never rests on color alone */
+function FieldError({ id, children }: { id?: string; children: string }) {
+  return (
+    <p id={id} role="alert" className="flex items-start gap-1.5 text-sm text-codex-danger">
+      <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <span>{children}</span>
+    </p>
+  );
+}
 
 export function GeneralTab({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
-  const { activeWorkspace, updateWorkspace, deleteWorkspace, workspaces } = useWorkspaceStore();
+  const { activeWorkspace, updateWorkspace, deleteWorkspace } = useWorkspaceStore();
   const { user } = useAuthStore();
 
   const [name, setName] = useState(activeWorkspace?.name || "");
@@ -22,13 +33,10 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   if (!activeWorkspace) {
-    return (
-      <div className="py-12 text-center text-codex-muted text-xs">
-        No active workspace selected.
-      </div>
-    );
+    return <p className="py-24 text-center text-sm text-codex-muted">No workspace is selected.</p>;
   }
 
   const isOwner = user?.id === activeWorkspace.ownerId;
@@ -60,95 +68,92 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
     setTimeout(() => setCopiedId(false), 2000);
   }
 
+  function closeDeleteModal() {
+    if (isDeleting) return;
+    setShowDeleteModal(false);
+    setDeleteConfirmText("");
+    setDeleteError(null);
+  }
+
   async function handleDeleteWorkspace() {
     if (!activeWorkspace) return;
     if (deleteConfirmText !== activeWorkspace.name) return;
 
     setIsDeleting(true);
+    setDeleteError(null);
     try {
       await deleteWorkspace(activeWorkspace.id);
       setShowDeleteModal(false);
-      if (onClose) onClose();
-
-      // If there are other workspaces, navigate to the next one, otherwise root workspace
-      const remaining = workspaces.filter((w) => w.id !== activeWorkspace.id);
-      if (remaining.length > 0 && remaining[0]) {
-        router.push("/workspace");
-      } else {
-        router.push("/workspace");
-      }
+      onClose?.();
+      router.push("/workspace");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete workspace");
+      // The confirmation dialog is still open, so report the error inside it
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete workspace");
     } finally {
       setIsDeleting(false);
     }
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Workspace Profile Form */}
-      <form onSubmit={handleSave} className="space-y-6">
-        <div className="p-5 rounded-codex-xl border border-codex-border bg-codex-surface flex items-center gap-4">
-          <div className="w-12 h-12 rounded-codex-lg bg-codex-surface-secondary border border-codex-border flex items-center justify-center text-codex-foreground font-bold text-lg shrink-0">
-            {activeWorkspace.name.charAt(0).toUpperCase()}
-          </div>
-          <div className="space-y-0.5 min-w-0">
-            <h4 className="text-sm font-semibold text-codex-foreground truncate">
-              {activeWorkspace.name}
-            </h4>
-            <p className="text-xs text-codex-muted">
-              {isOwner ? "Owner (Full Admin Access)" : "Member"}
-            </p>
-          </div>
+    <div className="space-y-8">
+      {/* Identity */}
+      <div className="flex items-center gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-codex-lg bg-codex-accent font-serif text-xl font-medium text-codex-background">
+          {activeWorkspace.name.charAt(0).toUpperCase()}
         </div>
+        <div className="min-w-0 space-y-0.5">
+          <p className="truncate font-serif text-xl font-medium text-codex-foreground">
+            {activeWorkspace.name}
+          </p>
+          <p className="text-sm text-codex-muted">{isOwner ? "Owner" : "Member"}</p>
+        </div>
+      </div>
 
-        <div className="space-y-2">
-          <label
-            htmlFor="ws-name"
-            className="text-xs font-semibold text-codex-muted uppercase tracking-wider"
-          >
-            Workspace Name
-          </label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="ws-name"
-              type="text"
-              value={name}
-              onChange={setName}
-              disabled={!isOwner}
-              placeholder="Workspace name"
-              prefix={<Building className="w-4 h-4" />}
-              className="flex-1"
-            />
-            {isOwner && (
-              <Button
-                htmlType="submit"
-                btnType="primary"
-                loading={isSaving}
-                disabled={!isNameChanged}
-                className="shrink-0"
-              >
-                {isSaving ? "Saving…" : "Save"}
-              </Button>
-            )}
-          </div>
-          {saveSuccess && (
-            <p className="text-xs text-codex-success flex items-center gap-1 mt-1">
-              <Check className="w-3.5 h-3.5" />
-              <span>Workspace name updated successfully.</span>
-            </p>
+      {/* Name */}
+      <form onSubmit={handleSave} className="space-y-2">
+        <label htmlFor="ws-name" className="block text-sm font-medium text-codex-foreground">
+          Workspace name
+        </label>
+        <div className="flex items-center gap-2">
+          <Input
+            id="ws-name"
+            type="text"
+            value={name}
+            onChange={setName}
+            disabled={!isOwner}
+            placeholder="Workspace name"
+            prefix={<Building className="size-4" />}
+            className="flex-1"
+          />
+          {isOwner && (
+            <Button
+              htmlType="submit"
+              btnType="primary"
+              loading={isSaving}
+              disabled={!isNameChanged}
+              className="shrink-0"
+            >
+              {isSaving ? "Saving…" : "Save"}
+            </Button>
           )}
-          {saveError && <p className="text-xs text-codex-danger mt-1">{saveError}</p>}
         </div>
+        {!isOwner && (
+          <p className="text-sm text-codex-muted">Only the owner can rename this workspace.</p>
+        )}
+        {saveSuccess && (
+          <p role="status" className="flex items-center gap-1.5 text-sm text-codex-success">
+            <Check className="size-4 shrink-0" aria-hidden="true" />
+            <span>Workspace name updated.</span>
+          </p>
+        )}
+        {saveError && <FieldError>{saveError}</FieldError>}
       </form>
 
-      {/* Workspace Details */}
-      <div className="space-y-3 pt-2">
-        <label className="text-xs font-semibold text-codex-muted uppercase tracking-wider">
-          Workspace ID
-        </label>
-        <div className="flex items-center gap-2 p-2.5 rounded-codex-md border border-codex-border bg-codex-background">
-          <span className="text-xs font-mono text-codex-muted truncate flex-1 select-all">
+      {/* ID */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-codex-foreground">Workspace ID</p>
+        <div className="flex items-center gap-2 rounded-codex-md border border-codex-border bg-codex-surface-secondary py-1 pr-1 pl-3">
+          <span className="flex-1 truncate font-mono text-xs text-codex-muted select-all">
             {activeWorkspace.id}
           </span>
           <Button
@@ -156,98 +161,89 @@ export function GeneralTab({ onClose }: { onClose?: () => void }) {
             size="small"
             onClick={handleCopyId}
             aria-label={copiedId ? "Workspace ID copied" : "Copy workspace ID"}
-            title="Copy Workspace ID"
+            title="Copy workspace ID"
             className="shrink-0"
             icon={
               copiedId ? (
-                <Check className="w-3.5 h-3.5 text-codex-success" />
+                <Check className="size-3.5 text-codex-success" />
               ) : (
-                <Copy className="w-3.5 h-3.5" />
+                <Copy className="size-3.5" />
               )
             }
           />
         </div>
       </div>
 
-      {/* Danger Zone */}
+      {/* Danger zone */}
       {isOwner && (
-        <div className="pt-6 border-t border-codex-border space-y-4">
-          <div className="rounded-codex-xl border border-codex-danger/30 bg-codex-danger-bg/20 p-4 space-y-3">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-codex-danger shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold text-codex-danger">Delete Workspace</h4>
-                <p className="text-xs text-codex-muted leading-relaxed">
-                  Permanently delete this workspace and all pages inside it. This action cannot be
-                  undone.
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button
-                btnType="primary"
-                color="danger"
-                size="small"
-                onClick={() => setShowDeleteModal(true)}
-                icon={<Trash2 className="w-3.5 h-3.5" />}
-              >
-                Delete Workspace
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-codex-background/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-codex-2xl border border-codex-border bg-codex-surface p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="space-y-1">
-              <h4 className="text-base font-semibold text-codex-danger flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Confirm Deletion</span>
-              </h4>
-              <p className="text-xs text-codex-muted">
-                Type{" "}
-                <span className="font-semibold text-codex-foreground">{activeWorkspace.name}</span>{" "}
-                below to confirm:
+        <div className="rounded-codex-lg border border-codex-danger/30 bg-codex-danger-bg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className="mt-0.5 size-4 shrink-0 text-codex-danger"
+              aria-hidden="true"
+            />
+            <div className="min-w-0 flex-1 space-y-1">
+              <h4 className="text-sm font-medium text-codex-foreground">Delete workspace</h4>
+              <p className="text-sm leading-relaxed text-codex-muted">
+                Permanently delete this workspace and every page in it. This can&apos;t be undone.
               </p>
             </div>
-
-            <input
-              type="text"
-              autoFocus
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder={activeWorkspace.name}
-              className="w-full px-3 py-2 rounded-codex-md border border-codex-border bg-codex-background text-sm text-codex-foreground outline-none focus:border-codex-danger transition-colors"
-            />
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <Button
-                size="small"
-                disabled={isDeleting}
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeleteConfirmText("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                btnType="primary"
-                color="danger"
-                size="small"
-                loading={isDeleting}
-                disabled={deleteConfirmText !== activeWorkspace.name}
-                onClick={handleDeleteWorkspace}
-              >
-                {isDeleting ? "Deleting…" : "Delete Permanently"}
-              </Button>
-            </div>
+          </div>
+          <div className="mt-3 flex justify-end">
+            <Button
+              color="danger"
+              variant="outlined"
+              size="small"
+              onClick={() => setShowDeleteModal(true)}
+              icon={<Trash2 className="size-3.5" />}
+            >
+              Delete workspace
+            </Button>
           </div>
         </div>
       )}
+
+      {/* Type-to-confirm deletion, stacked above Settings */}
+      <Modal
+        open={showDeleteModal}
+        onClose={closeDeleteModal}
+        maxWidth="sm"
+        elevated
+        aria-label="Confirm workspace deletion"
+      >
+        <Modal.Header showClose={false}>Delete this workspace?</Modal.Header>
+        <Modal.Content className="space-y-3">
+          <p className="leading-relaxed text-codex-muted">
+            Type <span className="font-medium text-codex-foreground">{activeWorkspace.name}</span>{" "}
+            to confirm.
+          </p>
+          <Input
+            id="ws-delete-confirm"
+            autoFocus
+            aria-label="Workspace name"
+            value={deleteConfirmText}
+            onChange={setDeleteConfirmText}
+            placeholder={activeWorkspace.name}
+            status={deleteError ? "error" : undefined}
+          />
+          {deleteError && <FieldError>{deleteError}</FieldError>}
+        </Modal.Content>
+        <Modal.Action>
+          <Button size="small" disabled={isDeleting} onClick={closeDeleteModal}>
+            Cancel
+          </Button>
+          <Button
+            btnType="primary"
+            color="danger"
+            size="small"
+            loading={isDeleting}
+            disabled={deleteConfirmText !== activeWorkspace.name}
+            onClick={handleDeleteWorkspace}
+          >
+            {isDeleting ? "Deleting…" : "Delete permanently"}
+          </Button>
+        </Modal.Action>
+      </Modal>
     </div>
   );
 }

@@ -36,7 +36,6 @@ interface ActionItem {
   key: string;
   label: string;
   icon: React.ReactNode;
-  shortcut?: string;
   danger?: boolean;
   onSelect: () => void;
 }
@@ -150,7 +149,6 @@ export function TableActionMenu({
         key: "duplicate",
         label: "Duplicate",
         icon: <Copy className="h-4 w-4" />,
-        shortcut: "⌘D",
         onSelect: () => {
           if (ensureCellSelected()) duplicateColumnOrRow(editor, axis);
           onClose();
@@ -193,45 +191,56 @@ export function TableActionMenu({
   };
 
   return (
-    <div className="w-56 glass-surface border border-codex-border rounded-codex-md py-1 shadow-lg text-sm">
-      <div className="px-2 pb-1">
+    <div className="surface-popover w-56 rounded-codex-lg p-1 text-sm animate-in fade-in duration-150">
+      <div className="pb-1">
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search actions..."
-          className="w-full rounded-codex-sm border border-codex-border bg-codex-background px-2 py-1.5 text-sm text-codex-foreground placeholder:text-codex-muted focus:border-codex-accent focus:outline-none"
+          placeholder="Search actions…"
+          aria-label="Search actions"
+          className="h-8 w-full rounded-codex-md border border-codex-border-strong bg-codex-elevated px-2.5 text-sm text-codex-foreground outline-none transition-[border-color,box-shadow] placeholder:text-codex-muted focus:border-codex-accent focus:ring-2 focus:ring-codex-accent-soft"
         />
       </div>
 
-      {filtered.length === 0 && <div className="px-3 py-2 text-codex-muted">No actions found</div>}
+      {filtered.length === 0 && (
+        <p role="status" className="px-2.5 py-2 text-sm text-codex-muted">
+          No actions found
+        </p>
+      )}
 
       {filtered.map((item, index) => {
         const isDivierBeforeDelete = item.key === "delete" && index > 0;
+        // The Color row stays highlighted while its submenu is open
+        const isSubmenuOpen = item.key === "color" && showColorSubmenu;
         return (
           <div key={item.key}>
-            {isDivierBeforeDelete && <div className="h-px bg-codex-border my-1" />}
+            {isDivierBeforeDelete && <div className="mx-1.5 my-1 h-px bg-codex-border" />}
             <div className="relative">
               <button
                 type="button"
                 onClick={item.onSelect}
-                className={`w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-codex-background ${
+                className={`flex h-8 w-full items-center gap-2.5 rounded-codex-md px-2.5 text-left transition-colors ${
                   item.danger
-                    ? "text-codex-danger hover:bg-codex-danger-bg/10"
-                    : "text-codex-foreground"
+                    ? "text-codex-danger hover:bg-codex-danger-bg"
+                    : isSubmenuOpen
+                      ? "bg-codex-selected text-codex-foreground"
+                      : "text-codex-foreground hover:bg-codex-hover"
                 }`}
               >
-                <span className="text-codex-muted">{item.icon}</span>
+                <span className={`shrink-0 ${item.danger ? "" : "text-codex-muted"}`}>
+                  {item.icon}
+                </span>
                 <span className="flex-1">{item.label}</span>
                 {(item.key === "header-column" || item.key === "header-row") && (
                   <HeaderToggle active={isHeaderActive} />
                 )}
                 {item.key === "color" && <ChevronRight className="h-4 w-4 text-codex-muted" />}
-                {item.shortcut && <span className="text-xs text-codex-muted">{item.shortcut}</span>}
               </button>
 
+              {/* ml-2 clears this menu's own padding and border */}
               {item.key === "color" && showColorSubmenu && (
-                <div className="absolute left-full top-0 ml-1 z-30">
+                <div className="absolute left-full top-0 ml-2 z-30">
                   <ColorSubmenu
                     activeColor={activeColor}
                     activeBackground={activeBackground}
@@ -248,16 +257,20 @@ export function TableActionMenu({
   );
 }
 
-/** Small pill switch for the "Header column" toggle. */
+/**
+ * Small switch for the "Header column/row" toggle: the thumb position carries
+ * the state as well as the track color.
+ */
 function HeaderToggle({ active }: { active: boolean }) {
   return (
     <span
-      className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-codex-xl transition-colors ${
-        active ? "bg-codex-accent" : "bg-codex-border"
+      aria-hidden="true"
+      className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors duration-150 ${
+        active ? "bg-codex-accent" : "bg-codex-faint"
       }`}
     >
       <span
-        className={`inline-block h-3 w-3 transform rounded-codex-xl bg-codex-surface transition-transform ${
+        className={`inline-block h-3 w-3 rounded-full bg-codex-elevated transition duration-150 ${
           active ? "translate-x-3.5" : "translate-x-0.5"
         }`}
       />

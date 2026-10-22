@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { Page } from "@tatalaku/shared";
-import { getListPages } from "@/services/page/get-list-pages";
+import { getPageTree } from "@/services/page/get-page-tree";
 import { createPage } from "@/services/page/create-page";
 import { updatePage } from "@/services/page/update-page";
 import { archivePage } from "@/services/page/archive-page";
@@ -71,7 +71,8 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   fetchPages: async (workspaceId: string) => {
     set({ isLoading: true });
     try {
-      const res = await getListPages({ workspaceId });
+      // Whole tree, uncapped and without content (the editor fetches content per page)
+      const res = await getPageTree({ workspaceId });
       const pages = res.data;
       set({ pages, isLoading: false, isInitialized: true });
       return pages;
@@ -230,12 +231,31 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
     const pageToRestore = previousArchived.find((p) => p.id === id);
     if (!pageToRestore) return;
 
-    // Optimistically update
-    const updatedPage = { ...pageToRestore, isArchived: false };
+    // Mirror the server: the whole archived subtree comes back, and the root
+    // moves to the top level if its parent isn't an active page.
+    const subtreeIds = new Set<string>([id]);
+    let frontier = [id];
+    while (frontier.length > 0) {
+      const next = previousArchived
+        .filter((p) => p.parentPageId && frontier.includes(p.parentPageId) && !subtreeIds.has(p.id))
+        .map((p) => p.id);
+      next.forEach((childId) => subtreeIds.add(childId));
+      frontier = next;
+    }
+    const parentIsActive =
+      pageToRestore.parentPageId !== null &&
+      previousPages.some((p) => p.id === pageToRestore.parentPageId);
+    const restored = previousArchived
+      .filter((p) => subtreeIds.has(p.id))
+      .map((p) => ({
+        ...p,
+        isArchived: false,
+        ...(p.id === id && !parentIsActive ? { parentPageId: null } : {}),
+      }));
 
     set((state) => ({
-      archivedPages: state.archivedPages.filter((p) => p.id !== id),
-      pages: [...state.pages, updatedPage],
+      archivedPages: state.archivedPages.filter((p) => !subtreeIds.has(p.id)),
+      pages: [...state.pages, ...restored],
     }));
 
     try {
@@ -293,8 +313,9 @@ export const usePageStore = create<PageState & PageActions>((set, get) => ({
   },
 
   fetchArchivedPages: async (workspaceId: string) => {
-    const res = await getListPages({ workspaceId, includeArchived: true });
-    const archivedPages = res.data.filter((p) => p.isArchived);
+    // Server-side filter: only archived pages, uncapped
+    const res = await getPageTree({ workspaceId, archived: true });
+    const archivedPages = res.data;
     set({ archivedPages });
     return archivedPages;
   },

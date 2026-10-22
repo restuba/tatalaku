@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useId, useRef } from "react";
 import type { Editor } from "@tiptap/react";
-import { ListTree, Hash, Sparkles } from "lucide-react";
+import { ListTree, Hash } from "lucide-react";
+import { scrollBehavior } from "@/lib/motion";
 
 export interface ToCItem {
   id: string;
@@ -116,17 +117,18 @@ export function scrollToTargetNode(targetDom: HTMLElement | null) {
   if (mainContainer) {
     const containerRect = mainContainer.getBoundingClientRect();
     const targetRect = targetDom.getBoundingClientRect();
-    // Sticky header is ~52px tall. We set targetOffset to 72px for 20px clean breathing space.
+    // The sticky top bar is 48px tall (56px on touch); a 72px offset leaves
+    // 16-24px of breathing space below it.
     const targetOffset = 72;
     const currentScrollTop = mainContainer.scrollTop;
     const targetTop = targetRect.top - containerRect.top + currentScrollTop - targetOffset;
 
     mainContainer.scrollTo({
       top: Math.max(0, Math.round(targetTop)),
-      behavior: "smooth",
+      behavior: scrollBehavior(),
     });
   } else {
-    targetDom.scrollIntoView({ behavior: "smooth", block: "start" });
+    targetDom.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
   }
 
   // Trigger flash highlight animation
@@ -146,34 +148,53 @@ interface TableOfContentsProps {
 export function TableOfContents({ editor }: TableOfContentsProps) {
   const items = useTableOfContents(editor);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const panelId = useId();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLButtonElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeItemRef = useRef<HTMLAnchorElement | null>(null);
   const isClickingRef = useRef(false);
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMouseEnter = useCallback(() => {
+  const handleOpen = useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
-    setIsHovered(true);
+    setIsOpen(true);
   }, []);
 
+  // The pointer may leave briefly (e.g. on its way to the panel) before it closes
   const handleMouseLeave = useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
     hoverTimeoutRef.current = setTimeout(() => {
-      setIsHovered(false);
+      setIsOpen(false);
     }, 220);
   }, []);
+
+  // Keyboard: the panel stays open while focus is inside the outline
+  const handleBlur = useCallback((event: React.FocusEvent) => {
+    if (!wrapperRef.current?.contains(event.relatedTarget as Node | null)) setIsOpen(false);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key !== "Escape" || !isOpen) return;
+      event.stopPropagation();
+      setIsOpen(false);
+      railRef.current?.focus();
+    },
+    [isOpen],
+  );
 
   // Keep active item in view inside outline panel
   useEffect(() => {
     if (activeItemRef.current) {
       activeItemRef.current.scrollIntoView({
-        behavior: "smooth",
+        behavior: scrollBehavior(),
         block: "nearest",
       });
     }
@@ -276,33 +297,77 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
   // Maximum 40 bars for the vertical outline bar indicator
   const displayBars = items.slice(0, 40);
 
+  // A click on a bar jumps to its heading; anywhere else on the rail (and
+  // Enter/Space) opens the outline panel
+  const handleRailClick = (event: React.MouseEvent) => {
+    const bar = (event.target as HTMLElement).closest<HTMLElement>("[data-toc-index]");
+    const item = bar ? displayBars[Number(bar.dataset.tocIndex)] : undefined;
+    if (item) handleItemClick(event, item);
+    else handleOpen();
+  };
+
+  // Vertically centered (not offset from the top), so the panel's max height
+  // (100vh - 8rem) keeps it clear of the sticky top bar (48px, 56px on touch).
+  // Shown from xl up only, so no smaller breakpoints are needed.
+  // The rail comes first in the DOM (Tab reaches it, then the panel's links);
+  // flex-row-reverse puts the panel on its left.
   return (
     <div
-      className="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex items-center select-none"
-      onMouseEnter={handleMouseEnter}
+      ref={wrapperRef}
+      className="fixed right-5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-row-reverse items-center select-none"
+      onMouseEnter={handleOpen}
       onMouseLeave={handleMouseLeave}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
     >
-      {/* 1. Popover Menu Box (Smoothly visible on hover, scrollable, auto-hides on blur) */}
-      {isHovered && (
+      {/* 1. The rail: one button (a comfortable target) drawing a bar per heading */}
+      <button
+        ref={railRef}
+        type="button"
+        aria-label="Outline"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? panelId : undefined}
+        onClick={handleRailClick}
+        className={`flex flex-col items-end rounded-codex-md px-2 py-0.5 transition-opacity duration-200 ${
+          isOpen ? "opacity-100" : "opacity-60 hover:opacity-100"
+        }`}
+      >
+        {displayBars.map((item, index) => {
+          const isActive = activeId === item.id;
+          // Width by heading level: 24px (H1), 16px (H2), 10px (H3)
+          const widthClass = item.level === 1 ? "w-6" : item.level === 2 ? "w-4" : "w-2.5";
+          // Padding, not gaps, so each bar's click area runs into the next
+          return (
+            <span key={item.id} data-toc-index={index} className="flex justify-end py-1">
+              <span
+                className={`block h-0.5 rounded-full transition-colors duration-150 ${widthClass} ${
+                  isActive ? "bg-codex-accent" : "bg-codex-faint"
+                }`}
+              />
+            </span>
+          );
+        })}
+      </button>
+
+      {/* 2. Panel (opens on hover or from the rail; scrollable) */}
+      {isOpen && (
         <aside
+          id={panelId}
           aria-label="Table of contents"
-          className="mr-2.5 sm:mr-3 w-72 sm:w-80 max-h-[calc(100vh-8rem)] overflow-hidden flex flex-col glass-surface border border-codex-border shadow-2xl rounded-codex-xl animate-in fade-in slide-in-from-right-2 duration-150"
+          className="surface-popover mr-3 flex w-80 max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-codex-lg animate-in fade-in slide-in-from-right-1 duration-150"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-3.5 py-2 border-b border-codex-border/60 bg-codex-surface/50">
-            <div className="flex items-center gap-2">
-              <ListTree className="w-3.5 h-3.5 text-codex-accent" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-codex-foreground">
-                Outline
-              </span>
-              <span className="text-xs font-mono px-1.5 py-0.5 rounded-full bg-codex-border/50 text-codex-muted">
-                {items.length}
-              </span>
+          {/* Header: label and the heading count */}
+          <div className="flex items-center justify-between border-b border-codex-border px-4 py-2.5">
+            <div className="eyebrow flex items-center gap-2 text-codex-muted">
+              <ListTree className="size-3.5" aria-hidden="true" />
+              <span>Outline</span>
+              <span>{String(items.length).padStart(2, "0")}</span>
             </div>
           </div>
 
-          {/* Scrollable Outline List */}
-          <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5 max-h-[55vh] text-xs">
+          {/* Scrollable Outline List: entries hang off a continuous hairline rail
+              (each entry's left border, no gaps between them) */}
+          <div className="flex-1 overflow-y-auto max-h-[55vh] px-4 py-3">
             {items.map((item) => {
               const isActive = activeId === item.id;
               return (
@@ -311,44 +376,39 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
                   ref={isActive ? activeItemRef : undefined}
                   href={`#${item.id}`}
                   onClick={(e) => handleItemClick(e, item)}
-                  className={`group relative flex items-center gap-1.5 py-1.5 pr-2 rounded-codex-md transition-all duration-150 ${
+                  className={`group relative flex items-center gap-2 border-l border-codex-border py-1.5 pr-2 text-sm transition-colors duration-150 ${
                     isActive
-                      ? "bg-codex-accent/15 text-codex-foreground font-semibold shadow-xs"
-                      : "text-codex-muted hover:text-codex-foreground hover:bg-codex-surface-secondary/50"
+                      ? "text-codex-foreground"
+                      : "text-codex-muted hover:text-codex-foreground"
                   }`}
                   style={{
-                    paddingLeft: `${(item.level - 1) * 14 + 10}px`,
+                    paddingLeft: `${(item.level - 1) * 14 + 12}px`,
                   }}
                 >
-                  {/* Active Indicator Bar */}
+                  {/* Active marker: a 2px accent bar over the rail */}
                   {isActive && (
-                    <span className="absolute left-1 top-1.5 bottom-1.5 w-1 rounded-full bg-codex-accent animate-in fade-in duration-200" />
+                    <span className="absolute -left-px inset-y-0 w-0.5 bg-codex-accent animate-in fade-in duration-150" />
                   )}
 
                   {/* Level marker */}
                   <span
-                    className={`shrink-0 transition-opacity ${
+                    aria-hidden="true"
+                    className={`shrink-0 transition-colors duration-150 ${
                       isActive
-                        ? "text-codex-accent opacity-100"
-                        : "opacity-40 group-hover:opacity-80"
+                        ? "text-codex-accent"
+                        : "text-codex-faint group-hover:text-codex-muted"
                     }`}
                   >
                     {item.level === 1 ? (
                       <Hash className="w-3.5 h-3.5" />
                     ) : (
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-current" />
+                      <span className="inline-block w-1 h-1 rounded-full bg-current" />
                     )}
                   </span>
 
                   {/* Heading Text */}
                   <span
-                    className={`truncate ${
-                      item.level === 1
-                        ? "text-xs font-semibold"
-                        : item.level === 2
-                          ? "text-xs font-medium"
-                          : "text-xs opacity-90"
-                    }`}
+                    className={`truncate ${item.level === 1 ? "font-medium" : ""} ${isActive ? "font-medium" : ""}`}
                   >
                     {item.text}
                   </span>
@@ -357,44 +417,11 @@ export function TableOfContents({ editor }: TableOfContentsProps) {
             })}
           </div>
 
-          {/* Subtle footer tip */}
-          <div className="px-3 py-1.5 border-t border-codex-border/40 bg-codex-surface/30 flex items-center gap-1.5 text-xs text-codex-muted">
-            <Sparkles className="w-3 h-3 text-codex-accent/70 shrink-0" />
-            <span className="opacity-70">Click to jump to section</span>
-          </div>
+          <p className="border-t border-codex-border px-4 py-2.5 text-xs text-codex-muted">
+            Select a heading to jump to it.
+          </p>
         </aside>
       )}
-
-      {/* 2. Vertical Outline Bars (always visible on the right edge, max 40 bars) */}
-      <div
-        className={`flex flex-col items-end gap-y-2 py-1.5 px-2 rounded-codex-md cursor-pointer transition-opacity duration-200 ${
-          isHovered ? "opacity-100" : "opacity-40 hover:opacity-100"
-        }`}
-        title="Outline"
-      >
-        {displayBars.map((item) => {
-          const isActive = activeId === item.id;
-          // Width based on heading level:
-          // Level 1: 24px (w-6)
-          // Level 2: 16px (w-4)
-          // Level 3: 10px (w-2.5)
-          const widthClass =
-            item.level === 1 ? "w-5 sm:w-6" : item.level === 2 ? "w-3.5 sm:w-4" : "w-2 sm:w-2.5";
-
-          return (
-            <button
-              key={item.id}
-              onClick={(e) => handleItemClick(e, item)}
-              aria-label={`Jump to ${item.text}`}
-              className={`h-[2.5px] rounded-full transition-all duration-150 ${widthClass} ${
-                isActive
-                  ? "bg-codex-accent h-[3px] scale-x-105"
-                  : "bg-codex-foreground/40 hover:bg-codex-foreground/80 hover:scale-x-110"
-              }`}
-            />
-          );
-        })}
-      </div>
     </div>
   );
 }

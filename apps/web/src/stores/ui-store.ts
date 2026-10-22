@@ -3,8 +3,51 @@
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { UI_STORE_KEY } from "@/constants/storage-keys";
+import { isReadingSize, type ReadingSize } from "@/lib/reading-size";
+
+/**
+ * Animation preference. `system` follows the OS "reduce motion" setting;
+ * `on`/`off` override it. Applied as `data-motion` on <html> (see MotionSync).
+ */
+export type MotionPreference = "system" | "on" | "off";
+
+/** Sections of the Settings dialog */
+export const SETTINGS_TABS = ["account", "appearance", "general", "members"] as const;
+export type SettingsTab = (typeof SETTINGS_TABS)[number];
+
+export function isSettingsTab(value: unknown): value is SettingsTab {
+  return typeof value === "string" && (SETTINGS_TABS as ReadonlyArray<string>).includes(value);
+}
+
+/** localStorage key of the persisted UI store (also read by the pre-paint script) */
+export { UI_STORE_KEY };
+
+export type SidebarPeek = "hidden" | "shown" | "leaving";
+
+/** Below this width the sidebar is an overlay drawer instead of a docked column */
+export const SIDEBAR_DRAWER_QUERY = "(max-width: 767px)";
+
+/** Where the sidebar peek is available: wide layouts with a hovering pointer */
+const PEEK_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
+/** Pointer may leave the peek this long before it starts closing (no flicker) */
+const PEEK_GRACE_MS = 180;
+/** Matches the peek panel's exit transition before its layout is dropped */
+const PEEK_EXIT_MS = 220;
+let peekGraceTimer: ReturnType<typeof setTimeout> | undefined;
+let peekExitTimer: ReturnType<typeof setTimeout> | undefined;
+
+function clearPeekTimers(): void {
+  clearTimeout(peekGraceTimer);
+  clearTimeout(peekExitTimer);
+  peekGraceTimer = undefined;
+  peekExitTimer = undefined;
+}
 
 interface UIState {
+  motion: MotionPreference;
+  /** Document text size (Settings → Appearance) */
+  readingSize: ReadingSize;
   isSidebarOpen: boolean;
   isOutlineOpen: boolean;
   /** Render page content full width across the whole app (device preference) */
@@ -13,12 +56,33 @@ interface UIState {
   isCommandPaletteOpen: boolean;
   /** Transient: never persisted */
   isImportMarkdownOpen: boolean;
+  /** Transient: keyboard shortcuts sheet (⌘/) */
+  isShortcutsOpen: boolean;
+  /** Transient: the open Settings section, or null while Settings is closed */
+  settingsTab: SettingsTab | null;
+  /** The section Settings reopens on when no section is asked for (persisted) */
+  lastSettingsTab: SettingsTab;
+  /**
+   * Transient: floating "peek" of the collapsed sidebar (hover the left edge
+   * or the open-sidebar button). `leaving` keeps the floating layout while it
+   * animates out, then settles back to `hidden`.
+   */
+  sidebarPeek: SidebarPeek;
   /** Used by the Home "Getting started" checklist */
   hasUsedCommandPalette: boolean;
   isOnboardingDismissed: boolean;
 }
 
 interface UIActions {
+  setMotion: (motion: MotionPreference) => void;
+  setReadingSize: (readingSize: ReadingSize) => void;
+  /**
+   * Open Settings (from the sidebar or the command palette): on `tab` when
+   * given, otherwise on the section that was open last.
+   */
+  openSettings: (tab?: SettingsTab) => void;
+  setSettingsTab: (tab: SettingsTab) => void;
+  closeSettings: () => void;
   toggleSidebar: () => void;
   setSidebarOpen: (isOpen: boolean) => void;
   toggleOutline: () => void;
@@ -28,28 +92,80 @@ interface UIActions {
   setCommandPaletteOpen: (isOpen: boolean) => void;
   toggleCommandPalette: () => void;
   setImportMarkdownOpen: (isOpen: boolean) => void;
+  setShortcutsOpen: (isOpen: boolean) => void;
+  /** Show the floating sidebar peek (no-op while the sidebar is docked open) */
+  peekSidebar: () => void;
+  /** Close the peek after a short grace period */
+  unpeekSidebar: () => void;
   dismissOnboarding: () => void;
 }
 
 export const useUIStore = create<UIState & UIActions>()(
   persist(
-    (set) => ({
+    (set, get) => ({
+      motion: "system",
+      readingSize: "default",
       isSidebarOpen: true,
       isOutlineOpen: false,
       isFullWidth: false,
       isCommandPaletteOpen: false,
       isImportMarkdownOpen: false,
+      isShortcutsOpen: false,
+      settingsTab: null,
+      lastSettingsTab: "account",
+      sidebarPeek: "hidden",
       hasUsedCommandPalette: false,
       isOnboardingDismissed: false,
 
+      setMotion: (motion) => {
+        set({ motion });
+      },
+
+      setReadingSize: (readingSize) => {
+        set({ readingSize });
+      },
+
+      openSettings: (tab) => {
+        const next = tab ?? get().lastSettingsTab;
+        set({ settingsTab: next, lastSettingsTab: next });
+      },
+
+      setSettingsTab: (tab) => {
+        set({ settingsTab: tab, lastSettingsTab: tab });
+      },
+
+      closeSettings: () => {
+        set({ settingsTab: null });
+      },
+
+      // Docking/undocking always ends any peek in progress
       toggleSidebar: () => {
+        clearPeekTimers();
         set((state) => ({
           isSidebarOpen: !state.isSidebarOpen,
+          sidebarPeek: "hidden",
         }));
       },
 
       setSidebarOpen: (isOpen) => {
-        set({ isSidebarOpen: isOpen });
+        clearPeekTimers();
+        set({ isSidebarOpen: isOpen, sidebarPeek: "hidden" });
+      },
+
+      peekSidebar: () => {
+        clearPeekTimers();
+        // Hover-only affordance: phones/tablets use the drawer instead
+        if (get().isSidebarOpen || !window.matchMedia(PEEK_QUERY).matches) return;
+        set({ sidebarPeek: "shown" });
+      },
+
+      unpeekSidebar: () => {
+        clearPeekTimers();
+        if (get().sidebarPeek === "hidden") return;
+        peekGraceTimer = setTimeout(() => {
+          set({ sidebarPeek: "leaving" });
+          peekExitTimer = setTimeout(() => set({ sidebarPeek: "hidden" }), PEEK_EXIT_MS);
+        }, PEEK_GRACE_MS);
       },
 
       toggleOutline: () => {
@@ -88,20 +204,55 @@ export const useUIStore = create<UIState & UIActions>()(
         set({ isImportMarkdownOpen: isOpen });
       },
 
+      setShortcutsOpen: (isOpen) => {
+        set({ isShortcutsOpen: isOpen });
+      },
+
       dismissOnboarding: () => {
         set({ isOnboardingDismissed: true });
       },
     }),
     {
-      name: "tatalaku-ui-v1",
+      name: UI_STORE_KEY,
       // Only persist layout preferences, not transient overlays
       partialize: (state) => ({
+        motion: state.motion,
+        readingSize: state.readingSize,
         isSidebarOpen: state.isSidebarOpen,
         isOutlineOpen: state.isOutlineOpen,
         isFullWidth: state.isFullWidth,
         hasUsedCommandPalette: state.hasUsedCommandPalette,
         isOnboardingDismissed: state.isOnboardingDismissed,
+        lastSettingsTab: state.lastSettingsTab,
       }),
+      // Shallow merge (the default), but an unknown saved section falls back
+      // to the default instead of opening Settings on nothing
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<UIState>;
+        return {
+          ...current,
+          ...saved,
+          lastSettingsTab: isSettingsTab(saved.lastSettingsTab)
+            ? saved.lastSettingsTab
+            : current.lastSettingsTab,
+        };
+      },
+      // The drawer always starts closed on small screens. Done at rehydration
+      // (before the first render) so an "open" preference saved on a wide
+      // screen never flashes the drawer open on load.
+      onRehydrateStorage: () => (state) => {
+        // Hand-edited or stale storage: fall back to the default text size
+        if (state && !isReadingSize(state.readingSize)) {
+          state.setReadingSize("default");
+        }
+        if (
+          state?.isSidebarOpen &&
+          typeof window !== "undefined" &&
+          window.matchMedia(SIDEBAR_DRAWER_QUERY).matches
+        ) {
+          state.setSidebarOpen(false);
+        }
+      },
     },
   ),
 );
@@ -109,16 +260,20 @@ export const useUIStore = create<UIState & UIActions>()(
 const noopSubscribe = () => () => {};
 
 /**
- * Reads the persisted full-width preference, but returns the default (false)
- * until the client has mounted. This keeps SSR and the first client render in
- * sync and avoids a hydration mismatch from persisted zustand state.
+ * Reads persisted UI state, but returns `fallback` (the store default) until
+ * the client has mounted. This keeps SSR and the first client render in sync
+ * and avoids a hydration mismatch from persisted zustand state.
  */
-export function useHydratedFullWidth(): boolean {
+export function useHydratedUIValue<T>(selector: (state: UIState) => T, fallback: T): T {
   const isMounted = useSyncExternalStore(
     noopSubscribe,
     () => true,
     () => false,
   );
-  const isFullWidth = useUIStore((s) => s.isFullWidth);
-  return isMounted ? isFullWidth : false;
+  const value = useUIStore(selector);
+  return isMounted ? value : fallback;
+}
+
+export function useHydratedSidebarOpen(): boolean {
+  return useHydratedUIValue((s) => s.isSidebarOpen, true);
 }

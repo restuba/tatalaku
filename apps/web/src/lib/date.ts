@@ -32,6 +32,15 @@ export function formatTimeAgo(dateInput: Date | string | number | null | undefin
   });
 }
 
+/** Machine-readable value for a <time dateTime>, or undefined when invalid */
+export function toISODate(
+  dateInput: Date | string | number | null | undefined,
+): string | undefined {
+  if (!dateInput) return undefined;
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  return isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
 /**
  * Format date into a detailed tooltip timestamp (e.g. "Sep 3, 2026, 1:15 PM")
  */

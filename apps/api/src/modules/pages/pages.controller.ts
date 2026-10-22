@@ -1,6 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
 import { pagesService } from "./pages.service.js";
-import type { ListPagesQuery, GetChildrenQuery, SearchPagesQuery } from "./pages.validation.js";
+import type {
+  ListPagesQuery,
+  GetChildrenQuery,
+  SearchPagesQuery,
+  PageTreeQuery,
+} from "./pages.validation.js";
 
 export class PagesController {
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -18,6 +23,16 @@ export class PagesController {
       const query = req.query as unknown as SearchPagesQuery;
       const results = await pagesService.search(req.user!.id, query);
       res.status(200).json({ success: true, data: results });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async tree(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const query = req.query as unknown as PageTreeQuery;
+      const pages = await pagesService.tree(req.user!.id, query);
+      res.status(200).json({ success: true, data: pages });
     } catch (err) {
       next(err);
     }

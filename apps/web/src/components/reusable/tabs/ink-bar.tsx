@@ -28,7 +28,7 @@ export function InkBar({ containerRef, activeValue }: InkBarProps) {
 
   return (
     <div
-      className="absolute bottom-0 h-0.5 bg-codex-accent transition-all duration-200 ease-out"
+      className="absolute -bottom-px h-0.5 bg-codex-accent transition-[left,width] duration-200 ease-out"
       style={{
         left: `${style.left}px`,
         width: `${style.width}px`,

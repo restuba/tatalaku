@@ -1,60 +1,75 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { PanelLeft } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
+import { useModKey } from "@/lib/platform";
 import { Breadcrumb, type BreadcrumbItem } from "@/components/shared/breadcrumb";
+import { TOP_BAR_ICON_BUTTON } from "./constants";
+
+export { TOP_BAR_ICON_BUTTON };
 
 interface TopBarProps {
   items: BreadcrumbItem[];
   actions?: ReactNode;
+  /** Hairline along the bottom edge that fills as the page is read */
+  showScrollProgress?: boolean;
+  /**
+   * Drop the bar on wide screens while the sidebar is docked open, for views
+   * where it would only repeat the sidebar (Home). It stays on phones, where
+   * it holds the drawer button, and whenever the sidebar is collapsed.
+   */
+  hideWhenSidebarDocked?: boolean;
 }
 
 /**
- * Minimal sticky top bar for workspace pages.
- * The bottom divider only appears once the content has been scrolled,
- * so the page feels borderless at rest.
+ * Sticky top bar for workspace pages: where you are on the left, the page's
+ * own actions on the right. Account and preferences (theme included) live in
+ * the sidebar's Settings and the command palette, so they aren't repeated here.
  */
-export function TopBar({ items, actions }: TopBarProps) {
-  const { isSidebarOpen, setSidebarOpen } = useUIStore();
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      setIsScrolled(entry ? !entry.isIntersecting : false);
-    });
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []);
+export function TopBar({
+  items,
+  actions,
+  showScrollProgress = false,
+  hideWhenSidebarDocked = false,
+}: TopBarProps) {
+  const { isSidebarOpen, setSidebarOpen, peekSidebar, unpeekSidebar } = useUIStore();
+  const mod = useModKey();
 
   return (
-    <>
-      <div ref={sentinelRef} aria-hidden className="h-0 w-full" />
-      <header
-        className={`sticky top-0 z-40 flex h-11 items-center justify-between gap-3 px-3 bg-codex-background border-b transition-colors duration-150 select-none ${
-          isScrolled ? "border-codex-border" : "border-transparent"
-        }`}
-      >
-        <div className="flex min-w-0 items-center gap-1">
-          {!isSidebarOpen && (
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className="shrink-0 p-1.5 rounded-codex-md text-codex-muted hover:bg-codex-surface-secondary hover:text-codex-foreground transition-colors"
-              aria-label="Open sidebar"
-              title="Open sidebar"
-            >
-              <PanelLeft className="w-4 h-4" />
-            </button>
-          )}
-          <Breadcrumb items={items} />
-        </div>
+    <header
+      className={`sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between gap-3 border-b border-codex-border bg-codex-background px-3 select-none pointer-coarse:h-14 ${
+        hideWhenSidebarDocked && isSidebarOpen ? "md:hidden" : ""
+      }`}
+    >
+      <div className="flex min-w-0 items-center gap-1">
+        {!isSidebarOpen && (
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            // Hovering previews the sidebar as a floating peek (desktop only)
+            onMouseEnter={peekSidebar}
+            onMouseLeave={unpeekSidebar}
+            className={TOP_BAR_ICON_BUTTON}
+            aria-label="Open sidebar"
+            aria-keyshortcuts="Meta+Backslash Control+Backslash"
+            title={`Open sidebar (${mod}\\)`}
+          >
+            <PanelLeft className="size-4" />
+          </button>
+        )}
+        <Breadcrumb items={items} />
+      </div>
 
-        {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
-      </header>
-    </>
+      {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
+
+      {/* Scroll-driven in CSS (no listeners); hidden where unsupported */}
+      {showScrollProgress && (
+        <div
+          aria-hidden="true"
+          className="scroll-progress pointer-events-none absolute inset-x-0 -bottom-px h-px bg-codex-accent"
+        />
+      )}
+    </header>
   );
 }

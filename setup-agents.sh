@@ -74,7 +74,7 @@ cat > ".agents/rules/frontend.md" << 'FILE_EOF'
 ## Aturan Wajib
 - Gunakan App Router (Next.js 15) — routes di `src/app/`, bukan Pages Router.
 - Semua request ke backend lewat API client di `src/lib/api.ts` yang sudah punya interceptor auto-refresh token — jangan fetch langsung di komponen tanpa lewat client ini.
-- Middleware Next.js menangani redirect ke `/login` untuk halaman yang butuh autentikasi — jangan duplikasi logic redirect ini di tiap halaman.
+- Proxy Next.js (`src/proxy.ts`, pengganti `middleware.ts` sejak Next 16) menangani redirect ke `/login` untuk halaman yang butuh autentikasi — jangan duplikasi logic redirect ini di tiap halaman.
 - Update state via optimistic update untuk aksi cepat (rename, archive, reorder block) supaya UX terasa instan, tapi tetap rollback kalau request ke backend gagal.
 - Perubahan pada editor (block content) di-debounce sebelum dikirim ke backend — jangan request per keystroke.
 
