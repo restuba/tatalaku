@@ -274,10 +274,6 @@ export function useHydratedUIValue<T>(selector: (state: UIState) => T, fallback:
   return isMounted ? value : fallback;
 }
 
-export function useHydratedFullWidth(): boolean {
-  return useHydratedUIValue((s) => s.isFullWidth, false);
-}
-
 export function useHydratedSidebarOpen(): boolean {
   return useHydratedUIValue((s) => s.isSidebarOpen, true);
 }

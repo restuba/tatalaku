@@ -262,6 +262,24 @@ html[data-reading-size="large"] {
   --reading-size: 1.1875rem;
 }
 
+/* Content width preference (Settings → Appearance → Full width). Driven by
+   `data-full-width` on <html> — set before paint (lib/prepaint.ts) and kept
+   in sync by MotionSync — so the choice is right from the first paint and the
+   skeletons match it, with no hydration mismatch from a React-computed class.
+   Elements opt in with `.width-aware`; the editor also pulls its right padding
+   in on wide screens via `.width-aware-pad`. */
+.width-aware {
+  max-width: 48rem; /* matches Tailwind max-w-3xl */
+}
+html[data-full-width] .width-aware {
+  max-width: none;
+}
+@media (min-width: 1280px) {
+  html[data-full-width] .width-aware-pad {
+    padding-right: 5rem; /* matches Tailwind pr-20 */
+  }
+}
+
 @theme inline {
   /* Drop Tailwind's built-in color, radius and shadow scales: only the tokens
      registered below exist. */

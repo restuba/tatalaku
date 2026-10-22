@@ -19,12 +19,12 @@ function prepaint(storage: Record<string, string> = {}, media: readonly string[]
   stubMatchMedia(media);
   // The script is shipped as a string; evaluate it the way the browser would
   new Function(PREPAINT_SCRIPT)();
-  const { theme, motion, readingSize } = document.documentElement.dataset;
-  return { theme, motion, readingSize };
+  const { theme, motion, readingSize, fullWidth } = document.documentElement.dataset;
+  return { theme, motion, readingSize, fullWidth };
 }
 
 beforeEach(() => {
-  for (const attr of ["data-theme", "data-motion", "data-reading-size"]) {
+  for (const attr of ["data-theme", "data-motion", "data-reading-size", "data-full-width"]) {
     document.documentElement.removeAttribute(attr);
   }
 });
@@ -98,5 +98,14 @@ describe("pre-paint script: motion and text size", () => {
     expect(
       prepaint({ [UI_STORE_KEY]: uiStore({ readingSize: "huge" }) }).readingSize,
     ).toBeUndefined();
+  });
+
+  it("marks full width before paint only when the preference is on", () => {
+    expect(prepaint({ [UI_STORE_KEY]: uiStore({ isFullWidth: true }) }).fullWidth).toBe("true");
+    document.documentElement.removeAttribute("data-full-width");
+    localStorage.clear();
+    expect(prepaint({ [UI_STORE_KEY]: uiStore({ isFullWidth: false }) }).fullWidth).toBeUndefined();
+    localStorage.clear();
+    expect(prepaint().fullWidth).toBeUndefined();
   });
 });

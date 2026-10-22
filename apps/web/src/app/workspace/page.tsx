@@ -7,7 +7,6 @@ import { Home } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { usePageStore } from "@/stores/page-store";
-import { useHydratedFullWidth } from "@/stores/ui-store";
 import { WorkspaceHomeSkeleton } from "@/components/ui/skeleton";
 import { TopBar } from "./_components/top-bar";
 import {
@@ -40,7 +39,6 @@ export default function WorkspaceHomePage() {
   const { user } = useAuthStore();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, createPage, updatePage, isInitialized } = usePageStore();
-  const isFullWidth = useHydratedFullWidth();
 
   const activePages = useMemo(
     () => pages.filter((p) => !p.isArchived).sort((a, b) => getLastTouched(b) - getLastTouched(a)),
@@ -105,11 +103,7 @@ export default function WorkspaceHomePage() {
       />
 
       <div className="flex-1 w-full">
-        <div
-          className={`w-full mx-auto px-6 sm:px-12 pt-10 sm:pt-16 pb-24 transition-[max-width] duration-200 ${
-            isFullWidth ? "max-w-none" : "max-w-3xl"
-          }`}
-        >
+        <div className="width-aware w-full mx-auto px-6 sm:px-12 pt-10 sm:pt-16 pb-24 transition-[max-width] duration-200">
           <HomeHero
             greeting={getGreeting(now)}
             name={firstName}

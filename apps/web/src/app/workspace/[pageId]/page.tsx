@@ -6,7 +6,6 @@ import Link from "next/link";
 import type { Page } from "@tatalaku/shared";
 import { usePageStore } from "@/stores/page-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { useHydratedFullWidth } from "@/stores/ui-store";
 import { BlockEditor, type SaveStatus } from "@/components/editor/block-editor";
 import { PageHeaderSkeleton, PageContentSkeleton } from "@/components/ui/skeleton";
 import type { BreadcrumbItem } from "@/components/shared/breadcrumb";
@@ -62,7 +61,6 @@ function PageDetail({ page }: { page: Page }) {
   const { message } = useApp();
   const { activeWorkspace } = useWorkspaceStore();
   const { pages, updatePage, createPage } = usePageStore();
-  const isFullWidth = useHydratedFullWidth();
 
   const [title, setTitle] = useState(page.title);
   const [icon, setIcon] = useState(page.icon);
@@ -362,9 +360,9 @@ function PageDetail({ page }: { page: Page }) {
       </AnimatePresence>
 
       <div
-        className={`flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pb-24 transition-[max-width,padding] duration-200 ${
+        className={`width-aware width-aware-pad flex-1 flex flex-col w-full mx-auto pl-10 pr-6 sm:px-12 pb-24 transition-[max-width,padding] duration-200 ${
           coverImage ? "pt-8" : "pt-8 sm:pt-12"
-        } ${isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"}`}
+        }`}
       >
         {/* Page header: icon, title, byline */}
         <div className="group/title mb-2">

@@ -2,11 +2,7 @@
 
 import { Fragment, type HTMLAttributes } from "react";
 import { ChevronRight } from "lucide-react";
-import {
-  useHydratedFullWidth,
-  useHydratedSidebarOpen,
-  useHydratedUIValue,
-} from "@/stores/ui-store";
+import { useHydratedSidebarOpen, useHydratedUIValue } from "@/stores/ui-store";
 
 /*
  * Skeletons mirror the real components' box model (same paddings, font
@@ -146,14 +142,8 @@ export function EditorBodySkeleton() {
  * (the default for new pages); both are unknown until the page list loads.
  */
 export function PageContentSkeleton() {
-  const isFullWidth = useHydratedFullWidth();
-
   return (
-    <div
-      className={`mx-auto flex w-full flex-1 flex-col pt-8 pr-6 pb-24 pl-10 sm:px-12 sm:pt-12 ${
-        isFullWidth ? "max-w-none xl:pr-20" : "max-w-3xl"
-      }`}
-    >
+    <div className="width-aware width-aware-pad mx-auto flex w-full flex-1 flex-col pt-8 pr-6 pb-24 pl-10 sm:px-12 sm:pt-12">
       <div className="mb-2">
         {/* "Add cover" and "Add icon": hidden at rest on desktop, but they take their rows */}
         <div className="mb-1 h-8 pointer-coarse:h-11" />
@@ -274,7 +264,6 @@ function SectionHeadingSkeleton({ width }: { width: string }) {
 
 /** Skeleton for the Workspace Home overview, section for section with the real page */
 export function WorkspaceHomeSkeleton() {
-  const isFullWidth = useHydratedFullWidth();
   const isOnboardingDismissed = useHydratedUIValue((s) => s.isOnboardingDismissed, false);
 
   return (
@@ -282,11 +271,7 @@ export function WorkspaceHomeSkeleton() {
       <TopBarSkeleton crumbs={HOME_CRUMBS} hideWhenSidebarDocked />
 
       <div className="w-full flex-1">
-        <div
-          className={`mx-auto w-full px-6 pt-10 pb-24 sm:px-12 sm:pt-16 ${
-            isFullWidth ? "max-w-none" : "max-w-3xl"
-          }`}
-        >
+        <div className="width-aware mx-auto w-full px-6 pt-10 pb-24 sm:px-12 sm:pt-16">
           {/* Hero: eyebrow, greeting (usually wraps on phones), ruled stats */}
           <div className="flex items-center gap-2 text-xs">
             <Skeleton className="size-1.5 shrink-0 rounded-full" />
