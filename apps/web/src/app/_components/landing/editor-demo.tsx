@@ -154,7 +154,9 @@ export function EditorDemo() {
         <div className="hidden w-52 shrink-0 flex-col gap-0.5 border-r border-codex-border bg-codex-sidebar p-3 sm:flex">
           <div className="mb-3 flex items-center gap-1.5 px-2">
             <LogoMark className="size-4 text-codex-accent" />
-            <span className="font-serif text-sm font-medium text-codex-foreground">Tatalaku</span>
+            <span className="font-serif text-sm font-medium italic text-codex-foreground">
+              Tatalaku
+            </span>
           </div>
           <p className="eyebrow mb-1 px-2 text-codex-muted">Pages</p>
           {SIDEBAR_PAGES.map((page, i) => (

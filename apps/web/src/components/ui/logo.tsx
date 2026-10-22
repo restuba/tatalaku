@@ -54,7 +54,7 @@ export function Logo({ className = "", variant = "full", size = "md" }: LogoProp
       <LogoMark className={`${MARK_SIZE[size]} shrink-0 text-codex-accent`} />
       {variant === "full" ? (
         <span
-          className={`font-serif font-medium leading-none tracking-tight text-codex-foreground ${WORDMARK_SIZE[size]}`}
+          className={`font-serif font-medium italic leading-none tracking-tight text-codex-foreground ${WORDMARK_SIZE[size]}`}
         >
           Tatalaku
         </span>
